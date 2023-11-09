@@ -13,13 +13,18 @@ Created on Thu Sep 29 10:56:25 2022
 import pandas as pd
 import os
 import numpy as np
-# from statistics import mean
-import csv
 
+#workdir = os.getcwd()
 indir = snakemake.params.countdir
-os.chdir(indir) #'featureCounts_reverse'
+outdir = os.path.dirname(snakemake.output.avg_nofilter)
+indir2 = snakemake.params.filtered_countdir
+outdir2 = os.path.dirname(snakemake.output.avg_filtered)
+ref_countfile = snakemake.input.counts_filtered[0]
+#os.chdir(indir) #featureCounts_reverse/nofilter
 
 print('Loaded input')
+
+[os.makedirs(outd) for outd in [outdir, outdir2] if not os.path.exists(outd)]
 
 # =============================================================================
 # Here, replicate names are saved to a dictionary.
@@ -27,9 +32,9 @@ print('Loaded input')
 df_dict = {}
 mean_fragment_length = {}
 locus_tags = []
-for filename in os.listdir():
+for filename in os.listdir(indir):
     if 'H3B1-04J' in filename and filename.endswith('featureCounts'):
-        with open(filename, 'r') as countfile:
+        with open(f'{indir}/{filename}', 'r') as countfile:
             sname = filename.split('-')[4] + '_' + filename[20] + '_' + filename.split('-')[6].split('_')[1]
             features = pd.read_csv(countfile, sep = '\t', header = 1)
             locus_tags.append(features['Geneid'])
@@ -44,7 +49,7 @@ isolate_list = [isolate.split('_')[0] for isolate in df_dict.keys()]
 isolate_list = list(np.unique(isolate_list))
 conditions = ['F', 'S']
 
-with open('../' + snakemake.input.TPM) as tab_TPM:
+with open(snakemake.input.TPM) as tab_TPM:
     TPM_samples = pd.read_table(tab_TPM)
     print('Read TPM')
     
@@ -115,14 +120,20 @@ for isolate in isolate_list:
             print(name)
 
 # =============================================================================
-# OBS!: Remove the gene_dict part
+# Writing mean counts
 # =============================================================================
 
 gene_dict = {}
-input_meta = f'../{snakemake.input.meta}'
-new_file = 'countfiles/avg_gene_counts.tsv'
-meta_file = 'countfiles/H3B1-04J_metadata.tsv'
-pos_file = '../meta/gene_positions.tsv'
+input_meta = snakemake.input.meta
+new_file = snakemake.output.avg_nofilter
+new_file2 = snakemake.output.avg_filtered
+meta_file = snakemake.output.meta
+pos_file = snakemake.output.pos
+with open(ref_countfile) as keep:
+    keep_row = pd.read_csv(keep, sep = '\t', index_col = 0)
+    to_keep = list(keep_row.index)
+    print(to_keep)
+    
 for i in isolate_dict.keys():
     for condition in conditions:
         isolate_dict[i]['Mean_results'] = (isolate_dict[i][isolate_dict[i].columns[5:]].sum(axis=1))/len(isolate_dict[i].columns[5:])
@@ -136,7 +147,9 @@ for i in isolate_dict.keys():
                 isolate_dict[i].drop(isolate_dict[i][isolate_dict[i]['Geneid'] == gene].index, inplace = True)
 
         counts = pd.concat([isolate_dict[i]['Geneid'], isolate_dict[i].iloc[:, 5:-1]], axis = 1)
-        counts.to_csv(f'countfiles/H3B1-04J_{i}_counts.tsv', sep = '\t', index = False)
+        counts.to_csv(f'{outdir}/H3B1-04J_{i}_counts.tsv', sep = '\t', index = False)
+        filtered_counts = counts[counts['Geneid'].isin(to_keep)]
+        filtered_counts.to_csv(f'{outdir2}/H3B1-04J_{i}_counts.tsv', sep = '\t', index = False)
       
 with open(input_meta, 'r') as exp_meta:
     df_c3 = pd.read_csv(exp_meta, sep = '\t')
@@ -150,10 +163,13 @@ with open(meta_file, 'w') as metadata:
 #Save metadata to one file (gene name + start + end + length) and gene name +
 #gene counts to a separate file    
 
-with open(new_file, 'w') as avg_counts:
+with open(new_file, 'w') as avg_counts, open(new_file2, 'w') as avg_fc:
     avg_counts.write('\t' + '\t'.join(list(isolate_dict.keys())) + '\n')
-with open(new_file, 'a') as avg_counts:
+    avg_fc.write('\t' + '\t'.join(list(isolate_dict.keys())) + '\n')
+#with open(new_file, 'a') as avg_counts:
     [avg_counts.write(f'{gene}\t' + '\t'.join([str(gcount) for gcount in gene_dict[gene]]) + '\n') for gene in gene_dict.keys()]
+    [avg_fc.write(f'{gene}\t' + '\t'.join([str(gcount) for gcount in gene_dict[gene]]) + '\n') for gene in gene_dict.keys() if gene in to_keep]
+
 
 #Save positions to file
 with open(pos_file, 'w') as pos:

@@ -9,6 +9,8 @@ path2files=$HOME'/snpseq00064/files/VF-3336/221006_M06455_0144_000000000-KMH8C'
 index_file=$HOME'/Akunkeei_files/fna/H3B1-04J_genomic.fna'
 gff_file=$HOME'/Akunkeei_files/gff/H3B1-04J_genomic.gff'
 
+mkdir -p $workdir/trimmed_reads
+
 cat $index_file > index/H3B1-04J.fna;
 name='H3B1-04J'
 
@@ -26,6 +28,7 @@ bwa index $workdir/index/H3B1-04J.fna > $workdir/index/H3B1-04J.bwt;
 for sample in $path2files/Sample_VF-3336-H3B1-04J-*/*R1_001.fastq.gz;
 do
 echo $sample, $sample ${sample::-15}R2_001.fastq.gz
+echo $workdir/trimmed_reads/$(basename -- ${sample::-16})
 skewer -m pe -Q 30 -t 12 -y TruSeq3-PE-2.fa $sample ${sample::-15}R2_001.fastq.gz -o $workdir/trimmed_reads/$(basename -- ${sample::-16})
 
 #bwa index index/$name.fna > index/$name.bwt

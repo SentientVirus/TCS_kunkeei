@@ -10,29 +10,28 @@ This is a script to filter counts that removes ribosomal genes
 # =============================================================================
 # 0. Importing packages
 # =============================================================================
-from os.path import expanduser, exists, isfile, basename
-from os import makedirs, listdir
+import os
 from Bio import GenBank
 import pandas as pd
 
 # =============================================================================
 # 1. Define inputs and outputs
 # =============================================================================
-home = expanduser('~')
+#home = expanduser('~')
 
-workdir = f'{home}/snpseq00064'
+workdir = snakemake.params.workdir #f'{home}/snpseq00064'
 
-count_dir = f'{workdir}/featureCounts_reverse'
-outdir = f'{count_dir}/filtered'
-metadir = f'{workdir}/results/summary'
+count_dir = os.path.dirname(snakemake.input.counts[0])
+outdir = os.path.dirname(snakemake.output.counts[0]) #f'{count_dir}/filtered'
+metadir = os.path.dirname(snakemake.output.summary[0]) #f'{workdir}/results/summary'
 
-if not exists(outdir):
-    makedirs(outdir)
+if not os.path.exists(outdir):
+    os.makedirs(outdir)
     
-if not exists(metadir):
-    makedirs(metadir)
+if not os.path.exists(metadir):
+    os.makedirs(metadir)
     
-gbk_file = f'{home}/Akunkeei_files/gbff/H3B1-04J_genomic.gbff'
+gbk_file = snakemake.input.gbff #f'{home}/Akunkeei_files/gbff/H3B1-04J_genomic.gbff'
 
 # =============================================================================
 # 2. Read GenBank file to get locus tags of genes annotated as ribosomal RNAs
@@ -65,7 +64,7 @@ with open(gbk_file) as handle:
 # 3. Read count file and filter out the RNA genes, create 
 # =============================================================================
 type_count = {}
-for file in listdir(count_dir):
+for file in os.listdir(count_dir):
     file_path = f'{count_dir}/{file}'
     if file.endswith('featureCounts'):
         with open(f'{file_path}') as counts:
