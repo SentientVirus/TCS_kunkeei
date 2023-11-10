@@ -11,8 +11,9 @@ for (package in new.packages){
 
 library(NOISeq)
 #library(EDASeq)
-directory <- "../featureCounts_reverse/countfiles"
-metadat <- grep("metadata.tsv", list.files(directory), value = TRUE)
+directory <- "../featureCounts_reverse/countfiles/filtered"
+parent_dir <- "../featureCounts_reverse/countfiles"
+metadat <- grep("metadata.tsv", list.files(parent_dir), value = TRUE)
 sampleFiles <- list.files(directory)[grepl("counts.tsv",list.files(directory))][-1]
 sampleCondition <- c()
 for (file in sampleFiles){
@@ -52,7 +53,7 @@ for (substring in unique_substrings) {
 colnames(sum_counts) <- unique_substrings
 
 # Now back to the analysis
-coldata <- read.csv(sprintf("%s/%s", directory, metadat), sep = "\t", row.names = 1)
+coldata <- read.csv(sprintf("%s/%s", parent_dir, metadat), sep = "\t", row.names = 1)
 
 # Do the same to coldata
 # First, remove the 'condition3' column

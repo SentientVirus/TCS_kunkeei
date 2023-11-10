@@ -1,0 +1,9 @@
+code/.*
+.R*
+.snakemake/*
+.~*
+NCBI_TPM/*
+featureCounts_forward/*
+files/*
+wrong_code/*
+old_files/*

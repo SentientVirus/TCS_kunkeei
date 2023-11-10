@@ -75,7 +75,7 @@ rule get_TPM:
     input:
         counts = add_path_extension(all_input, "featureCounts_reverse/nofilter", "featureCounts")
     params: os.getcwd()
-    conda: "circular.yml"
+    conda: "alignment.yml"
     script:
         "code/04-calculate_TPM.py"
 

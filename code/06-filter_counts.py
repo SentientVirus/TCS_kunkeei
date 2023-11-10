@@ -77,16 +77,16 @@ for isolate in isolate_list:
         samples = [f'I{n}' for n in df_dict.keys() if f'{isolate}_{condition}' in n]
         isolate_dict[f'{isolate}{condition}'] = pd.DataFrame(columns = ['Geneid', 'Chr', 'Start', 'End', 'Length'] + samples + ['Mean_results'])
         for name in df_dict.keys():
-            div_part = sum(df_dict[name]['Results'])
+            #div_part = sum(df_dict[name]['Results'])
             if f'{isolate}_{condition}' in name:
                 tag = f'{isolate}{condition}'
                 for index, gene in df_dict[name].iterrows():
-                    x = gene['Results']
-                    CPM = (x/div_part)*1000000
+                    #x = gene['Results']
+                    #CPM = (x/div_part)*1000000
                     TPM = TPM_samples[TPM_samples['locus_tag'] == gene['Geneid']][tag][index]
-                    if CPM < 2:
+                    if TPM < 10:
                         check = False
-                        print(CPM, TPM)
+                        #print(CPM, TPM)
                     else:
                         check = True
                     if gene['Geneid'] not in include_dict.keys():
@@ -132,7 +132,6 @@ pos_file = snakemake.output.pos
 with open(ref_countfile) as keep:
     keep_row = pd.read_csv(keep, sep = '\t', index_col = 0)
     to_keep = list(keep_row.index)
-    print(to_keep)
     
 for i in isolate_dict.keys():
     for condition in conditions:
