@@ -56,22 +56,33 @@ rule picard_tools:
     shell:
         "bash code/03-picard.sh"
 
+#rule get_TPM:
+#    output:
+#        ent = add_path_extension(all_input, "results/TPM", "ent", "_genes"),
+#        out = add_path_extension(all_input, "results/TPM", "out", "_genes"),
+#        uni = add_path_extension(all_input, "results/TPM", "uni", "_genes")
+#    input:
+#        bam = add_path_extension(all_input, "results/bam", "bam"),
+#        gtf = "H3B1-04J.gtf"
+#    conda: "circular.yml"
+#    shell:
+#        "bash code/04-TPM.sh"
+
 rule get_TPM:
     output:
-        ent = add_path_extension(all_input, "results/TPM", "ent", "_genes"),
-        out = add_path_extension(all_input, "results/TPM", "out", "_genes"),
-        uni = add_path_extension(all_input, "results/TPM", "uni", "_genes")
+        per_sample = "results/TPM/TPM_per_sample.tsv",
+        mean = "results/TPM/mean_TPM.tsv"
     input:
-        bam = add_path_extension(all_input, "results/bam", "bam"),
-        gtf = "H3B1-04J.gtf"
+        counts = add_path_extension(all_input, "featureCounts_reverse/nofilter", "featureCounts")
+    params: os.getcwd()
     conda: "circular.yml"
-    shell:
-        "bash code/04-TPM.sh"
+    script:
+        "code/04-calculate_TPM.py"
 
 rule filter_counts:
     output:
         counts = add_path_extension(all_input, "featureCounts_reverse/filtered", "featureCounts"),
-        summary = add_path_extension(summary_input, "results/summary", "tsv", "_count_distribution")
+
     input:
         counts = add_path_extension(all_input, "featureCounts_reverse/nofilter", "featureCounts"),
         gbff = os.path.expanduser("~") + "/Akunkeei_files/gbff/H3B1-04J_genomic.gbff" 
@@ -81,16 +92,16 @@ rule filter_counts:
         "code/05-prefilter_counts.py"
 
 # Maybe here create a filtered version as well, without RNAs
-rule parse_TPM:
-    output:
-        "results/TPM/mean_TPM.tsv"
-    input:
-        ent = add_path_extension(all_input, "results/TPM", "ent", "_genes"),
-        out = add_path_extension(all_input, "results/TPM", "out", "_genes"),
-        uni = add_path_extension(all_input, "results/TPM", "uni", "_genes")
-    conda: "alignment.yml"
-    script:
-        "code/06-parse_TPM.py"
+#rule parse_TPM:
+#    output:
+#        "results/TPM/mean_TPM.tsv"
+#    input:
+#        ent = add_path_extension(all_input, "results/TPM", "ent", "_genes"),
+#        out = add_path_extension(all_input, "results/TPM", "out", "_genes"),
+#        uni = add_path_extension(all_input, "results/TPM", "uni", "_genes")
+#    conda: "alignment.yml"
+#    script:
+#        "code/06-parse_TPM.py"
 
 rule parse_counts:
     output:
@@ -106,7 +117,7 @@ rule parse_counts:
     params: countdir = os.getcwd() + "/featureCounts_reverse/nofilter", filtered_countdir = os.getcwd() + "/featureCounts_reverse/filtered"
     conda: "alignment.yml"
     script:
-        "code/07-filter_counts.py"
+        "code/06-filter_counts.py"
 
 # Add logging, update Python and bash variables so that they can be changed from this file
 # and write rules for the saturation analysis and for the DE analysis to make sure that they generate the plots that I need
