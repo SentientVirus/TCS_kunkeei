@@ -82,7 +82,7 @@ rule get_TPM:
 rule filter_counts:
     output:
         counts = add_path_extension(all_input, "featureCounts_reverse/filtered", "featureCounts"),
-
+        summary = add_path_extension(summary_input, "results/summary", "tsv", "_count_distribution")
     input:
         counts = add_path_extension(all_input, "featureCounts_reverse/nofilter", "featureCounts"),
         gbff = os.path.expanduser("~") + "/Akunkeei_files/gbff/H3B1-04J_genomic.gbff" 
