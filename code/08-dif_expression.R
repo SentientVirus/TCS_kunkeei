@@ -7,7 +7,8 @@ library("DESeq2")
 library("ggplot2")
 library("stringr")
 
-directory <- "../featureCounts_reverse/countfiles"
+meta_dir <- "../featureCounts_reverse/countfiles"
+directory <- "../featureCounts_reverse/countfiles/filtered"
 sub_dir <- "../results/DE"
 plot_dir <- "../plots"
 
@@ -41,8 +42,8 @@ for (file in sampleFiles[2:length(sampleFiles)]){
   counts <- cbind(counts, cts)
 }
 
-metadat <- grep("metadata.tsv", list.files(directory), value = TRUE)
-coldata <- read.csv(sprintf("%s/%s", directory, metadat), sep = "\t", row.names = 1)
+metadat <- grep("metadata.tsv", list.files(meta_dir), value = TRUE)
+coldata <- read.csv(sprintf("%s/%s", meta_dir, metadat), sep = "\t", row.names = 1)
 #coldata <- coldata[coldata$condition1 == "inhibitor",][c("condition2", "condition3")]
 coldata$condition2 <- factor(coldata$condition2)
 coldata$condition1 <- factor(coldata$condition1)
@@ -106,7 +107,7 @@ res <- results(dds)
 res
 
 savename <- "Smucoid_vs_Sinhibitor"
-write.csv(res, file = paste(sub_dir, paste(savename, "tsv", sep = "."), sep ="/"))
+write.csv(res, file = paste(sub_dir, paste(savename, "csv", sep = "."), sep ="/"), quote=FALSE)
 
 postscript(file=paste(plot_dir, paste(savename, "ps", sep = "."), sep ="/"), width=900, height=600)
 plotMA(res, ylim=c(-3,3), colSig = "#c00000")
@@ -131,7 +132,7 @@ res <- results(dds)
 res
 
 savename <- "Fmucoid_vs_Finhibitor"
-write.csv(res, file = paste(sub_dir, paste(savename, "tsv", sep = "."), sep ="/"))
+write.csv(res, file = paste(sub_dir, paste(savename, "csv", sep = "."), sep ="/"), quote=FALSE)
 
 postscript(file=paste(plot_dir, paste(savename, "ps", sep = "."), sep ="/"), width=900, height=600)
 plotMA(res, ylim=c(-3,3), colSig = "#c00000")
@@ -156,7 +157,7 @@ res <- results(dds)
 res
 
 savename <- "Smucoid_vs_Fmucoid"
-write.csv(res, file = paste(sub_dir, paste(savename, "tsv", sep = "."), sep ="/"))
+write.csv(res, file = paste(sub_dir, paste(savename, "csv", sep = "."), sep ="/"), quote=FALSE)
 
 postscript(file=paste(plot_dir, paste(savename, "ps", sep = "."), sep ="/"), width=900, height=600)
 plotMA(res, ylim=c(-3,3), colSig = "#c00000")
@@ -181,7 +182,7 @@ res <- results(dds)
 res
 
 savename <- "Sinhibitor_vs_Finhibitor"
-write.csv(res, file = paste(sub_dir, paste(savename, "tsv", sep = "."), sep ="/"))
+write.csv(res, file = paste(sub_dir, paste(savename, "csv", sep = "."), sep ="/"), quote=FALSE)
 
 postscript(file=paste(plot_dir, paste(savename, "ps", sep = "."), sep ="/"), width=900, height=600)
 plotMA(res, ylim=c(-3,3), colSig = "#c00000")
