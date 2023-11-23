@@ -96,7 +96,7 @@ coldata2$condition3 = droplevels(coldata2$condition3)
 
 dds <- DESeqDataSetFromMatrix(countData = counts2,
                               colData = coldata2,
-                              design = ~ condition3 + condition1) # + condition3)
+                              design = ~ condition3 + condition1)
 
 dds <- DESeq(dds)
 
@@ -104,10 +104,14 @@ keep <- rowSums(counts(dds) >= 1) >= 3
 dds <- dds[keep,]
 
 res <- results(dds)
+res_subset <- results(dds, lfcThreshold=1)
 res
+res_filter <- subset(res, padj < .1)
+res_subset <- subset(res_subset, padj < .1)
 
 savename <- "Smucoid_vs_Sinhibitor"
-write.csv(res, file = paste(sub_dir, paste(savename, "csv", sep = "."), sep ="/"), quote=FALSE)
+write.csv(res_filter, file = paste(sub_dir, paste(savename, "csv", sep = "."), sep ="/"), quote=FALSE)
+write.csv(res_subset, file = paste(sub_dir, paste(savename, "lfc1.csv", sep = "_"), sep ="/"), quote=FALSE)
 
 postscript(file=paste(plot_dir, paste(savename, "ps", sep = "."), sep ="/"), width=900, height=600)
 plotMA(res, ylim=c(-3,3), colSig = "#c00000")
@@ -121,7 +125,7 @@ coldata2$condition3 = droplevels(coldata2$condition3)
 
 dds <- DESeqDataSetFromMatrix(countData = counts2,
                               colData = coldata2,
-                              design = ~ condition3 + condition1) # + condition3)
+                              design = ~ condition3 + condition1)
 
 dds <- DESeq(dds)
 
@@ -129,10 +133,14 @@ keep <- rowSums(counts(dds) >= 1) >= 3
 dds <- dds[keep,]
 
 res <- results(dds)
+res_subset <- results(dds, lfcThreshold=1)
 res
+res_filter <- subset(res, padj < .1)
+res_subset <- subset(res_subset, padj < .1)
 
 savename <- "Fmucoid_vs_Finhibitor"
-write.csv(res, file = paste(sub_dir, paste(savename, "csv", sep = "."), sep ="/"), quote=FALSE)
+write.csv(res_filter, file = paste(sub_dir, paste(savename, "csv", sep = "."), sep ="/"), quote=FALSE)
+write.csv(res_subset, file = paste(sub_dir, paste(savename, "lfc1.csv", sep = "_"), sep ="/"), quote=FALSE)
 
 postscript(file=paste(plot_dir, paste(savename, "ps", sep = "."), sep ="/"), width=900, height=600)
 plotMA(res, ylim=c(-3,3), colSig = "#c00000")
@@ -146,7 +154,7 @@ coldata2$condition3 = droplevels(coldata2$condition3)
 
 dds <- DESeqDataSetFromMatrix(countData = counts2,
                               colData = coldata2,
-                              design = ~ condition3 + condition2) # + condition3)
+                              design = ~ condition3 + condition2)
 
 dds <- DESeq(dds)
 
@@ -154,10 +162,15 @@ keep <- rowSums(counts(dds) >= 1) >= 3
 dds <- dds[keep,]
 
 res <- results(dds)
+res_subset <- results(dds, lfcThreshold=1)
 res
+res_filter <- subset(res, padj < .1)
+res_subset <- subset(res_subset, padj < .1)
 
 savename <- "Smucoid_vs_Fmucoid"
-write.csv(res, file = paste(sub_dir, paste(savename, "csv", sep = "."), sep ="/"), quote=FALSE)
+write.csv(res_filter, file = paste(sub_dir, paste(savename, "csv", sep = "."), sep ="/"), quote=FALSE)
+write.csv(res_subset, file = paste(sub_dir, paste(savename, "lfc1.csv", sep = "_"), sep ="/"), quote=FALSE)
+
 
 postscript(file=paste(plot_dir, paste(savename, "ps", sep = "."), sep ="/"), width=900, height=600)
 plotMA(res, ylim=c(-3,3), colSig = "#c00000")
@@ -171,7 +184,7 @@ coldata2$condition3 = droplevels(coldata2$condition3)
 
 dds <- DESeqDataSetFromMatrix(countData = counts2,
                               colData = coldata2,
-                              design = ~ condition3 + condition2) # + condition3)
+                              design = ~ condition3 + condition2)
 
 dds <- DESeq(dds)
 
@@ -179,10 +192,14 @@ keep <- rowSums(counts(dds) >= 1) >= 3
 dds <- dds[keep,]
 
 res <- results(dds)
+res_subset <- results(dds, lfcThreshold=1)
 res
+res_filter <- subset(res, padj < .1)
+res_subset <- subset(res_subset, padj < .1)
 
 savename <- "Sinhibitor_vs_Finhibitor"
-write.csv(res, file = paste(sub_dir, paste(savename, "csv", sep = "."), sep ="/"), quote=FALSE)
+write.csv(res_filter, file = paste(sub_dir, paste(savename, "csv", sep = "."), sep ="/"), quote=FALSE)
+write.csv(res_subset, file = paste(sub_dir, paste(savename, "lfc1.csv", sep = "_"), sep ="/"), quote=FALSE)
 
 postscript(file=paste(plot_dir, paste(savename, "ps", sep = "."), sep ="/"), width=900, height=600)
 plotMA(res, ylim=c(-3,3), colSig = "#c00000")

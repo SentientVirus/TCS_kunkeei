@@ -2,7 +2,7 @@ list.of.packages <- c("BiocManager")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 
-other.packages <- c("NOISeq", "EDASeq")
+other.packages <- c("NOISeq", "metaSeq")
 new.packages <- other.packages[!(other.packages %in% installed.packages()[,"Package"])]
 for (package in new.packages){
   BiocManager::install(package)

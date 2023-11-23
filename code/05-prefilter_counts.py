@@ -47,15 +47,21 @@ with open(gbk_file) as handle:
         for feature in record.features:
             if 'RNA' in feature.key or (len(feature.qualifiers) > 5 and 'transpos' in feature.qualifiers[5].value): #or (len(feature.qualifiers) > 1 and 'RNA' in feature.qualifiers[1].value)
                 loctag = feature.qualifiers[0].value.replace('"', '')
+                check = True
+                if 'ssrA' in loctag:
+                    loctag = feature.qualifiers[1].value.replace('"', '')
+                    type_seq = 'tRNA'
+                    check = False
                 print(f'{loctag} in chromosome {record.accession[0]} appended to list.', end = ' ')
                 RNA_loctags.append(loctag)
-                if 'rRNA' in feature.key:
+                if check and 'rRNA' in feature.key:
                     type_seq = 'rRNA'
-                elif 'tRNA' in feature.key or 'ssrA' in loctag:
+                elif check and 'tRNA' in feature.key:
                     type_seq = 'tRNA'
-                elif 'RNA' in feature.key or 'RNA' in feature.qualifiers[1].value:
+                elif check and ('RNA' in feature.key or 'RNA' in feature.qualifiers[1].value):
                     type_seq = 'misc_RNA'
-                else: type_seq = 'transposon'
+                elif check:
+                    type_seq = 'transposon'
                 print(f'Element is a {type_seq}.')
                 loctags_by_type[type_seq].append(loctag)
                 
