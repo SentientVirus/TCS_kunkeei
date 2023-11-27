@@ -14,6 +14,12 @@ library(NOISeq)
 directory <- "featureCounts_reverse/countfiles/filtered" #"../featureCounts_reverse/countfiles/filtered"
 parent_dir <- "featureCounts_reverse/countfiles" #"../featureCounts_reverse/countfiles"
 metadat <- grep("metadata.tsv", list.files(parent_dir), value = TRUE)
+plot_dir <- "plots"
+
+if (!file.exists(plot_dir)){
+  dir.create(plot_dir)
+}
+
 sampleFiles <- list.files(directory)[grepl("counts.tsv",list.files(directory))][-1]
 sampleCondition <- c()
 for (file in sampleFiles){
@@ -70,43 +76,30 @@ rownames(grouped_coldata) <- grouped_coldata$substring
 # Remove the "substring" column
 grouped_coldata$substring <- NULL
 
+# Read chromosome names as metadata
 chr <- read.delim("meta/gene_positions.tsv", sep = "\t")
 rownames(chr) <- chr$Geneid
 chr$Geneid <- NULL
-#excluded_counts <- counts[grepl("R", rownames(counts)),]
-#counts <- counts[!grepl("R", rownames(counts)),]
-#excluded_counts <- counts[!rowMeans(counts) > 5, ] #Try to remove only ribosomal genes
 
-##Go through each row and determine if a value is zero
-#row_sub = apply(counts, 1, function(row) all(row !=0 ))
-##Subset as usual
-#excluded_counts <- counts[!row_sub,]
-#counts <- counts[rowMeans(counts) > 0, ] #In the saturation plot, the step is the result of genes with low counts
 chr2 <- chr[rownames(chr) %in% rownames(sum_counts), ]
 chr <- chr[rownames(chr) %in% rownames(counts), ]
 
 mydata2 <- readData(data=sum_counts, chromosome=chr2, factors=grouped_coldata)
-#postscript(file="../plots/saturation_collapsed_k5.ps")
+postscript(file="plots/saturation_collapsed_k0.ps")
+sat <- dat(mydata2, type = "saturation", factor = NULL, k = 0, ndepth = 20)
+explo.plot(sat, samples = 1:8)
+dev.off()
 png(file="plots/saturation_collapsed_k0.png", width=1000, height=750)
 sat <- dat(mydata2, type = "saturation", factor = NULL, k = 0, ndepth = 20)
 explo.plot(sat, samples = 1:8)
 dev.off()
 
 mydata <- readData(data=counts, chromosome=chr, factors=coldata)
-#postscript(file="../plots/saturation_k5.ps")
+postscript(file="plots/saturation_k0.ps")
+sat <- dat(mydata, type = "saturation", factor = NULL, k = 0, ndepth = 20)
+explo.plot(sat, samples = 1:40)
+dev.off()
 png(file="plots/saturation_k0.png", width=1000, height=750)
 sat <- dat(mydata, type = "saturation", factor = NULL, k = 0, ndepth = 20)
 explo.plot(sat, samples = 1:40)
 dev.off()
-
-#sat <- dat(mydata, type = "saturation", factor = "condition1", k = 5, ndepth = 20)
-#explo.plot(sat, samples = 1:40)
-
-#sat <- dat(mydata, type = "saturation", factor = "condition2", k = 5, ndepth = 20)
-#explo.plot(sat, samples = 1:40)
-
-#sat <- dat(mydata, type = "saturation", factor = "condition3", k = 5, ndepth = 20)
-#explo.plot(sat, samples = 1:40)"""
-
-#count_data <- dat(counts, factor = sampleCondition, type = "counts")
-#saturation <- noiseq(mydata, replicates = "no", norm = "n", pnr = 0.2, factor="condition1")
