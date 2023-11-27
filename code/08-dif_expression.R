@@ -1,16 +1,20 @@
 if (!require("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 
-BiocManager::install("DESeq2")
+to_install <- c("DESeq2", "ggplot2", "stringr")
+new.packages <- to_install[!(to_install %in% installed.packages()[,"Package"])]
+for (package in new.packages){
+  BiocManager::install(package)
+}
 
 library("DESeq2")
 library("ggplot2")
 library("stringr")
 
-meta_dir <- "../featureCounts_reverse/countfiles"
-directory <- "../featureCounts_reverse/countfiles/filtered"
-sub_dir <- "../results/DE"
-plot_dir <- "../plots"
+meta_dir <- "featureCounts_reverse/countfiles" #"../featureCounts_reverse/countfiles"
+directory <- "featureCounts_reverse/countfiles/filtered" #"../featureCounts_reverse/countfiles/filtered"
+sub_dir <- "results/DE" #"../results/DE"
+plot_dir <- "plots" #"../plots"
 
 if (!file.exists(sub_dir)){
   dir.create(sub_dir)
@@ -116,6 +120,10 @@ write.csv(res_subset, file = paste(sub_dir, paste(savename, "lfc1.csv", sep = "_
 postscript(file=paste(plot_dir, paste(savename, "ps", sep = "."), sep ="/"), width=900, height=600)
 plotMA(res, ylim=c(-3,3), colSig = "#c00000")
 dev.off()
+png(file=paste(plot_dir, paste(savename, "png", sep = "."), sep ="/"), width=600, height=400)
+plotMA(res, ylim=c(-3,3), colSig = "#c00000")
+dev.off()
+
 
 # Fmucoid vs Finhibitor
 coldata2 <- coldata[coldata$condition2 == "F",]
@@ -145,6 +153,10 @@ write.csv(res_subset, file = paste(sub_dir, paste(savename, "lfc1.csv", sep = "_
 postscript(file=paste(plot_dir, paste(savename, "ps", sep = "."), sep ="/"), width=900, height=600)
 plotMA(res, ylim=c(-3,3), colSig = "#c00000")
 dev.off()
+png(file=paste(plot_dir, paste(savename, "png", sep = "."), sep ="/"), width=600, height=400)
+plotMA(res, ylim=c(-3,3), colSig = "#c00000")
+dev.off()
+
 
 # Smucoid vs Fmucoid
 coldata2 <- coldata[coldata$condition1 == "mucoid",]
@@ -175,6 +187,9 @@ write.csv(res_subset, file = paste(sub_dir, paste(savename, "lfc1.csv", sep = "_
 postscript(file=paste(plot_dir, paste(savename, "ps", sep = "."), sep ="/"), width=900, height=600)
 plotMA(res, ylim=c(-3,3), colSig = "#c00000")
 dev.off()
+png(file=paste(plot_dir, paste(savename, "png", sep = "."), sep ="/"), width=600, height=400)
+plotMA(res, ylim=c(-3,3), colSig = "#c00000")
+dev.off()
 
 # Sinhibitor vs Finhibitor
 coldata2 <- coldata[coldata$condition1 == "inhibitor",]
@@ -202,5 +217,8 @@ write.csv(res_filter, file = paste(sub_dir, paste(savename, "csv", sep = "."), s
 write.csv(res_subset, file = paste(sub_dir, paste(savename, "lfc1.csv", sep = "_"), sep ="/"), quote=FALSE)
 
 postscript(file=paste(plot_dir, paste(savename, "ps", sep = "."), sep ="/"), width=900, height=600)
+plotMA(res, ylim=c(-3,3), colSig = "#c00000")
+dev.off()
+png(file=paste(plot_dir, paste(savename, "png", sep = "."), sep ="/"), width=600, height=400)
 plotMA(res, ylim=c(-3,3), colSig = "#c00000")
 dev.off()

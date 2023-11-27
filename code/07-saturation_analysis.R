@@ -1,8 +1,8 @@
 list.of.packages <- c("BiocManager")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-if(length(new.packages)) install.packages(new.packages)
+if(length(new.packages)) install.packages(new.packages, repos='http://cran.us.r-project.org')
 
-other.packages <- c("NOISeq", "metaSeq")
+other.packages <- c("NOISeq") #, "metaSeq")
 new.packages <- other.packages[!(other.packages %in% installed.packages()[,"Package"])]
 for (package in new.packages){
   BiocManager::install(package)
@@ -11,8 +11,8 @@ for (package in new.packages){
 
 library(NOISeq)
 #library(EDASeq)
-directory <- "../featureCounts_reverse/countfiles/filtered"
-parent_dir <- "../featureCounts_reverse/countfiles"
+directory <- "featureCounts_reverse/countfiles/filtered" #"../featureCounts_reverse/countfiles/filtered"
+parent_dir <- "featureCounts_reverse/countfiles" #"../featureCounts_reverse/countfiles"
 metadat <- grep("metadata.tsv", list.files(parent_dir), value = TRUE)
 sampleFiles <- list.files(directory)[grepl("counts.tsv",list.files(directory))][-1]
 sampleCondition <- c()
@@ -70,7 +70,7 @@ rownames(grouped_coldata) <- grouped_coldata$substring
 # Remove the "substring" column
 grouped_coldata$substring <- NULL
 
-chr <- read.delim("../meta/gene_positions.tsv", sep = "\t")
+chr <- read.delim("meta/gene_positions.tsv", sep = "\t")
 rownames(chr) <- chr$Geneid
 chr$Geneid <- NULL
 #excluded_counts <- counts[grepl("R", rownames(counts)),]
@@ -87,34 +87,26 @@ chr <- chr[rownames(chr) %in% rownames(counts), ]
 
 mydata2 <- readData(data=sum_counts, chromosome=chr2, factors=grouped_coldata)
 #postscript(file="../plots/saturation_collapsed_k5.ps")
-png(file="../plots/saturation_collapsed_k0.png", width=1000, height=750)
+png(file="plots/saturation_collapsed_k0.png", width=1000, height=750)
 sat <- dat(mydata2, type = "saturation", factor = NULL, k = 0, ndepth = 20)
 explo.plot(sat, samples = 1:8)
 dev.off()
 
 mydata <- readData(data=counts, chromosome=chr, factors=coldata)
 #postscript(file="../plots/saturation_k5.ps")
-png(file="../plots/saturation_k0.png", width=1000, height=750)
+png(file="plots/saturation_k0.png", width=1000, height=750)
 sat <- dat(mydata, type = "saturation", factor = NULL, k = 0, ndepth = 20)
 explo.plot(sat, samples = 1:40)
 dev.off()
 
-sat <- dat(mydata, type = "saturation", factor = "condition1", k = 5, ndepth = 20)
-explo.plot(sat, samples = 1:40)
+#sat <- dat(mydata, type = "saturation", factor = "condition1", k = 5, ndepth = 20)
+#explo.plot(sat, samples = 1:40)
 
-sat <- dat(mydata, type = "saturation", factor = "condition2", k = 5, ndepth = 20)
-explo.plot(sat, samples = 1:40)
+#sat <- dat(mydata, type = "saturation", factor = "condition2", k = 5, ndepth = 20)
+#explo.plot(sat, samples = 1:40)
 
-sat <- dat(mydata, type = "saturation", factor = "condition3", k = 5, ndepth = 20)
-explo.plot(sat, samples = 1:40)
+#sat <- dat(mydata, type = "saturation", factor = "condition3", k = 5, ndepth = 20)
+#explo.plot(sat, samples = 1:40)"""
 
 #count_data <- dat(counts, factor = sampleCondition, type = "counts")
 #saturation <- noiseq(mydata, replicates = "no", norm = "n", pnr = 0.2, factor="condition1")
-
-source_code <- capture.output(getAnywhere("saturation.dat"))
-
-# Specify the path and filename for the output text file
-output_file <- "saturation_calculation.txt"
-
-# Write the source code to the text file
-writeLines(source_code, con = output_file)

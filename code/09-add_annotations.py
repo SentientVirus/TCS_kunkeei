@@ -42,7 +42,7 @@ locus_tags = []
 df_dict = {}
 for file in os.listdir(csv_dir):
     if file.endswith('.csv'):
-        print(file)
+        print(f'Processing file {file}')
         with open(f'{csv_dir}/{file}') as csvfile:
             df = pd.read_csv(csvfile, index_col = 0)
             locus_tags = list(pd.unique(list(df.index) + locus_tags))
@@ -58,31 +58,36 @@ with open(gbk_file) as gbk_read:
     for record in gbk.parse(gbk_read):
         for feature in record.features:
             if len(feature.qualifiers) > 1:
+                annotation = ''
                 if 'AKUH3B104J' not in feature.qualifiers[0].value.strip('"'):
                     loctag = feature.qualifiers[1].value.strip('"')
+                    gene_name = feature.qualifiers[0].value.strip('"')
                     if loctag in locus_tags:
-                        tag_dict[loctag] = feature.qualifiers[0].value.strip('"')
+                        for qual in feature.qualifiers:
+                            if 'product' in qual.key:
+                                annotation = qual.value.strip('"')
+                        tag_dict[loctag] = (gene_name, annotation)
+                        print(f'Found gene {gene_name}')
                 else:
+                    for qual in feature.qualifiers:
+                        if 'product' in qual.key:
+                            annotation = qual.value.strip('"')
                     loctag = feature.qualifiers[0].value.strip('"')
-                    tag_dict[loctag] = ''
+                    tag_dict[loctag] = ('-', annotation)
+                    print(f'Added hypothetical protein {loctag}')
                         
 # =============================================================================
-# 3. Use function to add annotations to the locus tags in the dataframes
+# 3. Use function to add annotations to the locus tags in the dataframes and 
+# save to tsv files
 # =============================================================================
 for key in df_dict.keys():
     df = df_dict[key]
     new_column = []
     locus_tags = list(df.index)
-    new_list = [tag_dict[loctag] for loctag in locus_tags]
+    new_list = [tag_dict[loctag][0] for loctag in locus_tags]
+    annot = [tag_dict[loctag][1] for loctag in locus_tags]
     df.insert(len(df.columns), 'gene_name', new_list, True)
+    df.insert(len(df.columns), 'annotation', annot, True)
     outfile = key.replace('.csv', '_annotated.tsv')
-    df.to_csv(f'{csv_dir}/{outfile}', sep='\t') 
-
-# =============================================================================
-# 4. Save to .tsv files
-# =============================================================================
-
-# =============================================================================
-# Do the same with count files (create files with locus tags, counts and 
-# annotation)
-# =============================================================================
+    df.to_csv(f'{csv_dir}/{outfile}', sep='\t')
+    print(f'Saved annotations for comparison {key.replace(".csv", "")}')

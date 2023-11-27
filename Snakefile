@@ -121,3 +121,25 @@ rule parse_counts:
 
 # Add logging, update Python and bash variables so that they can be changed from this file
 # and write rules for the saturation analysis and for the DE analysis to make sure that they generate the plots that I need
+
+# R rules don't take the input from Snakemake, since I prefer not to install R with Conda
+rule saturation:
+    output:
+        plots = expand("plots/saturation{extra}_k0.png", extra = ["_collapsed", ""])
+    input:
+        counts = add_path_extension(all_input, "featureCounts_reverse/filtered", "featureCounts"),
+        meta = "featureCounts_reverse/countfiles/H3B1-04J_metadata.tsv"
+    conda: "renv.yml"
+    script:
+        "code/07-saturation_analysis.R"
+
+rule DE:   
+    output:
+        DE = expand("results/DE/{comparison}{ext}.csv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["_lfc1", ""]),
+        PCA = "plots/pcaplot.png",
+        plots = expand("plots/{comparison}.{ext}", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["png", "ps"])
+    input:
+        counts = add_path_extension(all_input, "featureCounts_reverse/filtered", "featureCounts")
+    conda: "renv.yml"
+    script:
+        "code/08-dif_expression.R"
