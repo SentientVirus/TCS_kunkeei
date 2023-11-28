@@ -31,13 +31,12 @@ rule index_genome:
     output:
         fna = "index/H3B1-04J.fna",
         index = expand("index/H3B1-04J.fna.{ext}", ext = ["amb", "ann", "bwt", "pac", "sa"])
-#        ht2 = expand("index/H3B1-04J.index.hisat.{no}.ht2", no = list(range(1, 9)))
     input:
         fna = os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna"
     conda: "alignment.yml"
     log: "logs/01-index_genome.log"
     shell:
-        "code/01-index_genome.sh {input} {output.fna} 2> {log}"
+        "bash code/01-index_genome.sh {input} {output.fna} 2> {log}"
 
 rule trim_reads:
     output:
@@ -51,18 +50,30 @@ rule trim_reads:
     conda: "alignment.yml"
     log: "logs/02-read_trimming.log"
     shell:
-        "code/02-read_trimming.sh {params.outdir} {input.adapter} {log} {input.reads}"
+        "bash code/02-read_trimming.sh {params.outdir} {input.adapter} {log} {input.reads}"
         
 rule align2fna:
     output:
-        #trimmed_reads = add_path_extension(),
-        outbam = add_path_extension(all_input, "results/bam", "bam"),
-        counts = add_path_extension(all_input, "featureCounts_reverse/nofilter", "featureCounts") 
+        outbam = add_path_extension(all_input, "results/bam", "bam")
     input:
-        input_def(all_input, path = "files/VF-3336/221006_M06455_0144_000000000-KMH8C", extension = "fastq.gz")
+        R1 = add_path_extension(all_input, path = "trimmed_reads", extension = "fastq", extra = "-trimmed-pair1"),
+        R2 = add_path_extension(all_input, path = "trimmed_reads", extension = "fastq", extra = "-trimmed-pair2"),
+        genome = "index/H3B1-04J.fna"
+    params: indir = "trimmed_reads", outdir = "results/bam"
+    log: "logs/03-read_alignment.log"
+    conda: "alignment.yml"
+    shell:
+        "bash code/03-read_alignment.sh {params.outdir} {input.genome} {log} {input.R1}"
+
+rule count_gemes:
+    output:
+        counts = add_path_extension(all_input, "featureCounts_reverse/nofilter", "featureCounts")
+    input:
+        bam = "" #input_def(all_input, path = "files/VF-3336/221006_M06455_0144_000000000-KMH8C", extension = "fastq.gz")
     conda: "alignment.yml"
     shell:
         "bash code/01-BWA.sh"
+
 
 rule calculate_coverage:
     output:
