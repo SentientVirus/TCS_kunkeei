@@ -1,5 +1,5 @@
 if (!require("BiocManager", quietly = TRUE))
-  install.packages("BiocManager")
+  install.packages("BiocManager", repos='http://cran.us.r-project.org')
 
 to_install <- c("DESeq2", "ggplot2", "stringr")
 new.packages <- to_install[!(to_install %in% installed.packages()[,"Package"])]
@@ -63,9 +63,8 @@ dds_pcr <- DESeqDataSetFromMatrix(countData = counts,
                                   design = ~ condition3 + condition1 + condition2)
 
 # Run a PCA for the complete dataset
-pdf(file = paste(plot_dir,"pcaplot.pdf", sep = "/"), width = 900, height = 600)
 vsd <- vst(dds_pcr, blind=FALSE)
-plotPCA(vsd, intgroup=c("condition1", "condition2"))
+#plotPCA(vsd, intgroup=c("condition1", "condition2"))
 pcaData <- plotPCA(vsd, intgroup=c("condition1", "condition2"), returnData=TRUE)
 substrate <- pcaData$condition2
 morphology <- pcaData$condition1
@@ -77,20 +76,11 @@ p <- ggplot(pcaData, aes(PC1, PC2, color=condition2, shape=condition1)) +
   ylab(paste0("PC2: ",percentVar[2],"% variance")) + 
   coord_fixed()
 p <- p + stat_ellipse(geom="polygon", aes(fill = pcaData$condition2), 
-                      
-                      alpha = 0.2, 
-                      
-                      show.legend = FALSE, 
-                      
-                      level = 0.95) +
-  
-  theme_minimal() +
-  
-  theme(panel.grid = element_blank(), 
-        
-        panel.border = element_rect(fill= "transparent"))
-
-p
+  alpha = 0.2, show.legend = FALSE, level = 0.95) +
+  theme_minimal() + theme(panel.grid = element_blank(), 
+  panel.border = element_rect(fill= "transparent"))
+#pdf(file = paste(plot_dir,"pcaplot.pdf", sep = "/"), width = 9, height = 6)
+ggsave(paste(plot_dir,"pcaplot.pdf", sep = "/"), width = 9, height = 6)
 ggsave(paste(plot_dir,"pcaplot.png", sep = "/"), width = 9, height = 6)
 
 # Run a differential expression analysis for Smucoid vs Sinhibitor

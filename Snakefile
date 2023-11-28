@@ -5,7 +5,8 @@ isol_code = {"01-F-1": "S5", "01-F-2": "S13", "01-F-3": "S21", "01-F-4": "S29", 
     "01-S-3": "S17", "01-S-4": "S25", "01-S-5": "S33", "02-F-1": "S6", "02-F-2": "S14", "02-F-3": "S22", "02-F-4": "S30", "02-F-5": "S38",
     "02-S-1": "S2", "02-S-2": "S10", "02-S-3": "S18", "02-S-4": "S26", "02-S-5": "S34", "09-F-1": "S7", "09-F-2": "S15", "09-F-3": "S23", 
     "09-F-4": "S31", "09-F-5": "S39", "09-S-1": "S3", "09-S-2": "S11", "09-S-3": "S19", "09-S-4": "S27", "09-S-5": "S35", "10-F-1": "S8",
-    "10-F-2": "S16", "10-F-3": "S24", "10-F-4": "S32", "10-F-5": "S40"}
+    "10-F-2": "S16", "10-F-3": "S24", "10-F-4": "S32", "10-F-5": "S40", "10-S-1": "S4", "10-S-2": "S12", "10-S-3": "S20", "10-S-4": "S28",
+    "10-S-5": "S36"}
 
 input_base = []
 all_input = [f"VF-3336-H3B1-04J-{key}_{value}_L001" for key, value in isol_code.items()]
@@ -26,6 +27,32 @@ def input_def(lst, path = "", extension = ""):
         new_list.append(new_element.replace("R1", "R2"))
     return new_list
 
+rule index_genome:
+    output:
+        fna = "index/H3B1-04J.fna",
+        index = expand("index/H3B1-04J.fna.{ext}", ext = ["amb", "ann", "bwt", "pac", "sa"])
+#        ht2 = expand("index/H3B1-04J.index.hisat.{no}.ht2", no = list(range(1, 9)))
+    input:
+        fna = os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna"
+    conda: "alignment.yml"
+    log: "logs/01-index_genome.log"
+    shell:
+        "code/01-index_genome.sh {input} {output.fna} 2> {log}"
+
+rule trim_reads:
+    output:
+        R1 = add_path_extension(all_input, path = "trimmed_reads", extension = "fastq", extra = "-trimmed-pair1"),
+        R2 = add_path_extension(all_input, path = "trimmed_reads", extension = "fastq", extra = "-trimmed-pair2"),
+        log = add_path_extension(all_input, path = "trimmed_reads", extension = "log", extra = "-trimmed")
+    input:
+        reads = input_def(all_input, path = "files/VF-3336/221006_M06455_0144_000000000-KMH8C", extension = "fastq.gz"),
+        adapter = "TruSeq3-PE-2.fa"
+    params: outdir = "trimmed_reads"
+    conda: "alignment.yml"
+    log: "logs/02-read_trimming.log"
+    shell:
+        "code/02-read_trimming.sh {params.outdir} {input.adapter} {log} {input.reads}"
+        
 rule align2fna:
     output:
         #trimmed_reads = add_path_extension(),
@@ -136,7 +163,7 @@ rule saturation:
 rule DE:   
     output:
         DE = expand("results/DE/{comparison}{ext}.csv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["_lfc1", ""]),
-        PCA = "plots/pcaplot.png",
+        PCA = expand("plots/pcaplot.{ext}", ext = ["png", "pdf"]),
         plots = expand("plots/{comparison}.{ext}", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["png", "ps"])
     input:
         counts = add_path_extension(all_input, "featureCounts_reverse/filtered", "featureCounts")
