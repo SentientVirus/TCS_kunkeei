@@ -17,6 +17,7 @@ thelocus tag.
 from Bio import GenBank as gbk
 import pandas as pd
 import os
+import logging, traceback
 
 # =============================================================================
 # Section to define inputs
@@ -27,12 +28,25 @@ csv_dir = workdir + '/results/DE'
 gbk_file = home + '/Akunkeei_files/gbff/H3B1-04J_genomic.gbff' 
 
 # =============================================================================
-# Section to include logging
+# 0. Logging
 # =============================================================================
 
-# =============================================================================
-# Function to update dataframes with annotations
-# =============================================================================
+logging.basicConfig(filename = snakemake.log[0], level = logging.INFO,
+                    format = '%(asctime)s %(message)s',
+                    datefmt = '%Y-%m-%d %H:%M:%S')
+
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
+    logger.error(''.join(["Uncaught exception: ",
+                          *traceback.format_exception(exc_type, exc_value, exc_traceback)
+                          ]))
+
+sys.excepthook = handle_exception
+
+sys.stdout = open(snakemake.log[0], 'a')
 
 # =============================================================================
 # 1. Extract the dataframes with DE results and create a list with all the

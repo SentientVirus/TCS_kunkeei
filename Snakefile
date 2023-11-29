@@ -37,6 +37,7 @@ def input_strand(lst, strand = 1, path = "", extension = ""):
         new_list.append(new_element)
     return new_list
 
+
 rule index_genome:
     output:
         fna = os.getcwd() + "/index/H3B1-04J.fna",
@@ -81,7 +82,7 @@ rule align2fna:
     shell:
         "bash code/03-read_alignment.sh {params.outdir} {input.genome} {log} {input.R1}"
 
-rule count_gemes:
+rule count_genes:
     output:
         counts_reverse = add_path_extension(all_input, os.getcwd() + "/featureCounts_reverse/nofilter", "featureCounts"),
         summary_reverse = add_path_extension(all_input, os.getcwd() + "/featureCounts_reverse/nofilter", "featureCounts.summary"),
@@ -122,6 +123,7 @@ rule get_TPM:
     input:
         counts = add_path_extension(all_input, os.getcwd() + "/featureCounts_reverse/nofilter", "featureCounts")
     params: os.getcwd()
+    log: "logs/07-calculate_TPM.log"
     conda: "alignment.yml"
     script:
         "code/07-calculate_TPM.py"
@@ -135,6 +137,7 @@ rule filter_counts:
         gbff = os.path.expanduser("~") + "/Akunkeei_files/gbff/H3B1-04J_genomic.gbff" 
     conda: "alignment.yml"
     params: workdir = os.getcwd()
+    log: "logs/08-prefilter_counts.py"
     script:
         "code/08-prefilter_counts.py"
 
@@ -151,6 +154,7 @@ rule parse_counts:
         counts_filtered = add_path_extension(all_input, os.getcwd() + "/featureCounts_reverse/filtered", "featureCounts")
     params: countdir = os.getcwd() + "/featureCounts_reverse/nofilter", filtered_countdir = os.getcwd() + "/featureCounts_reverse/filtered"
     conda: "alignment.yml"
+    log: "logs/09-filter_counts.log"
     script:
         "code/09-filter_counts.py"
 

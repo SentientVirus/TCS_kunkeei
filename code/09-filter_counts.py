@@ -13,6 +13,7 @@ Created on Thu Sep 29 10:56:25 2022
 import pandas as pd
 import os
 import numpy as np
+import logging, traceback
 
 #workdir = os.getcwd()
 indir = snakemake.params.countdir
@@ -27,7 +28,28 @@ print('Loaded input')
 [os.makedirs(outd) for outd in [outdir, outdir2] if not os.path.exists(outd)]
 
 # =============================================================================
-# Here, replicate names are saved to a dictionary.
+# 0. Logging
+# =============================================================================
+
+logging.basicConfig(filename = snakemake.log[0], level = logging.INFO,
+                    format = '%(asctime)s %(message)s',
+                    datefmt = '%Y-%m-%d %H:%M:%S')
+
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
+    logger.error(''.join(["Uncaught exception: ",
+                          *traceback.format_exception(exc_type, exc_value, exc_traceback)
+                          ]))
+
+sys.excepthook = handle_exception
+
+sys.stdout = open(snakemake.log[0], 'a')
+
+# =============================================================================
+# 1. Save replicate names to a dictionary
 # =============================================================================
 df_dict = {}
 mean_fragment_length = {}
@@ -54,7 +76,7 @@ with open(snakemake.input.TPM) as tab_TPM:
     print('Read TPM')
     
 # =============================================================================
-# First I should filter genes by TPM. We don't want TPM, but filtered counts.  
+# 2. Filter counts by TPM  
 # =============================================================================
 
 isolate_dict = {}
@@ -115,12 +137,10 @@ for isolate in isolate_list:
                 end_list = []
                 length_list = []
                 results_list = []
-                # count_df_dict[name] = count_df
-                # isolate_dict[isolate].to_csv(f'H3B1-04J_{isolate}_raw_counts.tsv', sep = '\t')
             print(name)
 
 # =============================================================================
-# Writing mean counts
+# 3. Write mean counts
 # =============================================================================
 
 gene_dict = {}

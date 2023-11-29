@@ -10,13 +10,35 @@ A script that calculates the number of TPM based on the number of counts
 # A Python script to calculate TPM
 # =============================================================================
 import os
+import logging, traceback
 import pandas as pd
+
+# =============================================================================
+# 0. Logging
+# =============================================================================
+
+logging.basicConfig(filename = snakemake.log[0], level = logging.INFO,
+                    format = '%(asctime)s %(message)s',
+                    datefmt = '%Y-%m-%d %H:%M:%S')
+
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
+    logger.error(''.join(["Uncaught exception: ",
+                          *traceback.format_exception(exc_type, exc_value, exc_traceback)
+                          ]))
+
+sys.excepthook = handle_exception
+
+sys.stdout = open(snakemake.log[0], 'a')
 
 # =============================================================================
 # 1. Define input variables
 # =============================================================================
-#workdir = '../featureCounts_reverse/nofilter' #Change to snakemake input directory
-outdir = os.path.dirname(snakemake.output[0]) #'../results/TPM' #Change to snakemake output directory
+#workdir = '../featureCounts_reverse/nofilter'
+outdir = os.path.dirname(snakemake.output[0]) #'../results/TPM'
 outfile = snakemake.output.per_sample #'TPM_per_sample.tsv'
 mean_outfile = snakemake.output.mean #'mean_TPM.tsv'
 basedir = snakemake.params
