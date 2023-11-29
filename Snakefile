@@ -40,8 +40,8 @@ def input_strand(lst, strand = 1, path = "", extension = ""):
 rule index_genome:
     output:
         fna = os.getcwd() + "/index/H3B1-04J.fna",
-        index = expand("index/H3B1-04J.fna.{ext}", ext = ["amb", "ann", "bwt", "pac", "sa"]),
-        ht2 = expand("index/H3B1-04J.{no}.ht2", no = list(range(1,9)))
+        index = expand(os.getcwd() + "/index/H3B1-04J.fna.{ext}", ext = ["amb", "ann", "bwt", "pac", "sa"]),
+        ht2 = expand(os.getcwd() + "/index/H3B1-04J.{no}.ht2", no = list(range(1,9)))
     input:
         fna = os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna"
     conda: "alignment.yml"
@@ -51,8 +51,8 @@ rule index_genome:
 
 rule trim_reads:
     output:
-        R1 = add_path_extension(all_input, path = "trimmed_reads", extension = "fastq", extra = "-trimmed-pair1"),
-        R2 = add_path_extension(all_input, path = "trimmed_reads", extension = "fastq", extra = "-trimmed-pair2")
+        R1 = add_path_extension(all_input, path = os.getcwd() + "/trimmed_reads", extension = "fastq", extra = "-trimmed-pair1"),
+        R2 = add_path_extension(all_input, path = os.getcwd() + "/trimmed_reads", extension = "fastq", extra = "-trimmed-pair2")
     input:
         R1 = input_strand(all_input, strand = 1, path = os.getcwd() + "/files/VF-3336/221006_M06455_0144_000000000-KMH8C", extension = "fastq.gz"),
         R2 = input_strand(all_input, strand = -1, path = os.getcwd() + "/files/VF-3336/221006_M06455_0144_000000000-KMH8C", extension = "fastq.gz"),
@@ -68,7 +68,7 @@ rule trim_reads:
         
 rule align2fna:
     output:
-        outbam = add_path_extension(all_input, "results/bam", "bam")
+        outbam = add_path_extension(all_input, os.getcwd() + "/results/bam", "bam")
     input:
         R1 = add_path_extension(all_input, path = os.getcwd() + "/trimmed_reads", extension = "fastq", extra = "-trimmed-pair1"),
         R2 = add_path_extension(all_input, path = os.getcwd() + "/trimmed_reads", extension = "fastq", extra = "-trimmed-pair2"),
@@ -83,14 +83,14 @@ rule align2fna:
 
 rule count_gemes:
     output:
-        counts_reverse = add_path_extension(all_input, "featureCounts_reverse/nofilter", "featureCounts"),
-        summary_reverse = add_path_extension(all_input, "featureCounts_reverse/nofilter", "featureCounts.summary"),
-        counts_forward = add_path_extension(all_input, "featureCounts_forward/nofilter", "featureCounts"),
-        summary_forward = add_path_extension(all_input, "featureCounts_forward/nofilter", "featureCounts.summary")
+        counts_reverse = add_path_extension(all_input, os.getcwd() + "/featureCounts_reverse/nofilter", "featureCounts"),
+        summary_reverse = add_path_extension(all_input, os.getcwd() + "/featureCounts_reverse/nofilter", "featureCounts.summary"),
+        counts_forward = add_path_extension(all_input, os.getcwd() + "/featureCounts_forward/nofilter", "featureCounts"),
+        summary_forward = add_path_extension(all_input, os.getcwd() + "/featureCounts_forward/nofilter", "featureCounts.summary")
     input:
-        bam = add_path_extension(all_input, "results/bam", "bam"),
+        bam = add_path_extension(all_input, os.getcwd() + "/results/bam", "bam"),
         gff = os.path.expanduser("~") + "/Akunkeei_files/gff/H3B1-04J_genomic.gff"
-    params: out1 = "featureCounts_reverse/nofilter", out2 = "featureCounts_forward/nofilter"
+    params: out1 = os.getcwd() + "/featureCounts_reverse/nofilter", out2 = os.getcwd() + "/featureCounts_forward/nofilter"
     log: "logs/04-read_counts.log"
     conda: "alignment.yml"
     shell:
@@ -98,29 +98,29 @@ rule count_gemes:
 
 rule calculate_coverage:
     output:
-        add_path_extension(all_input, "results/coverage", "perbase.cov")
+        add_path_extension(all_input, os.getcwd() + "/results/coverage", "perbase.cov")
     input:
-        add_path_extension(all_input, "results/bam", "bam")
+        add_path_extension(all_input, os.getcwd() + "/results/bam", "bam")
     conda: "circular.yml"
     shell:
         "bash code/05-coverage.sh"
 
 rule picard_tools:
     output:
-        pdf = add_path_extension(all_input, "results/picard", "pdf", "_insert_size_histogram"),
-        txt = add_path_extension(all_input, "results/picard", "txt", "_insert_size_metrics")
+        pdf = add_path_extension(all_input, os.getcwd() + "/results/picard", "pdf", "_insert_size_histogram"),
+        txt = add_path_extension(all_input, os.getcwd() + "/results/picard", "txt", "_insert_size_metrics")
     input:
-        add_path_extension(all_input, "results/bam", "bam")
+        add_path_extension(all_input, os.getcwd() + "/results/bam", "bam")
     conda: "alignment.yml"
     shell:
         "bash code/06-picard.sh"
 
 rule get_TPM:
     output:
-        per_sample = "results/TPM/TPM_per_sample.tsv",
-        mean = "results/TPM/mean_TPM.tsv"
+        per_sample = os.getcwd() + "/results/TPM/TPM_per_sample.tsv",
+        mean = os.getcwd() + "/results/TPM/mean_TPM.tsv"
     input:
-        counts = add_path_extension(all_input, "featureCounts_reverse/nofilter", "featureCounts")
+        counts = add_path_extension(all_input, os.getcwd() + "/featureCounts_reverse/nofilter", "featureCounts")
     params: os.getcwd()
     conda: "alignment.yml"
     script:
@@ -128,10 +128,10 @@ rule get_TPM:
 
 rule filter_counts:
     output:
-        counts = add_path_extension(all_input, "featureCounts_reverse/filtered", "featureCounts"),
-        summary = add_path_extension(summary_input, "results/summary", "tsv", "_count_distribution")
+        counts = add_path_extension(all_input, os.getcwd() + "/featureCounts_reverse/filtered", "featureCounts"),
+        summary = add_path_extension(summary_input, os.getcwd() + "/results/summary", "tsv", "_count_distribution")
     input:
-        counts = add_path_extension(all_input, "featureCounts_reverse/nofilter", "featureCounts"),
+        counts = add_path_extension(all_input, os.getcwd() + "/featureCounts_reverse/nofilter", "featureCounts"),
         gbff = os.path.expanduser("~") + "/Akunkeei_files/gbff/H3B1-04J_genomic.gbff" 
     conda: "alignment.yml"
     params: workdir = os.getcwd()
@@ -140,15 +140,15 @@ rule filter_counts:
 
 rule parse_counts:
     output:
-        avg_nofilter = "featureCounts_reverse/countfiles/nofilter/avg_gene_counts.tsv",
-        avg_filtered = "featureCounts_reverse/countfiles/filtered/avg_gene_counts.tsv",
-        meta = "featureCounts_reverse/countfiles/H3B1-04J_metadata.tsv",
-        pos = "meta/gene_positions.tsv"
+        avg_nofilter = os.getcwd() + "/featureCounts_reverse/countfiles/nofilter/avg_gene_counts.tsv",
+        avg_filtered = os.getcwd() + "/featureCounts_reverse/countfiles/filtered/avg_gene_counts.tsv",
+        meta = os.getcwd() + "/featureCounts_reverse/countfiles/H3B1-04J_metadata.tsv",
+        pos = os.getcwd() + "/meta/gene_positions.tsv"
     input:
-        TPM = "results/TPM/mean_TPM.tsv",
-        meta = "meta/metadata.VF-3336.csv",
-        counts = add_path_extension(all_input, "featureCounts_reverse/nofilter", "featureCounts"),
-        counts_filtered = add_path_extension(all_input, "featureCounts_reverse/filtered", "featureCounts")
+        TPM = os.getcwd() + "/results/TPM/mean_TPM.tsv",
+        meta = os.getcwd() + "/meta/metadata.VF-3336.csv",
+        counts = add_path_extension(all_input, os.getcwd() + "/featureCounts_reverse/nofilter", "featureCounts"),
+        counts_filtered = add_path_extension(all_input, os.getcwd() + "/featureCounts_reverse/filtered", "featureCounts")
     params: countdir = os.getcwd() + "/featureCounts_reverse/nofilter", filtered_countdir = os.getcwd() + "/featureCounts_reverse/filtered"
     conda: "alignment.yml"
     script:
@@ -160,21 +160,21 @@ rule parse_counts:
 # R rules don't take the input from Snakemake, since I prefer not to install R with Conda
 rule saturation:
     output:
-        plots = expand("plots/saturation{extra}_k0.png", extra = ["_collapsed", ""])
+        plots = expand(os.getcwd() + "/plots/saturation{extra}_k0.png", extra = ["_collapsed", ""])
     input:
-        counts = add_path_extension(all_input, "featureCounts_reverse/filtered", "featureCounts"),
-        meta = "featureCounts_reverse/countfiles/H3B1-04J_metadata.tsv"
+        counts = add_path_extension(all_input, os.getcwd() + "/featureCounts_reverse/filtered", "featureCounts"),
+        meta = os.getcwd() + "/featureCounts_reverse/countfiles/H3B1-04J_metadata.tsv"
     conda: "renv.yml"
     script:
         "code/10-saturation_analysis.R"
 
 rule DE:   
     output:
-        DE = expand("results/DE/{comparison}{ext}.csv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["_lfc1", ""]),
-        PCA = expand("plots/pcaplot.{ext}", ext = ["png", "pdf"]),
-        plots = expand("plots/{comparison}.{ext}", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["png", "ps"])
+        DE = expand(os.getcwd() + "/results/DE/{comparison}{ext}.csv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["_lfc1", ""]),
+        PCA = expand(os.getcwd() + "/plots/pcaplot.{ext}", ext = ["png", "pdf"]),
+        plots = expand(os.getcwd() + "/plots/{comparison}.{ext}", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["png", "ps"])
     input:
-        counts = add_path_extension(all_input, "featureCounts_reverse/filtered", "featureCounts")
+        counts = add_path_extension(all_input, os.getcwd() + "/featureCounts_reverse/filtered", "featureCounts")
     conda: "renv.yml"
     script:
         "code/11-dif_expression.R"
