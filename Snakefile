@@ -67,13 +67,18 @@ rule align2fna:
 
 rule count_gemes:
     output:
-        counts = add_path_extension(all_input, "featureCounts_reverse/nofilter", "featureCounts")
+        counts_reverse = add_path_extension(all_input, "featureCounts_reverse/nofilter", "featureCounts"),
+        summary_reverse = add_path_extension(all_input, "featureCounts_reverse/nofilter", "featureCounts.summary"),
+        counts_forward = add_path_extension(all_input, "featureCounts_forward/nofilter", "featureCounts"),
+        summary_forward = add_path_extension(all_input, "featureCounts_forward/nofilter", "featureCounts.summary")
     input:
-        bam = "" #input_def(all_input, path = "files/VF-3336/221006_M06455_0144_000000000-KMH8C", extension = "fastq.gz")
+        bam = add_path_extension(all_input, "results/bam", "bam"),
+        gff = os.path.expanduser("~") + "/Akunkeei_files/gff/H3B1-04J_genomic.gff"
+    params: out1 = "featureCounts_reverse/nofilter", out2 = "featureCounts_forward/nofilter"
+    log: "logs/04-read_counts.log"
     conda: "alignment.yml"
     shell:
-        "bash code/01-BWA.sh"
-
+        "bash code/04-read_counts.sh {params.out1} {params.out2} {input.gff} {log} {input.bam}"
 
 rule calculate_coverage:
     output:
@@ -82,7 +87,7 @@ rule calculate_coverage:
         add_path_extension(all_input, "results/bam", "bam")
     conda: "circular.yml"
     shell:
-        "bash code/02-coverage.sh"
+        "bash code/05-coverage.sh"
 
 rule picard_tools:
     output:
@@ -92,19 +97,7 @@ rule picard_tools:
         add_path_extension(all_input, "results/bam", "bam")
     conda: "alignment.yml"
     shell:
-        "bash code/03-picard.sh"
-
-#rule get_TPM:
-#    output:
-#        ent = add_path_extension(all_input, "results/TPM", "ent", "_genes"),
-#        out = add_path_extension(all_input, "results/TPM", "out", "_genes"),
-#        uni = add_path_extension(all_input, "results/TPM", "uni", "_genes")
-#    input:
-#        bam = add_path_extension(all_input, "results/bam", "bam"),
-#        gtf = "H3B1-04J.gtf"
-#    conda: "circular.yml"
-#    shell:
-#        "bash code/04-TPM.sh"
+        "bash code/06-picard.sh"
 
 rule get_TPM:
     output:
@@ -115,7 +108,7 @@ rule get_TPM:
     params: os.getcwd()
     conda: "alignment.yml"
     script:
-        "code/04-calculate_TPM.py"
+        "code/07-calculate_TPM.py"
 
 rule filter_counts:
     output:
@@ -127,19 +120,7 @@ rule filter_counts:
     conda: "alignment.yml"
     params: workdir = os.getcwd()
     script:
-        "code/05-prefilter_counts.py"
-
-# Maybe here create a filtered version as well, without RNAs
-#rule parse_TPM:
-#    output:
-#        "results/TPM/mean_TPM.tsv"
-#    input:
-#        ent = add_path_extension(all_input, "results/TPM", "ent", "_genes"),
-#        out = add_path_extension(all_input, "results/TPM", "out", "_genes"),
-#        uni = add_path_extension(all_input, "results/TPM", "uni", "_genes")
-#    conda: "alignment.yml"
-#    script:
-#        "code/06-parse_TPM.py"
+        "code/08-prefilter_counts.py"
 
 rule parse_counts:
     output:
@@ -155,7 +136,7 @@ rule parse_counts:
     params: countdir = os.getcwd() + "/featureCounts_reverse/nofilter", filtered_countdir = os.getcwd() + "/featureCounts_reverse/filtered"
     conda: "alignment.yml"
     script:
-        "code/06-filter_counts.py"
+        "code/09-filter_counts.py"
 
 # Add logging, update Python and bash variables so that they can be changed from this file
 # and write rules for the saturation analysis and for the DE analysis to make sure that they generate the plots that I need
@@ -169,7 +150,7 @@ rule saturation:
         meta = "featureCounts_reverse/countfiles/H3B1-04J_metadata.tsv"
     conda: "renv.yml"
     script:
-        "code/07-saturation_analysis.R"
+        "code/10-saturation_analysis.R"
 
 rule DE:   
     output:
@@ -180,4 +161,4 @@ rule DE:
         counts = add_path_extension(all_input, "featureCounts_reverse/filtered", "featureCounts")
     conda: "renv.yml"
     script:
-        "code/08-dif_expression.R"
+        "code/11-dif_expression.R"
