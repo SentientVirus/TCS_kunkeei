@@ -17,9 +17,9 @@ mkdir -p $outdir
 for sample in $samples;
 do
 
-echo "Processing: "$(basename -- ${sample::-20})  2>> $log
+echo "Processing: "$(basename -- ${sample::-20}) >> $log 2>> $log
 
 # Alignment to generate bam files
-bwa mem -t 12 $fna_file $sample $(${sample}/pair1/"pair2") | samtools sort > $outdir/$(basename -- ${sample::-20}).bam 2>> $log 3>> $log
+bwa mem -t 12 $fna_file $sample ${sample/pair1/"pair2"} 2>> $log | samtools sort > $outdir/$(basename -- ${sample::-20}).bam 2>&1 2>> $log
 
 done

@@ -27,10 +27,21 @@ def input_def(lst, path = "", extension = ""):
         new_list.append(new_element.replace("R1", "R2"))
     return new_list
 
+def input_strand(lst, strand = 1, path = "", extension = ""):
+    new_list = []
+    for element in lst:
+        if strand == 1:
+            new_element = path + "/" + "Sample_" + element.split("_")[0] + "/" + element + "_R1_001" + "." + extension
+        elif strand == -1:
+            new_element = path + "/" + "Sample_" + element.split("_")[0] + "/" + element + "_R2_001" + "." + extension
+        new_list.append(new_element)
+    return new_list
+
 rule index_genome:
     output:
-        fna = "index/H3B1-04J.fna",
-        index = expand("index/H3B1-04J.fna.{ext}", ext = ["amb", "ann", "bwt", "pac", "sa"])
+        fna = os.getcwd() + "/index/H3B1-04J.fna",
+        index = expand("index/H3B1-04J.fna.{ext}", ext = ["amb", "ann", "bwt", "pac", "sa"]),
+        ht2 = expand("index/H3B1-04J.{no}.ht2", no = list(range(1,9)))
     input:
         fna = os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna"
     conda: "alignment.yml"
@@ -41,25 +52,30 @@ rule index_genome:
 rule trim_reads:
     output:
         R1 = add_path_extension(all_input, path = "trimmed_reads", extension = "fastq", extra = "-trimmed-pair1"),
-        R2 = add_path_extension(all_input, path = "trimmed_reads", extension = "fastq", extra = "-trimmed-pair2"),
-        log = add_path_extension(all_input, path = "trimmed_reads", extension = "log", extra = "-trimmed")
+        R2 = add_path_extension(all_input, path = "trimmed_reads", extension = "fastq", extra = "-trimmed-pair2")
     input:
-        reads = input_def(all_input, path = "files/VF-3336/221006_M06455_0144_000000000-KMH8C", extension = "fastq.gz"),
-        adapter = "TruSeq3-PE-2.fa"
-    params: outdir = "trimmed_reads"
+        R1 = input_strand(all_input, strand = 1, path = os.getcwd() + "/files/VF-3336/221006_M06455_0144_000000000-KMH8C", extension = "fastq.gz"),
+        R2 = input_strand(all_input, strand = -1, path = os.getcwd() + "/files/VF-3336/221006_M06455_0144_000000000-KMH8C", extension = "fastq.gz"),
+        adapter = os.getcwd() + "/TruSeq3-PE-2.fa"
+    params: outdir = os.getcwd() + "/trimmed_reads"
     conda: "alignment.yml"
-    log: "logs/02-read_trimming.log"
+    log: add_path_extension(all_input, path = "logs/02-read_trimming", extension = "log", extra = "-trimmed")
     shell:
-        "bash code/02-read_trimming.sh {params.outdir} {input.adapter} {log} {input.reads}"
+        """
+        bash code/02-read_trimming.sh {params.outdir} {input.adapter} {input.R1}
+        mv trimmed_reads/*.log logs/02-read_trimming
+        """
         
 rule align2fna:
     output:
         outbam = add_path_extension(all_input, "results/bam", "bam")
     input:
-        R1 = add_path_extension(all_input, path = "trimmed_reads", extension = "fastq", extra = "-trimmed-pair1"),
-        R2 = add_path_extension(all_input, path = "trimmed_reads", extension = "fastq", extra = "-trimmed-pair2"),
-        genome = "index/H3B1-04J.fna"
-    params: indir = "trimmed_reads", outdir = "results/bam"
+        R1 = add_path_extension(all_input, path = os.getcwd() + "/trimmed_reads", extension = "fastq", extra = "-trimmed-pair1"),
+        R2 = add_path_extension(all_input, path = os.getcwd() + "/trimmed_reads", extension = "fastq", extra = "-trimmed-pair2"),
+        genome = os.getcwd() + "/index/H3B1-04J.fna"
+    params: 
+        indir = os.getcwd() + "/trimmed_reads",
+        outdir = os.getcwd() + "/results/bam"
     log: "logs/03-read_alignment.log"
     conda: "alignment.yml"
     shell:

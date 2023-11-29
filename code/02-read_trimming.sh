@@ -3,29 +3,26 @@
 ###       RUN Skewer       ###
 ### (Samtools environment) ###
 ##############################
-
-samples=${@:4}
+path2files=$HOME'/snpseq00064/files/VF-3336/221006_M06455_0144_000000000-KMH8C'
+samples=${@:3}
 outdir=$1
 adapter=$2
-log=$3
 
-echo $samples
-echo $outdir
-echo $adapter
+#echo $samples
+#echo $outdir
+#echo $adapter
 
 mkdir -p $outdir
-
-> $log
 
 # Loop through samples
 for sample in $samples;
 do
 
 # Print input and output filenames
-echo $sample, $sample ${sample::-15}R2_001.fastq.gz
+echo $sample, ${sample/R1/"R2"}
 echo $outdir/$(basename -- ${sample::-16})
 
 # Trim reads
-skewer -m pe -Q 30 -t 12 -y $adapter $sample ${sample::-15}R2_001.fastq.gz -o $outdir/$(basename -- ${sample::-16}) 2>> $log 3>>$log
+skewer -m pe -Q 30 -t 12 -y $adapter $sample ${sample/R1/"R2"} -o $outdir/$(basename -- ${sample::-16})
 
 done
