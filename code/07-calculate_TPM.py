@@ -7,7 +7,7 @@ A script that calculates the number of TPM based on the number of counts
 """
 
 # =============================================================================
-# A Python script to calculate TPM
+# 0. Importing packages
 # =============================================================================
 import os
 import logging, traceback
@@ -37,41 +37,24 @@ sys.stdout = open(snakemake.log[0], 'a')
 # =============================================================================
 # 1. Define input variables
 # =============================================================================
-#workdir = '../featureCounts_reverse/nofilter'
-outdir = os.path.dirname(snakemake.output[0]) #'../results/TPM'
-outfile = snakemake.output.per_sample #'TPM_per_sample.tsv'
-mean_outfile = snakemake.output.mean #'mean_TPM.tsv'
+outdir = os.path.dirname(snakemake.output[0])
+outfile = snakemake.output.per_sample
+mean_outfile = snakemake.output.mean
 basedir = snakemake.params
 
 if not os.path.exists(outdir):
     os.makedirs(outdir)
 
+print(f'{outdir} exists')
 # Initialize parameters for TPM calculation
 rl = 76 #Average read length 
 TPM = {}
-#sum_dict = {}
-
-# # =============================================================================
-# # 2. Open the summary files to get the total number of reads per sample
-# # =============================================================================
-
-# os.chdir(basedir)
-# for file in sorted(snakemake.input.summary):
-#     #if file.endswith('summary'): #This line should be removed when I implement snakemake
-#     with open(file) as summary:
-#         sample = file.replace('.summary', '') #f'I{file[17:19]}_{file[20:21]}_{file[24:27].replace("_", "")}'
-#         sum_stats = pd.read_csv(summary, sep = '\t').iloc[:,1].sum()
-#         sum_dict[sample] = sum_stats
-#         # if sample == 'I01_F_S5':
-#         #     print(sum_stats, sum_stats.sum())
-#         print(f'Read {sample}')
     
 # =============================================================================
 # 2. Loop through the features in each of the files and calculate TPM
 # =============================================================================
 locus_tags = []
 for file in sorted(snakemake.input):
-    #if file.endswith('featureCounts'): #This line should be removed when I implement snakemake
     if len(locus_tags) == 0:
         check = True
     else: check = False
@@ -102,6 +85,7 @@ df = pd.DataFrame.from_dict(TPM, orient='index').transpose()
 df['locus_tag'] = locus_tags
 df = df.set_index('locus_tag')
 df.to_csv(outfile, sep = '\t')
+print('TPM saved to file')
 
 # =============================================================================
 # 4. Calculate mean TPMs and save to file
@@ -112,4 +96,4 @@ for ic in isol_cond:
     underscore_ic = ic[:-1] + '_' +  ic[-1:]
     mean_df[ic] = df.filter(regex=underscore_ic).mean(axis=1)
     mean_df.to_csv(mean_outfile, sep = '\t')
-print('Data saved to files')
+print('Mean values saved to files')

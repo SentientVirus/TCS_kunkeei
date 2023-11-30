@@ -7,9 +7,11 @@ This is a script to filter counts that removes ribosomal genes
 
 @author: marina
 """
+
 # =============================================================================
 # 0. Importing packages
 # =============================================================================
+
 import os
 import logging, traceback
 from Bio import GenBank
@@ -39,13 +41,12 @@ sys.stdout = open(snakemake.log[0], 'a')
 # =============================================================================
 # 1. Define inputs and outputs
 # =============================================================================
-#home = expanduser('~')
 
-workdir = snakemake.params.workdir #f'{home}/snpseq00064'
+workdir = snakemake.params.workdir
 
 count_dir = os.path.dirname(snakemake.input.counts[0])
-outdir = os.path.dirname(snakemake.output.counts[0]) #f'{count_dir}/filtered'
-metadir = os.path.dirname(snakemake.output.summary[0]) #f'{workdir}/results/summary'
+outdir = os.path.dirname(snakemake.output.counts[0])
+metadir = os.path.dirname(snakemake.output.summary[0])
 
 if not os.path.exists(outdir):
     os.makedirs(outdir)
@@ -53,7 +54,7 @@ if not os.path.exists(outdir):
 if not os.path.exists(metadir):
     os.makedirs(metadir)
     
-gbk_file = snakemake.input.gbff #f'{home}/Akunkeei_files/gbff/H3B1-04J_genomic.gbff'
+gbk_file = snakemake.input.gbff
 
 # =============================================================================
 # 2. Read GenBank file to get locus tags of genes annotated as ribosomal RNAs
@@ -64,8 +65,6 @@ RNA_loctags = []
 
 with open(gbk_file) as handle:
     for record in GenBank.parse(handle):
-        #print(record.accession)
-        #exclude = ['RNA', 'transposon', 'transposase']
         for feature in record.features:
             if 'RNA' in feature.key or (len(feature.qualifiers) > 5 and 'transpos' in feature.qualifiers[5].value): #or (len(feature.qualifiers) > 1 and 'RNA' in feature.qualifiers[1].value)
                 loctag = feature.qualifiers[0].value.replace('"', '')
@@ -89,7 +88,8 @@ with open(gbk_file) as handle:
                 
         
 # =============================================================================
-# 3. Read count file and filter out the RNA genes, create 
+# 3. Read count file and filter out the RNA genes, create filtered count files
+# and files with the data of RNA genes 
 # =============================================================================
 type_count = {}
 for file in os.listdir(count_dir):
@@ -101,11 +101,12 @@ for file in os.listdir(count_dir):
             for seqtype in ['rRNA', 'tRNA', 'misc_RNA', 'transposon']:
                 type_count[seqtype] = df[df.index.isin(loctags_by_type[seqtype])].iloc[:, -1:].sum()[0]
             df = df[~df.index.isin(RNA_loctags)]
-            # df.columns = df.iloc[0]
         isolate = f'I{file[17:19]}_{file[20:21]}_{file[24:27].replace("_", "")}'
         with open(f'{outdir}/{file}', 'w') as outfile:
             df.to_csv(outfile, sep = '\t')
+            print(f'Pre-filtered counts of {isolate} saved to {outdir}/{file}')
         with open(f'{metadir}/{isolate}_count_distribution.tsv', 'w') as metadat:
             metadat.write('feature_type\tcount\n')
             [metadat.write(f'{k}\t{v}\n') for k, v in type_count.items()]
+            print(f'RNA gene counts of {isolate} saved to {metadir}/{isolate}_count_distribution.tsv')
             

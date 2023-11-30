@@ -20,14 +20,6 @@ import os
 import logging, traceback
 
 # =============================================================================
-# Section to define inputs
-# =============================================================================
-home = os.path.expanduser('~')
-workdir = home + '/snpseq00064'
-csv_dir = workdir + '/results/DE'
-gbk_file = home + '/Akunkeei_files/gbff/H3B1-04J_genomic.gbff' 
-
-# =============================================================================
 # 0. Logging
 # =============================================================================
 
@@ -49,7 +41,15 @@ sys.excepthook = handle_exception
 sys.stdout = open(snakemake.log[0], 'a')
 
 # =============================================================================
-# 1. Extract the dataframes with DE results and create a list with all the
+# 1. Get inputs from Snakemake
+# =============================================================================
+home = os.path.expanduser('~')
+workdir = home + '/snpseq00064'
+csv_dir = workdir + '/results/DE'
+gbk_file = home + '/Akunkeei_files/gbff/H3B1-04J_genomic.gbff' 
+
+# =============================================================================
+# 2. Read the dataframes with DE results and create a list with all the
 # unique locus tags
 # =============================================================================
 locus_tags = []
@@ -64,15 +64,20 @@ for file in os.listdir(csv_dir):
 locus_tags = sorted(locus_tags)
 
 # =============================================================================
-# 2. Create a dictionary that matches an annotation from the GenBank file
+# 3. Create a dictionary that matches an annotation from the GenBank file
 # (if it exists) to each locus tag
 # =============================================================================
 tag_dict = {}
 with open(gbk_file) as gbk_read:
     for record in gbk.parse(gbk_read):
         for feature in record.features:
+            
             if len(feature.qualifiers) > 1:
+                
+                # Check if the feature has a three-letter code
                 annotation = ''
+                
+                # If it does, add it together with the protein annotation
                 if 'AKUH3B104J' not in feature.qualifiers[0].value.strip('"'):
                     loctag = feature.qualifiers[1].value.strip('"')
                     gene_name = feature.qualifiers[0].value.strip('"')
@@ -82,6 +87,8 @@ with open(gbk_file) as gbk_read:
                                 annotation = qual.value.strip('"')
                         tag_dict[loctag] = (gene_name, annotation)
                         print(f'Found gene {gene_name}')
+                        
+                # Otherwise add a - symbol and the annotation
                 else:
                     for qual in feature.qualifiers:
                         if 'product' in qual.key:
@@ -91,9 +98,10 @@ with open(gbk_file) as gbk_read:
                     print(f'Added hypothetical protein {loctag}')
                         
 # =============================================================================
-# 3. Use function to add annotations to the locus tags in the dataframes and 
+# 4. Add annotations to the locus tags in the dataframes and 
 # save to tsv files
 # =============================================================================
+
 for key in df_dict.keys():
     df = df_dict[key]
     new_column = []
