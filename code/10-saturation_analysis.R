@@ -15,6 +15,16 @@ for (package in new.packages){
 # 0. Load required libraries                                                  #
 #=============================================================================#
 library(NOISeq)
+library(futile.logger)
+
+#=============================================================================#
+# 0. Logging                                                                  #
+#=============================================================================#
+
+# Create a logger that will be saved to a file
+flog.logger("saturation", TRACE, appender=appender.file(snakemake@log))
+
+flog.info("R script to run a saturation analysis")
 
 #=============================================================================#
 # 1. Load input variables from Snakemake                                      #
