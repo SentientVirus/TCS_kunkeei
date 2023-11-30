@@ -145,6 +145,7 @@ rule parse_counts:
     output:
         avg_nofilter = "featureCounts_reverse/countfiles/nofilter/avg_gene_counts.tsv",
         avg_filtered = "featureCounts_reverse/countfiles/filtered/avg_gene_counts.tsv",
+        counts = expand("featureCounts_reverse/countfiles/{dir}/H3B1-04J_{isol}{cond}_counts.tsv", dir = ["filtered", "nofilter"], isol = ["01", "02", "09", "10"], cond = ["F", "S"]),
         meta = "featureCounts_reverse/countfiles/H3B1-04J_metadata.tsv",
         pos = "meta/gene_positions.tsv"
     input:
@@ -152,7 +153,7 @@ rule parse_counts:
         meta = "meta/metadata.VF-3336.csv",
         counts = add_path_extension(all_input, "featureCounts_reverse/nofilter", "featureCounts"),
         counts_filtered = add_path_extension(all_input, "featureCounts_reverse/filtered", "featureCounts")
-    params: countdir = "featureCounts_reverse/nofilter", filtered_countdir = os.getcwd() + "/featureCounts_reverse/filtered"
+    params: countdir = "featureCounts_reverse/nofilter", filtered_countdir = "featureCounts_reverse/filtered"
     conda: "alignment.yml"
     log: "logs/09-filter_counts.log"
     script:
@@ -164,22 +165,27 @@ rule parse_counts:
 # R rules don't take the input from Snakemake, since I prefer not to install R with Conda
 rule saturation:
     output:
-        plots = expand("plots/saturation{extra}_k0.png", extra = ["_collapsed", ""])
+        plots = expand("plots/saturation{extra}_k0.png", extra = ["_collapsed", ""]),
+        ps = expand("plots/saturation{extra}_k0.png", extra = ["_collapsed", ""])
     input:
-        counts = add_path_extension(all_input, "featureCounts_reverse/filtered", "featureCounts"),
-        meta = "featureCounts_reverse/countfiles/H3B1-04J_metadata.tsv"
+        counts = expand("featureCounts_reverse/countfiles/filtered/H3B1-04J_{isol}{cond}_counts.tsv", isol = ["01", "02", "09", "10"], cond = ["F", "S"]),
+        meta = "featureCounts_reverse/countfiles/H3B1-04J_metadata.tsv",
+        pos = "meta/gene_positions.tsv"
     conda: "renv.yml"
+    log: "logs/10-saturation_analysis.log"
     script:
         "code/10-saturation_analysis.R"
 
 rule DE:   
     output:
-        DE = expand("results/DE/{comparison}{ext}.csv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["_lfc1", ""]),
+        DE = expand("results/DE/{comparison}{ext}.csv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"]),
         PCA = expand("plots/pcaplot.{ext}", ext = ["png", "pdf"]),
         plots = expand("plots/{comparison}.{ext}", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["png", "ps"])
     input:
-        counts = add_path_extension("featureCounts_reverse/filtered", "featureCounts")
+        counts = expand("featureCounts_reverse/countfiles/filtered/H3B1-04J_{isol}{cond}_counts.tsv", isol = ["01", "02", "09", "10"], cond = ["F", "S"]),
+        meta = "featureCounts_reverse/countfiles/H3B1-04J_metadata.tsv"
     conda: "renv.yml"
+    log: "logs/11-dif_expression.R"
     script:
         "code/11-dif_expression.R"
 
