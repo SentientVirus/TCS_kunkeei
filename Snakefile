@@ -97,6 +97,7 @@ rule count_genes:
     shell:
         "bash code/04-read_counts.sh {params.out1} {params.out2} {input.gff} {log} {input.bam}"
 
+# This rule lacks proper integration into Snakemake and logging
 rule calculate_coverage:
     output:
         add_path_extension(all_input, "results/coverage", "perbase.cov")
@@ -106,6 +107,7 @@ rule calculate_coverage:
     shell:
         "bash code/05-coverage.sh"
 
+# This rule lacks proper integration into Snakemake and logging
 rule picard_tools:
     output:
         pdf = add_path_extension(all_input, "results/picard", "pdf", "_insert_size_histogram"),
@@ -181,11 +183,10 @@ rule differential_expression:
         counts = expand("featureCounts_reverse/countfiles/filtered/H3B1-04J_{isol}{cond}_counts.tsv", isol = ["01", "02", "09", "10"], cond = ["F", "S"]),
         meta = "featureCounts_reverse/countfiles/H3B1-04J_metadata.tsv"
     conda: "renv.yml"
-    log: "logs/11-dif_expression.R"
+    log: "logs/11-dif_expression.log"
     script:
         "code/11-dif_expression.R"
 
-# This script lacks proper integration in the pipeline
 rule annotate_results:
     output: 
         expand("results/DE/{comparison}{ext}_annotated.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"])

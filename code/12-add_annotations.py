@@ -16,7 +16,6 @@ thelocus tag.
 # =============================================================================
 from Bio import GenBank as gbk
 import pandas as pd
-import os
 import logging, traceback
 
 # =============================================================================
@@ -43,10 +42,8 @@ sys.stdout = open(snakemake.log[0], 'a')
 # =============================================================================
 # 1. Get inputs from Snakemake
 # =============================================================================
-home = os.path.expanduser('~')
-workdir = home + '/snpseq00064'
-csv_dir = workdir + '/results/DE'
-gbk_file = home + '/Akunkeei_files/gbff/H3B1-04J_genomic.gbff' 
+dif_expr = snakemake.input.dif_expr
+gbk_file = snakemake.input.gbk
 
 # =============================================================================
 # 2. Read the dataframes with DE results and create a list with all the
@@ -54,13 +51,12 @@ gbk_file = home + '/Akunkeei_files/gbff/H3B1-04J_genomic.gbff'
 # =============================================================================
 locus_tags = []
 df_dict = {}
-for file in os.listdir(csv_dir):
-    if file.endswith('.csv'):
-        print(f'Processing file {file}')
-        with open(f'{csv_dir}/{file}') as csvfile:
-            df = pd.read_csv(csvfile, index_col = 0)
-            locus_tags = list(pd.unique(list(df.index) + locus_tags))
-            df_dict[file] = df
+for file in dif_expr:
+    print(f'Processing file {file}')
+    with open(file) as csvfile:
+        df = pd.read_csv(csvfile, index_col = 0)
+        locus_tags = list(pd.unique(list(df.index) + locus_tags))
+        df_dict[file] = df
 locus_tags = sorted(locus_tags)
 
 # =============================================================================
@@ -111,5 +107,5 @@ for key in df_dict.keys():
     df.insert(len(df.columns), 'gene_name', new_list, True)
     df.insert(len(df.columns), 'annotation', annot, True)
     outfile = key.replace('.csv', '_annotated.tsv')
-    df.to_csv(f'{csv_dir}/{outfile}', sep='\t')
+    df.to_csv(outfile, sep='\t')
     print(f'Saved annotations for comparison {key.replace(".csv", "")}')

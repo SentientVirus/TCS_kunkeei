@@ -1,3 +1,8 @@
+# Redirect all output to log file
+con <- file(snakemake@log[[1]], "a+")
+sink(con, append = TRUE, type="message")
+sink(con, append = TRUE)
+
 #=============================================================================#
 # 0. Install packages if needed                                               #
 #=============================================================================#
@@ -20,7 +25,6 @@ library(futile.logger)
 #=============================================================================#
 # 0. Logging                                                                  #
 #=============================================================================#
-
 # Create a logger that will be saved to a file
 flog.logger("saturation", TRACE, appender=appender.file(snakemake@log))
 
@@ -29,6 +33,7 @@ flog.info("R script to run a saturation analysis")
 #=============================================================================#
 # 1. Load input variables from Snakemake                                      #
 #=============================================================================#
+flog.info("Loading inputs...")
 directory <- dirname(snakemake@input[["counts"]][1])
 metadat <- snakemake@input[["meta"]]
 plot_dir <- dirname(snakemake@output[["plots"]][1])
@@ -42,6 +47,7 @@ if (!file.exists(plot_dir)){
 #=============================================================================#
 # 2. Loop through count files to retrieve the counts                           #
 #=============================================================================#
+flog.info("Retrieving counts...")
 filename <- sampleFiles[1]
 counts <- as.matrix(read.csv(filename, sep="\t", row.names="Geneid"))
 for (filename in sampleFiles[2:length(sampleFiles)]){
@@ -52,6 +58,8 @@ for (filename in sampleFiles[2:length(sampleFiles)]){
 #=============================================================================#
 # 3. Calculate the mean values of counts per isolate/condition                #
 #=============================================================================#
+flog.info("Collapsing replicates...")
+
 # Retrieve unique isolate/condition headers
 unique_substrings <- unique(substr(colnames(counts), 1, 5))
 
@@ -68,6 +76,8 @@ for (substring in unique_substrings) {
 #=============================================================================#
 # 4. Collapse metadata                                                        #
 #=============================================================================#
+flog.info("Collapsing metadata...")
+
 # Rename the columns in the sums_dataframe
 colnames(sum_counts) <- unique_substrings
 
@@ -94,6 +104,8 @@ grouped_coldata$substring <- NULL
 #=============================================================================#
 # 5. Read position information (not needed)                                   #
 #=============================================================================#
+flog.info("Reading positional information...")
+
 # Read chromosome names as metadata
 chr <- read.delim(snakemake@input[["pos"]], sep = "\t")
 rownames(chr) <- chr$Geneid
@@ -106,24 +118,28 @@ chr <- chr[rownames(chr) %in% rownames(counts), ]
 #=============================================================================#
 # 6. Generate saturation plots                                                #
 #=============================================================================#
+flog.info("Generating saturation plots...")
+
 # Run the saturation analysis for each replicate
 mydata2 <- readData(data=sum_counts, chromosome=chr2, factors=grouped_coldata)
-postscript(file=snakemake@output["ps"][1])
+postscript(file=snakemake@output[["ps"]][1])
 sat <- dat(mydata2, type = "saturation", factor = NULL, k = 0, ndepth = 20)
 explo.plot(sat, samples = 1:8)
-dev.off()
-png(file=snakemake@output["plots"][1], width=1000, height=750)
+invisible(dev.off())
+png(file=snakemake@output[["plots"]][1], width=1000, height=750)
 sat <- dat(mydata2, type = "saturation", factor = NULL, k = 0, ndepth = 20)
 explo.plot(sat, samples = 1:8)
-dev.off()
+invisible(dev.off())
 
 # Run the saturation analysis collapsing replicates
 mydata <- readData(data=counts, chromosome=chr, factors=coldata)
-postscript(file=file=snakemake@output["ps"][2])
+postscript(file=snakemake@output[["ps"]][2])
 sat <- dat(mydata, type = "saturation", factor = NULL, k = 0, ndepth = 20)
 explo.plot(sat, samples = 1:40)
-dev.off()
-png(file=snakemake@output["plots"][2], width=1000, height=750)
+invisible(dev.off())
+png(file=snakemake@output[["plots"]][2], width=1000, height=750)
 sat <- dat(mydata, type = "saturation", factor = NULL, k = 0, ndepth = 20)
 explo.plot(sat, samples = 1:40)
-dev.off()
+invisible(dev.off())
+
+flog.info("Analysis completed!")

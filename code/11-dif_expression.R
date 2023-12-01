@@ -1,8 +1,14 @@
+# Redirect all output to log file
+con <- file(snakemake@log[[1]], "a+")
+sink(con, append = TRUE, type="message")
+sink(con, append = TRUE)
+
 #=============================================================================#
 # 0. Install packages if needed                                               #
 #=============================================================================#
-if (!require("BiocManager", quietly = TRUE))
-  install.packages("BiocManager", repos='http://cran.us.r-project.org')
+list.of.packages <- c("BiocManager")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages, repos='http://cran.us.r-project.org')
 
 to_install <- c("DESeq2", "ggplot2", "stringr")
 new.packages <- to_install[!(to_install %in% installed.packages()[,"Package"])]
@@ -21,15 +27,15 @@ library(futile.logger)
 #=============================================================================#
 # 0. Logging                                                                  #
 #=============================================================================#
-
 # Create a logger that will be saved to a file
-flog.logger("saturation", TRACE, appender=appender.file(snakemake@log))
+flog.logger("saturation", TRACE, appender=appender.file(snakemake@log[[1]]))
 
 flog.info("R script to run a saturation analysis")
 
 #=============================================================================#
 # 1. Load input variables from Snakemake                                      #
 #=============================================================================#
+flog.info("Definining input variables")
 sampleFiles <- snakemake@input[["counts"]]
 sub_dir <- dirname(snakemake@output[["dif_expr"]][1])
 plot_dir <- dirname(snakemake@output[["pca"]][1])
@@ -47,6 +53,8 @@ if (!file.exists(plot_dir)){
 #=============================================================================#
 # 2. Read counts and create metadata                                          #
 #=============================================================================#
+flog.info("Reading input files")
+
 # Assign a condition to each sample
 sampleCondition <- c()
 for (file in sampleFiles){
@@ -85,6 +93,7 @@ dds_pcr <- DESeqDataSetFromMatrix(countData = counts,
 #=============================================================================#
 # 3. Run a PCA for the complete dataset                                       #
 #=============================================================================#
+flog.info("Running PCA")
 # PCA calculations
 vsd <- vst(dds_pcr, blind=FALSE)
 pcaData <- plotPCA(vsd, intgroup=c("condition1", "condition2"), returnData=TRUE)
@@ -96,20 +105,25 @@ p <- ggplot(pcaData, aes(PC1, PC2, color=condition2, shape=condition1)) +
   guides(color = guide_legend(title = "Substrate"), shape = guide_legend(title = "Morphology")) +
   xlab(paste0("PC1: ",percentVar[1],"% variance")) +
   ylab(paste0("PC2: ",percentVar[2],"% variance")) + 
-  coord_fixed()
+  coord_fixed();
 p <- p + stat_ellipse(geom="polygon", aes(fill = pcaData$condition2), 
   alpha = 0.2, show.legend = FALSE, level = 0.95) +
   theme_minimal() + theme(panel.grid = element_blank(), 
-  panel.border = element_rect(fill= "transparent"))
+  panel.border = element_rect(fill= "transparent"));
 
 # Saving the plots to files
-ggsave(pcaplot[1], width = 9, height = 6)
-ggsave(pcaplot[2], width = 9, height = 6)
+ggsave(pcaplot[1], width = 9, height = 6);
+ggsave(pcaplot[2], width = 9, height = 6);
 
 #=============================================================================#
 # 4. Differential expression analyses                                         #
 #=============================================================================#
-# Get data for the differential expression analysis Smucoid vs Sinhibitor
+# Run a differential expression analysis for Smucoid vs Sinhibitor
+flog.info("Running DESeq2")
+savename <- "Smucoid_vs_Sinhibitor"
+flog.info(paste("Comparison", savename, sep = " "))
+
+# Get data for the differential expression analysis
 coldata2 <- coldata[coldata$condition2 == "S",]
 coldata2 <- coldata2[rownames(coldata2) %in% colnames(counts),]
 counts2 <- counts[, colnames(counts) %in% rownames(coldata2)]
@@ -124,26 +138,27 @@ dds <- DESeqDataSetFromMatrix(countData = counts2,
 dds <- DESeq(dds)
 
 # Get results with and without lfc threshold filters
-res <- results(dds)
-res_subset <- results(dds, lfcThreshold=1)
-res
-res_filter <- subset(res, padj < .1)
-res_subset <- subset(res_subset, padj < .1)
+res <- results(dds);
+res_subset <- results(dds, lfcThreshold=1);
+summary(res);
+res_filter <- subset(res, padj < .1);
+res_subset <- subset(res_subset, padj < .1);
 
 # Save results to csv files
-savename <- "Smucoid_vs_Sinhibitor"
-write.csv(res_filter, file = snakemake@output[["dif_expr"]][1], quote=FALSE)
-write.csv(res_subset, file = snakemake@output[["dif_expr"]][2], quote=FALSE)
+write.csv(res_filter, file = snakemake@output[["dif_expr"]][1], quote=FALSE);
+write.csv(res_subset, file = snakemake@output[["dif_expr"]][2], quote=FALSE);
 
 # Generate MA plots (png and postscript)
-png(file = snakemake@output[["plots"]][1], width = 600, height = 400)
-plotMA(res, ylim = c(-3,3), colSig = "#c00000")
-dev.off()
-postscript(file = snakemake@output[["plots"]][2], width = 900, height = 600)
-plotMA(res, ylim = c(-3,3), colSig = "#c00000")
-dev.off()
+png(file = snakemake@output[["plots"]][1], width = 600, height = 400);
+plotMA(res, ylim = c(-3,3), colSig = "#c00000");
+invisible(dev.off())
+postscript(file = snakemake@output[["plots"]][2], width = 900, height = 600);
+plotMA(res, ylim = c(-3,3), colSig = "#c00000");
+invisible(dev.off())
 
 # Run a differential expression analysis for Fmucoid vs Finhibitor
+savename <- "Fmucoid_vs_Finhibitor"
+flog.info(paste("Comparison", savename, sep = " "))
 coldata2 <- coldata[coldata$condition2 == "F",]
 coldata2 <- coldata2[rownames(coldata2) %in% colnames(counts),]
 counts2 <- counts[, colnames(counts) %in% rownames(coldata2)]
@@ -155,25 +170,26 @@ dds <- DESeqDataSetFromMatrix(countData = counts2,
 
 dds <- DESeq(dds)
 
-res <- results(dds)
-res_subset <- results(dds, lfcThreshold=1)
-res
-res_filter <- subset(res, padj < .1)
-res_subset <- subset(res_subset, padj < .1)
+res <- results(dds);
+res_subset <- results(dds, lfcThreshold=1);
+summary(res);
+res_filter <- subset(res, padj < .1);
+res_subset <- subset(res_subset, padj < .1);
 
-savename <- "Fmucoid_vs_Finhibitor"
-write.csv(res_filter, file = snakemake@output[["dif_expr"]][3], quote=FALSE)
-write.csv(res_subset, file = snakemake@output[["dif_expr"]][4], quote=FALSE)
+write.csv(res_filter, file = snakemake@output[["dif_expr"]][3], quote=FALSE);
+write.csv(res_subset, file = snakemake@output[["dif_expr"]][4], quote=FALSE);
 
-postscript(file=snakemake@output[["plots"]][4], width=900, height=600)
-plotMA(res, ylim=c(-3,3), colSig = "#c00000")
-dev.off()
-png(file=snakemake@output[["plots"]][3], width=600, height=400)
-plotMA(res, ylim=c(-3,3), colSig = "#c00000")
-dev.off()
+postscript(file=snakemake@output[["plots"]][4], width=900, height=600);
+plotMA(res, ylim=c(-3,3), colSig = "#c00000");
+invisible(dev.off())
+png(file=snakemake@output[["plots"]][3], width=600, height=400);
+plotMA(res, ylim=c(-3,3), colSig = "#c00000");
+invisible(dev.off())
 
 
 # Run a differential expression analysis for Smucoid vs Fmucoid
+savename <- "Smucoid_vs_Fmucoid"
+flog.info(paste("Comparison", savename, sep = " "))
 coldata2 <- coldata[coldata$condition1 == "mucoid",]
 coldata2 <- coldata2[rownames(coldata2) %in% colnames(counts),]
 counts2 <- counts[, colnames(counts) %in% rownames(coldata2)]
@@ -185,24 +201,25 @@ dds <- DESeqDataSetFromMatrix(countData = counts2,
 
 dds <- DESeq(dds)
 
-res <- results(dds)
-res_subset <- results(dds, lfcThreshold=1)
-res
-res_filter <- subset(res, padj < .1)
-res_subset <- subset(res_subset, padj < .1)
+res <- results(dds);
+res_subset <- results(dds, lfcThreshold=1);
+summary(res);
+res_filter <- subset(res, padj < .1);
+res_subset <- subset(res_subset, padj < .1);
 
-savename <- "Smucoid_vs_Fmucoid"
-write.csv(res_filter, file = snakemake@output[["dif_expr"]][5], quote=FALSE)
-write.csv(res_subset, file = snakemake@output[["dif_expr"]][6], quote=FALSE)
+write.csv(res_filter, file = snakemake@output[["dif_expr"]][5], quote=FALSE);
+write.csv(res_subset, file = snakemake@output[["dif_expr"]][6], quote=FALSE);
 
-png(file = snakemake@output[["plots"]][5], width = 600, height = 400)
-plotMA(res, ylim = c(-3,3), colSig = "#c00000")
-dev.off()
-postscript(file = snakemake@output[["plots"]][6], width = 900, height = 600)
-plotMA(res, ylim = c(-3,3), colSig = "#c00000")
-dev.off()
+png(file = snakemake@output[["plots"]][5], width = 600, height = 400);
+plotMA(res, ylim = c(-3,3), colSig = "#c00000");
+invisible(dev.off())
+postscript(file = snakemake@output[["plots"]][6], width = 900, height = 600);
+plotMA(res, ylim = c(-3,3), colSig = "#c00000");
+invisible(dev.off())
 
 # Run a differential expression analysis for Sinhibitor vs Finhibitor
+savename <- "Sinhibitor_vs_Finhibitor"
+flog.info(paste("Comparison", savename, sep = " "))
 coldata2 <- coldata[coldata$condition1 == "inhibitor",]
 coldata2 <- coldata2[rownames(coldata2) %in% colnames(counts),]
 counts2 <- counts[, colnames(counts) %in% rownames(coldata2)]
@@ -214,19 +231,18 @@ dds <- DESeqDataSetFromMatrix(countData = counts2,
 
 dds <- DESeq(dds)
 
-res <- results(dds)
-res_subset <- results(dds, lfcThreshold=1)
-res
-res_filter <- subset(res, padj < .1)
-res_subset <- subset(res_subset, padj < .1)
+res <- results(dds);
+res_subset <- results(dds, lfcThreshold=1);
+summary(res);
+res_filter <- subset(res, padj < .1);
+res_subset <- subset(res_subset, padj < .1);
 
-savename <- "Sinhibitor_vs_Finhibitor"
-write.csv(res_filter, file = snakemake@output[["dif_expr"]][7], quote=FALSE)
-write.csv(res_subset, file = snakemake@output[["dif_expr"]][8], quote=FALSE)
+write.csv(res_filter, file = snakemake@output[["dif_expr"]][7], quote=FALSE);
+write.csv(res_subset, file = snakemake@output[["dif_expr"]][8], quote=FALSE);
 
-png(file = snakemake@output[["plots"]][7], width = 600, height = 400)
-plotMA(res, ylim = c(-3,3), colSig = "#c00000")
-dev.off()
-postscript(file = snakemake@output[["plots"]][8], width = 900, height = 600)
-plotMA(res, ylim = c(-3,3), colSig = "#c00000")
-dev.off()
+png(file = snakemake@output[["plots"]][7], width = 600, height = 400);
+plotMA(res, ylim = c(-3,3), colSig = "#c00000");
+invisible(dev.off())
+postscript(file = snakemake@output[["plots"]][8], width = 900, height = 600);
+plotMA(res, ylim = c(-3,3), colSig = "#c00000");
+invisible(dev.off())
