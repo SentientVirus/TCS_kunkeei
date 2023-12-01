@@ -10,7 +10,7 @@ list.of.packages <- c("BiocManager")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages, repos='http://cran.us.r-project.org')
 
-to_install <- c("DESeq2", "ggplot2", "stringr")
+to_install <- c("DESeq2", "ggplot2", "stringr", "apeglm")
 new.packages <- to_install[!(to_install %in% installed.packages()[,"Package"])]
 for (package in new.packages){
   BiocManager::install(package)
@@ -138,7 +138,7 @@ dds <- DESeqDataSetFromMatrix(countData = counts2,
 dds <- DESeq(dds)
 
 # Get results with and without lfc threshold filters
-res <- results(dds);
+res <- lfcShrink(dds, coef="condition1_mucoid_vs_inhibitor", type="apeglm")
 res_subset <- results(dds, lfcThreshold=1);
 summary(res);
 res_filter <- subset(res, padj < .1);
@@ -170,7 +170,7 @@ dds <- DESeqDataSetFromMatrix(countData = counts2,
 
 dds <- DESeq(dds)
 
-res <- results(dds);
+res <- lfcShrink(dds, coef="condition1_mucoid_vs_inhibitor", type="apeglm")
 res_subset <- results(dds, lfcThreshold=1);
 summary(res);
 res_filter <- subset(res, padj < .1);
@@ -201,7 +201,7 @@ dds <- DESeqDataSetFromMatrix(countData = counts2,
 
 dds <- DESeq(dds)
 
-res <- results(dds);
+res <- lfcShrink(dds, coef="condition2_S_vs_F", type="apeglm")
 res_subset <- results(dds, lfcThreshold=1);
 summary(res);
 res_filter <- subset(res, padj < .1);
@@ -231,7 +231,7 @@ dds <- DESeqDataSetFromMatrix(countData = counts2,
 
 dds <- DESeq(dds)
 
-res <- results(dds);
+res <- lfcShrink(dds, coef="condition2_S_vs_F", type="apeglm")
 res_subset <- results(dds, lfcThreshold=1);
 summary(res);
 res_filter <- subset(res, padj < .1);
