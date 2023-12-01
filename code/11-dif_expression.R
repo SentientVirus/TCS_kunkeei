@@ -31,9 +31,9 @@ flog.info("R script to run a saturation analysis")
 # 1. Load input variables from Snakemake                                      #
 #=============================================================================#
 sampleFiles <- snakemake@input[["counts"]]
-sub_dir <- dirname(snakemake@output[["DE"]][1])
-plot_dir <- dirname(snakemake@output[["PCA"]][1])
-pcaplot <- snakemake@output[["PCA"]]
+sub_dir <- dirname(snakemake@output[["dif_expr"]][1])
+plot_dir <- dirname(snakemake@output[["pca"]][1])
+pcaplot <- snakemake@output[["pca"]]
 
 # Make sure that output directories exist
 if (!file.exists(sub_dir)){
@@ -132,8 +132,8 @@ res_subset <- subset(res_subset, padj < .1)
 
 # Save results to csv files
 savename <- "Smucoid_vs_Sinhibitor"
-write.csv(res_filter, file = snakemake@output[["DE"]][1], quote=FALSE)
-write.csv(res_subset, file = snakemake@output[["DE"]][2], quote=FALSE)
+write.csv(res_filter, file = snakemake@output[["dif_expr"]][1], quote=FALSE)
+write.csv(res_subset, file = snakemake@output[["dif_expr"]][2], quote=FALSE)
 
 # Generate MA plots (png and postscript)
 png(file = snakemake@output[["plots"]][1], width = 600, height = 400)
@@ -162,10 +162,10 @@ res_filter <- subset(res, padj < .1)
 res_subset <- subset(res_subset, padj < .1)
 
 savename <- "Fmucoid_vs_Finhibitor"
-write.csv(res_filter, file = snakemake@output[["DE"]][3], quote=FALSE)
-write.csv(res_subset, file = snakemake@output[["DE"]][4], quote=FALSE)
+write.csv(res_filter, file = snakemake@output[["dif_expr"]][3], quote=FALSE)
+write.csv(res_subset, file = snakemake@output[["dif_expr"]][4], quote=FALSE)
 
-postscript(file=psnakemake@output[["plots"]][4], width=900, height=600)
+postscript(file=snakemake@output[["plots"]][4], width=900, height=600)
 plotMA(res, ylim=c(-3,3), colSig = "#c00000")
 dev.off()
 png(file=snakemake@output[["plots"]][3], width=600, height=400)
@@ -192,8 +192,8 @@ res_filter <- subset(res, padj < .1)
 res_subset <- subset(res_subset, padj < .1)
 
 savename <- "Smucoid_vs_Fmucoid"
-write.csv(res_filter, file = snakemake@output[["DE"]][5], quote=FALSE)
-write.csv(res_subset, file = psnakemake@output[["DE"]][6], quote=FALSE)
+write.csv(res_filter, file = snakemake@output[["dif_expr"]][5], quote=FALSE)
+write.csv(res_subset, file = snakemake@output[["dif_expr"]][6], quote=FALSE)
 
 png(file = snakemake@output[["plots"]][5], width = 600, height = 400)
 plotMA(res, ylim = c(-3,3), colSig = "#c00000")
@@ -221,8 +221,8 @@ res_filter <- subset(res, padj < .1)
 res_subset <- subset(res_subset, padj < .1)
 
 savename <- "Sinhibitor_vs_Finhibitor"
-write.csv(res_filter, file = snakemake@output[["DE"]][7], quote=FALSE)
-write.csv(res_subset, file = snakemake@output[["DE"]][8], quote=FALSE)
+write.csv(res_filter, file = snakemake@output[["dif_expr"]][7], quote=FALSE)
+write.csv(res_subset, file = snakemake@output[["dif_expr"]][8], quote=FALSE)
 
 png(file = snakemake@output[["plots"]][7], width = 600, height = 400)
 plotMA(res, ylim = c(-3,3), colSig = "#c00000")

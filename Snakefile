@@ -42,7 +42,7 @@ rule index_genome:
     output:
         fna = "index/H3B1-04J.fna",
         index = expand("index/H3B1-04J.fna.{ext}", ext = ["amb", "ann", "bwt", "pac", "sa"]),
-        ht2 = "index/H3B1-04J.{no}.ht2", no = list(range(1,9)))
+        ht2 = expand("index/H3B1-04J.{no}.ht2", no = list(range(1,9)))
     input:
         fna = os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna"
     conda: "alignment.yml"
@@ -63,7 +63,7 @@ rule trim_reads:
     log: add_path_extension(all_input, path = "logs/02-read_trimming", extension = "log", extra = "-trimmed")
     shell:
         """
-        bash code/02-read_trimming.sh {params.outdir} {input.adapter} {input.R1}
+        bash code/02-read_trimming.sh {params.outdir} {input.adapter} {input.R1} &&
         mv trimmed_reads/*.log logs/02-read_trimming
         """
         
@@ -159,14 +159,10 @@ rule parse_counts:
     script:
         "code/09-filter_counts.py"
 
-# Add logging, update Python and bash variables so that they can be changed from this file
-# and write rules for the saturation analysis and for the DE analysis to make sure that they generate the plots that I need
-
-# R rules don't take the input from Snakemake, since I prefer not to install R with Conda
 rule saturation:
     output:
         plots = expand("plots/saturation{extra}_k0.png", extra = ["_collapsed", ""]),
-        ps = expand("plots/saturation{extra}_k0.png", extra = ["_collapsed", ""])
+        ps = expand("plots/saturation{extra}_k0.ps", extra = ["_collapsed", ""])
     input:
         counts = expand("featureCounts_reverse/countfiles/filtered/H3B1-04J_{isol}{cond}_counts.tsv", isol = ["01", "02", "09", "10"], cond = ["F", "S"]),
         meta = "featureCounts_reverse/countfiles/H3B1-04J_metadata.tsv",
@@ -176,10 +172,10 @@ rule saturation:
     script:
         "code/10-saturation_analysis.R"
 
-rule DE:   
+rule differential_expression:   
     output:
-        DE = expand("results/DE/{comparison}{ext}.csv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"]),
-        PCA = expand("plots/pcaplot.{ext}", ext = ["png", "pdf"]),
+        dif_expr = expand("results/DE/{comparison}{ext}.csv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"]),
+        pca = expand("plots/pcaplot.{ext}", ext = ["png", "pdf"]),
         plots = expand("plots/{comparison}.{ext}", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["png", "ps"])
     input:
         counts = expand("featureCounts_reverse/countfiles/filtered/H3B1-04J_{isol}{cond}_counts.tsv", isol = ["01", "02", "09", "10"], cond = ["F", "S"]),
@@ -189,11 +185,13 @@ rule DE:
     script:
         "code/11-dif_expression.R"
 
+# This script lacks proper integration in the pipeline
 rule annotate_results:
-    output: expand("results/DE/{comparison}{ext}_annotated.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"])
+    output: 
+        expand("results/DE/{comparison}{ext}_annotated.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"])
     input:
-        DE = expand("results/DE/{comparison}{ext}.csv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["_lfc1", ""]),
+        dif_expr = expand("results/DE/{comparison}{ext}.csv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["_lfc1", ""]),
         gbk = os.path.expanduser("~") + "/Akunkeei_files/gbff/H3B1-04J_genomic.gbff"
     conda: "alignment.yml"
     log: "logs/12-add_annotations.log"
-    script: "12-add_annotations.py"
+    script: "code/12-add_annotations.py"
