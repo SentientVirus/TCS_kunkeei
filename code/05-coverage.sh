@@ -1,11 +1,27 @@
 #!/bin/bash
-workdir=$HOME/snpseq00064
-outdir=$workdir/results/coverage
+##############################
+###   RUN genomeCoverage   ###
+###     (circular.yml)     ###
+##############################
 
+# Read inputs from Snakemake
+outdir=$1
+bam_files=${@:2}
+
+# Create output directory if it doesn't exist
 mkdir -p $outdir
-for bam in $workdir/results/bam/*.bam
+
+# Loop through input files
+for bam in $bam_files;
 do
-    echo 'Processing '$(basename -- $bam)
-    out=$workdir'/results/coverage/'$(basename -- ${bam%.bam})'.perbase.cov'
-    genomeCoverageBed -ibam $bam -d > $out
+
+# Print input file name to log
+echo 'Processing '$(basename -- $bam) >&2
+
+# Define output
+out=$outdir/$(basename -- ${bam%.bam})'.perbase.cov'
+
+# Calculate coverage
+genomeCoverageBed -ibam $bam -d > $out
+
 done

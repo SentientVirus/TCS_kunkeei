@@ -97,26 +97,28 @@ rule count_genes:
     shell:
         "bash code/04-read_counts.sh {params.out1} {params.out2} {input.gff} {log} {input.bam}"
 
-# This rule lacks proper integration into Snakemake and logging
 rule calculate_coverage:
     output:
         add_path_extension(all_input, "results/coverage", "perbase.cov")
     input:
         add_path_extension(all_input, "results/bam", "bam")
+    params: "results/coverage"
     conda: "circular.yml"
+    log: "logs/05-coverage.log"
     shell:
-        "bash code/05-coverage.sh"
+        "bash code/05-coverage.sh {params} {input} 1>&2 2> {log}"
 
-# This rule lacks proper integration into Snakemake and logging
 rule picard_tools:
     output:
         pdf = add_path_extension(all_input, "results/picard", "pdf", "_insert_size_histogram"),
         txt = add_path_extension(all_input, "results/picard", "txt", "_insert_size_metrics")
     input:
         add_path_extension(all_input, "results/bam", "bam")
+    params: "results/picard"
     conda: "alignment.yml"
+    log: "logs/06-picard.log"
     shell:
-        "bash code/06-picard.sh"
+        "bash code/06-picard.sh {params} {input} 1>&2 2> {log}"
 
 rule get_TPM:
     output:
@@ -139,7 +141,7 @@ rule filter_counts:
         gbff = os.path.expanduser("~") + "/Akunkeei_files/gbff/H3B1-04J_genomic.gbff" 
     conda: "alignment.yml"
     params: workdir = os.getcwd()
-    log: "logs/08-prefilter_counts.py"
+    log: "logs/08-prefilter_counts.log"
     script:
         "code/08-prefilter_counts.py"
 

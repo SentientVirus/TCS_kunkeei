@@ -4,6 +4,7 @@
 ###    (alignment.yml)     ###
 ##############################
 
+# Read inputs from Snakemake
 outdir1=$1
 outdir2=$2
 
@@ -13,13 +14,18 @@ log=$4
 
 samples=${@:5}
 
+# Create or empty log file
 > $log
 
+# Create output directories if they don't exist
 mkdir -p $outdir1
 mkdir -p $outdir2
 
+# Loop through samples
 for sample in $samples;
 do
+
+# Print input and output filenames
 echo $sample
 echo $outdir1/$(basename -- ${sample::-4}).featureCounts
 
