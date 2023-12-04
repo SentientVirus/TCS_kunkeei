@@ -10,7 +10,7 @@ list.of.packages <- c("BiocManager")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages, repos='http://cran.us.r-project.org')
 
-to_install <- c("DESeq2", "ggplot2", "stringr", "apeglm")
+to_install <- c("DESeq2", "ggplot2", "stringr", "apeglm", "pheatmap")
 new.packages <- to_install[!(to_install %in% installed.packages()[,"Package"])]
 for (package in new.packages){
   BiocManager::install(package)
@@ -21,6 +21,7 @@ for (package in new.packages){
 #=============================================================================#
 library("DESeq2")
 library("ggplot2")
+library("pheatmap")
 library("stringr")
 library(futile.logger)
 
@@ -40,6 +41,9 @@ sampleFiles <- snakemake@input[["counts"]]
 sub_dir <- dirname(snakemake@output[["dif_expr"]][1])
 plot_dir <- dirname(snakemake@output[["pca"]][1])
 pcaplot <- snakemake@output[["pca"]]
+heatplot <- snakemake@output[["heatmap"]][1]
+
+cw <- 18
 
 # Make sure that output directories exist
 if (!file.exists(sub_dir)){
@@ -116,6 +120,43 @@ ggsave(pcaplot[1], width = 9, height = 6);
 ggsave(pcaplot[2], width = 9, height = 6);
 
 #=============================================================================#
+# 3. Create a global heatmap                                                  #
+#=============================================================================#
+flog.info("Create a global heatmap")
+dds_htmp <- DESeqDataSetFromMatrix(countData = counts,
+                                  colData = coldata,
+                                  design = ~ condition1 + condition2)
+dds_htmp <- collapseReplicates(dds_htmp, as.factor(str_sub(colnames(dds_htmp), 1, 5)))
+global_dds <- DESeq(dds_htmp)
+
+res_htmp <- results(global_dds)
+summary(res_htmp);
+res_htmp_filter <- subset(res_htmp, padj < .1);
+
+vsd_htmp <- vst(dds_htmp, blind=FALSE)
+
+htmp_select <- res_htmp_filter[order(abs(res_htmp_filter$log2FoldChange),
+                                    decreasing = TRUE),]
+htmp_select <- rownames(htmp_select)[1:30]
+select <- rownames(dds_htmp) %in% htmp_select
+
+df <- as.data.frame(colData(global_dds)[,c("condition1", "condition2")])
+colnames(df) <- c("Phenotype", "Carbon source")
+rownames(vsd_htmp) <- str_sub(rownames(vsd_htmp), 4, -1)
+rownames(df) <- sub("_", "", rownames(df))
+colnames(vsd_htmp) <- sub("_", "", colnames(vsd_htmp))
+
+png(file = heatplot, width = 600, height = 400);
+pheatmap(assay(vsd_htmp)[select,], cluster_rows=FALSE, show_rownames=TRUE,
+         cluster_cols=TRUE, annotation_col=df, cellwidth=40)
+invisible(dev.off())
+
+postscript(file = snakemake@output[["heatmap"]][2], width = 600, height = 400);
+pheatmap(assay(vsd_htmp)[select,], cluster_rows=FALSE, show_rownames=TRUE,
+         cluster_cols=TRUE, annotation_col=df, cellwidth=40)
+invisible(dev.off())
+
+#=============================================================================#
 # 4. Differential expression analyses                                         #
 #=============================================================================#
 # Run a differential expression analysis for Smucoid vs Sinhibitor
@@ -137,12 +178,33 @@ dds <- DESeqDataSetFromMatrix(countData = counts2,
 # Run the differential expression analysis
 dds <- DESeq(dds)
 
+
 # Get results with and without lfc threshold filters
 res <- lfcShrink(dds, coef="condition1_mucoid_vs_inhibitor", type="apeglm")
 res_subset <- results(dds, lfcThreshold=1);
 summary(res);
 res_filter <- subset(res, padj < .1);
 res_subset <- subset(res_subset, padj < .1);
+
+# Create a heatmap for this comparison
+res_select <- res_filter[order(abs(res_filter$log2FoldChange), decreasing = TRUE),]
+res_select <- rownames(res_select)[1:20]
+select <- rownames(dds) %in% res_select
+
+df <- as.data.frame(colData(dds)[,c("condition1", "condition3")])
+colnames(df) <- c("Phenotype", "Batch")
+vsd_subset <- vsd[, sapply(colnames(vsd), grepl, pattern = "_S_")]
+rownames(vsd_subset) <- str_sub(rownames(vsd_subset), 4, -1)
+
+png(file = snakemake@output[["heatmap"]][3], width = 600, height = 400)
+pheatmap(assay(vsd_subset)[select,], cluster_rows=FALSE, show_rownames=TRUE,
+         cluster_cols=TRUE, annotation_col=df, cellwidth=cw)
+invisible(dev.off())
+
+postscript(file = snakemake@output[["heatmap"]][4], width = 600, height = 400)
+pheatmap(assay(vsd_subset)[select,], cluster_rows=FALSE, show_rownames=TRUE,
+         cluster_cols=TRUE, annotation_col=df, cellwidth=cw)
+invisible(dev.off())
 
 # Save results to csv files
 write.csv(res_filter, file = snakemake@output[["dif_expr"]][1], quote=FALSE);
@@ -176,6 +238,25 @@ summary(res);
 res_filter <- subset(res, padj < .1);
 res_subset <- subset(res_subset, padj < .1);
 
+res_select <- res_filter[order(abs(res_filter$log2FoldChange), decreasing = TRUE),]
+res_select <- rownames(res_select)[1:20]
+select <- rownames(dds) %in% res_select
+
+df <- as.data.frame(colData(dds)[,c("condition1", "condition3")])
+colnames(df) <- c("Phenotype", "Batch")
+vsd_subset <- vsd[, sapply(colnames(vsd), grepl, pattern = "_F_")]
+rownames(vsd_subset) <- str_sub(rownames(vsd_subset), 4, -1)
+
+png(file = snakemake@output[["heatmap"]][5], width = 600, height = 400)
+pheatmap(assay(vsd_subset)[select,], cluster_rows=FALSE, show_rownames=TRUE,
+         cluster_cols=TRUE, annotation_col=df, cellwidth=cw)
+invisible(dev.off())
+
+postscript(file = snakemake@output[["heatmap"]][6], width = 600, height = 400)
+pheatmap(assay(vsd_subset)[select,], cluster_rows=FALSE, show_rownames=TRUE,
+         cluster_cols=TRUE, annotation_col=df, cellwidth=cw)
+invisible(dev.off())
+
 write.csv(res_filter, file = snakemake@output[["dif_expr"]][3], quote=FALSE);
 write.csv(res_subset, file = snakemake@output[["dif_expr"]][4], quote=FALSE);
 
@@ -207,6 +288,25 @@ summary(res);
 res_filter <- subset(res, padj < .1);
 res_subset <- subset(res_subset, padj < .1);
 
+res_select <- res_filter[order(abs(res_filter$log2FoldChange), decreasing = TRUE),]
+res_select <- rownames(res_select)[1:20]
+select <- rownames(dds) %in% res_select
+
+df <- as.data.frame(colData(dds)[,c("condition2", "condition3")])
+colnames(df) <- c("Phenotype", "Batch")
+vsd_subset <- vsd[, sapply(colnames(vsd), grepl, pattern = "I01|I02")]
+rownames(vsd_subset) <- str_sub(rownames(vsd_subset), 4, -1)
+
+png(file = snakemake@output[["heatmap"]][7], width = 600, height = 400)
+pheatmap(assay(vsd_subset)[select,], cluster_rows=FALSE, show_rownames=TRUE,
+         cluster_cols=TRUE, annotation_col=df, cellwidth=cw)
+invisible(dev.off())
+
+postscript(file = snakemake@output[["heatmap"]][8], width = 600, height = 400)
+pheatmap(assay(vsd_subset)[select,], cluster_rows=FALSE, show_rownames=TRUE,
+         cluster_cols=TRUE, annotation_col=df, cellwidth=cw)
+invisible(dev.off())
+
 write.csv(res_filter, file = snakemake@output[["dif_expr"]][5], quote=FALSE);
 write.csv(res_subset, file = snakemake@output[["dif_expr"]][6], quote=FALSE);
 
@@ -236,6 +336,25 @@ res_subset <- results(dds, lfcThreshold=1);
 summary(res);
 res_filter <- subset(res, padj < .1);
 res_subset <- subset(res_subset, padj < .1);
+
+res_select <- res_filter[order(abs(res_filter$log2FoldChange), decreasing = TRUE),]
+res_select <- rownames(res_select)[1:20]
+select <- rownames(dds) %in% res_select
+
+df <- as.data.frame(colData(dds)[,c("condition2", "condition3")])
+colnames(df) <- c("Phenotype", "Batch")
+vsd_subset <- vsd[, sapply(colnames(vsd), grepl, pattern = "I09|I10")]
+rownames(vsd_subset) <- str_sub(rownames(vsd_subset), 4, -1)
+
+png(file = snakemake@output[["heatmap"]][9], width = 600, height = 400)
+pheatmap(assay(vsd_subset)[select,], cluster_rows=FALSE, show_rownames=TRUE,
+         cluster_cols=TRUE, annotation_col=df, cellwidth=cw)
+invisible(dev.off())
+
+postscript(file = snakemake@output[["heatmap"]][10], width = 600, height = 400)
+pheatmap(assay(vsd_subset)[select,], cluster_rows=FALSE, show_rownames=TRUE,
+         cluster_cols=TRUE, annotation_col=df, cellwidth=cw)
+invisible(dev.off())
 
 write.csv(res_filter, file = snakemake@output[["dif_expr"]][7], quote=FALSE);
 write.csv(res_subset, file = snakemake@output[["dif_expr"]][8], quote=FALSE);
