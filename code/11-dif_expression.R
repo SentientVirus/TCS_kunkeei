@@ -132,6 +132,7 @@ global_dds <- DESeq(dds_htmp)
 res_htmp <- results(global_dds)
 summary(res_htmp);
 res_htmp_filter <- subset(res_htmp, padj < .1);
+res_htmp_filter <- subset(res_htmp_filter, baseMean >= 100);
 
 vsd_htmp <- vst(dds_htmp, blind=FALSE)
 
@@ -183,11 +184,13 @@ dds <- DESeq(dds)
 res <- lfcShrink(dds, coef="condition1_mucoid_vs_inhibitor", type="apeglm")
 res_subset <- results(dds, lfcThreshold=1);
 summary(res);
-res_filter <- subset(res, padj < .1);
+
 res_subset <- subset(res_subset, padj < .1);
+res_filter <- subset(res, padj < .1);
+res_comp_htmp <- subset(res_filter, baseMean >= 100);
 
 # Create a heatmap for this comparison
-res_select <- res_filter[order(abs(res_filter$log2FoldChange), decreasing = TRUE),]
+res_select <- res_comp_htmp[order(abs(res_comp_htmp$log2FoldChange), decreasing = TRUE),]
 res_select <- rownames(res_select)[1:20]
 select <- rownames(dds) %in% res_select
 
@@ -235,10 +238,12 @@ dds <- DESeq(dds)
 res <- lfcShrink(dds, coef="condition1_mucoid_vs_inhibitor", type="apeglm")
 res_subset <- results(dds, lfcThreshold=1);
 summary(res);
-res_filter <- subset(res, padj < .1);
-res_subset <- subset(res_subset, padj < .1);
 
-res_select <- res_filter[order(abs(res_filter$log2FoldChange), decreasing = TRUE),]
+res_subset <- subset(res_subset, padj < .1);
+res_filter <- subset(res, padj < .1);
+res_comp_htmp <- subset(res_filter, baseMean >= 100);
+
+res_select <- res_comp_htmp[order(abs(res_comp_htmp$log2FoldChange), decreasing = TRUE),]
 res_select <- rownames(res_select)[1:20]
 select <- rownames(dds) %in% res_select
 
@@ -285,10 +290,12 @@ dds <- DESeq(dds)
 res <- lfcShrink(dds, coef="condition2_S_vs_F", type="apeglm")
 res_subset <- results(dds, lfcThreshold=1);
 summary(res);
-res_filter <- subset(res, padj < .1);
-res_subset <- subset(res_subset, padj < .1);
 
-res_select <- res_filter[order(abs(res_filter$log2FoldChange), decreasing = TRUE),]
+res_subset <- subset(res_subset, padj < .1);
+res_filter <- subset(res, padj < .1);
+res_comp_htmp <- subset(res_filter, baseMean >= 100);
+
+res_select <- res_comp_htmp[order(abs(res_comp_htmp$log2FoldChange), decreasing = TRUE),]
 res_select <- rownames(res_select)[1:20]
 select <- rownames(dds) %in% res_select
 
@@ -334,10 +341,12 @@ dds <- DESeq(dds)
 res <- lfcShrink(dds, coef="condition2_S_vs_F", type="apeglm")
 res_subset <- results(dds, lfcThreshold=1);
 summary(res);
-res_filter <- subset(res, padj < .1);
-res_subset <- subset(res_subset, padj < .1);
 
-res_select <- res_filter[order(abs(res_filter$log2FoldChange), decreasing = TRUE),]
+res_subset <- subset(res_subset, padj < .1);
+res_filter <- subset(res, padj < .1);
+res_comp_htmp <- subset(res_filter, baseMean >= 100);
+
+res_select <- res_comp_htmp[order(abs(res_comp_htmp$log2FoldChange), decreasing = TRUE),]
 res_select <- rownames(res_select)[1:20]
 select <- rownames(dds) %in% res_select
 
