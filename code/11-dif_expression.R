@@ -22,6 +22,7 @@ for (package in new.packages){
 library("DESeq2")
 library("ggplot2")
 library("pheatmap")
+library("RColorBrewer")
 library("stringr")
 library(futile.logger)
 
@@ -41,6 +42,7 @@ sampleFiles <- snakemake@input[["counts"]]
 sub_dir <- dirname(snakemake@output[["dif_expr"]][1])
 plot_dir <- dirname(snakemake@output[["pca"]][1])
 pcaplot <- snakemake@output[["pca"]]
+distplot <- snakemake@output[["dist"]]
 heatplot <- snakemake@output[["heatmap"]][1]
 
 cw <- 18
@@ -122,7 +124,7 @@ ggsave(pcaplot[2], width = 9, height = 6);
 #=============================================================================#
 # 3. Create a global heatmap                                                  #
 #=============================================================================#
-flog.info("Create a global heatmap")
+flog.info("Creating a global heatmap")
 dds_htmp <- DESeqDataSetFromMatrix(countData = counts,
                                   colData = coldata,
                                   design = ~ condition1 + condition2)
@@ -157,8 +159,25 @@ pheatmap(assay(vsd_htmp)[select,], cluster_rows=FALSE, show_rownames=TRUE,
          cluster_cols=TRUE, annotation_col=df, cellwidth=40)
 invisible(dev.off())
 
+sampleDists <- dist(t(assay(vsd_htmp)))
+
 #=============================================================================#
-# 4. Differential expression analyses                                         #
+# 4. Create a distance plot                                                   #
+#=============================================================================#
+flog.info("Creating a distance plot")
+sampleDistMatrix <- as.matrix(sampleDists)
+colors <- colorRampPalette( rev(brewer.pal(9, "BuPu")) )(255)
+
+png(file = distplot[1], width = 600, height = 400);
+postscript(file = distplot[2], width = 600, height = 400);
+pheatmap(sampleDistMatrix,
+         clustering_distance_rows=sampleDists,
+         clustering_distance_cols=sampleDists,
+         col=colors)
+invisible(dev.off())
+
+#=============================================================================#
+# 5. Differential expression analyses                                         #
 #=============================================================================#
 # Run a differential expression analysis for Smucoid vs Sinhibitor
 flog.info("Running DESeq2")
