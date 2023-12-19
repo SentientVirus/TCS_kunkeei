@@ -187,27 +187,26 @@ with open(ref_countfile) as keep:
     
 # Loop through isolates and conditions to calculate mean counts    
 for i in isolate_dict.keys():
-    for condition in conditions:
-        isolate_dict[i]['Mean_results'] = (isolate_dict[i][isolate_dict[i].columns[5:]].sum(axis=1))/len(isolate_dict[i].columns[5:])
-        
-        # Loop through genes to retrieve mean counts for that isolate
-        for gene in isolate_dict[i]['Geneid']:
-            if gene not in gene_dict.keys():
-                gene_dict[gene] = list(isolate_dict[i]['Mean_results'][isolate_dict[i]['Geneid'] == gene])
-            else:
-                gene_dict[gene].append(float(isolate_dict[i]['Mean_results'][isolate_dict[i]['Geneid'] == gene]))
-                
-            # Remove genes if they don't meet the TPM threshold in >50% samples
-            if sum(include_dict[gene])/len(include_dict[gene]) < 0.5:
-                print(f'Excluded {gene} in {i} due to low TPM')
-                isolate_dict[i].drop(isolate_dict[i][isolate_dict[i]['Geneid'] == gene].index, inplace = True)
-        
-        # For each isolate and condition, save the counts of the five replicates to a file
-        counts = pd.concat([isolate_dict[i]['Geneid'], isolate_dict[i].iloc[:, 5:-1]], axis = 1)
-        counts.to_csv(f'{outdir}/H3B1-04J_{i}_counts.tsv', sep = '\t', index = False)
-        filtered_counts = counts[counts['Geneid'].isin(to_keep)]
-        filtered_counts.to_csv(f'{outdir2}/H3B1-04J_{i}_counts.tsv', sep = '\t', index = False)
-        print(f'Saved counts to H3B1-04J_{i}_counts.tsv')
+    isolate_dict[i]['Mean_results'] = (isolate_dict[i][isolate_dict[i].columns[5:]].sum(axis=1))/len(isolate_dict[i].columns[5:])
+
+    # Loop through genes to retrieve mean counts for that isolate
+    for gene in isolate_dict[i]['Geneid']:
+        if gene not in gene_dict.keys():
+            gene_dict[gene] = [float(isolate_dict[i]['Mean_results'][isolate_dict[i]['Geneid'] == gene])]
+        else:
+            gene_dict[gene].append(float(isolate_dict[i]['Mean_results'][isolate_dict[i]['Geneid'] == gene]))
+            
+        # Remove genes if they don't meet the TPM threshold in >50% samples
+        if sum(include_dict[gene])/len(include_dict[gene]) < 0.5:
+            print(f'Excluded {gene} in {i} due to low TPM')
+            isolate_dict[i].drop(isolate_dict[i][isolate_dict[i]['Geneid'] == gene].index, inplace = True)
+    
+    # For each isolate and condition, save the counts of the five replicates to a file
+    counts = pd.concat([isolate_dict[i]['Geneid'], isolate_dict[i].iloc[:, 5:-1]], axis = 1)
+    counts.to_csv(f'{outdir}/H3B1-04J_{i}_counts.tsv', sep = '\t', index = False)
+    filtered_counts = counts[counts['Geneid'].isin(to_keep)]
+    filtered_counts.to_csv(f'{outdir2}/H3B1-04J_{i}_counts.tsv', sep = '\t', index = False)
+    print(f'Saved counts to H3B1-04J_{i}_counts.tsv')
       
 # =============================================================================
 # 6. Create metadata file
@@ -230,6 +229,7 @@ with open(meta_file, 'w') as metadata:
 # =============================================================================
 
 with open(new_file, 'w') as avg_counts, open(new_file2, 'w') as avg_fc:
+    print(isolate_dict)
     avg_counts.write('\t' + '\t'.join(list(isolate_dict.keys())) + '\n')
     avg_fc.write('\t' + '\t'.join(list(isolate_dict.keys())) + '\n')
     [avg_counts.write(f'{gene}\t' + '\t'.join([str(gcount) for gcount in gene_dict[gene]]) + '\n') for gene in gene_dict.keys()]
