@@ -1,7 +1,14 @@
 import os
+
+isol_code = {1: "02", 2: "03", 3: "08", 4: "10"}
+
+input_list = [f"subreads/ps_405_00{key}/demultiplex.bc10{value}_BAK8A_OA--bc10{value}_BAK8A_OA.fastq.gz" for key, value in isol_code.items()]
+
 rule all:
     input:
         expand("analysis/ps_405_00{i}/ps_405_00{i}.polished_assembly.fasta", i = ["1", "2", "3", "4"])
+
+
 
 ##First step, save all files to 001-004.fasta
 rule simplify_paths:
@@ -111,8 +118,8 @@ rule reformat_fna:
 
 rule Phase_Finder:
     output:
-        expand("results/PhaseFinder/sample{i}_genomic.tab", i = ["1", "2", "3", "4"]),
-        "results/PhaseFinder/H3B1-04J_genomic.tab"
+        per_sample=expand("results/PhaseFinder/sample{i}_genomic.tab", i = ["1", "2", "3", "4"]),
+        general="results/PhaseFinder/H3B1-04J_genomic.tab"
     input:
         expand("data/fixed_ori/sample{i}_genomic.fna", i = ["1", "2", "3", "4"]),
         os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna"
@@ -121,15 +128,35 @@ rule Phase_Finder:
     shell:
         """
         > {log}
-        bash PhaseFinder.sh >> {log} 2>> {log}
+        bash PhaseFinder.sh {output.general} {input} >> {log} 2>> {log}
         """
 
 ##Add new rule to align reads to the genome
-rules run_bwa:
+rule run_bwa:
     output:
+        expand("bam_files/{no}.bam", no = ["01", "02", "09", "10"])
     input:
-    conda:
-    shell: "bash reads2genome.sh"
+        index=os.path.expanduser("~") + "/snpseq00064/index/H3B1-04J.fna",
+        reads=input_list
+    log: "logs/08-reads2bam.log"
+    threads: 48
+    shell:
+        """
+        > {log}
+        outdir=$(dirname -- {output[0]})
+        outputs=("" {output})
+        count=1
+        mkdir -p $outdir
+        for file in {input.reads};
+        do
+        outfile=$outdir/$(basename -- ${{file%.fastq.gz}}).bam
+        bwa mem -x pacbio -t {threads} {input.index} $file | samtools sort > $outfile 2>> {log}
+        mv $outfile ${{outputs[$count]}}
+        echo ${{outputs[$count]}}
+        echo $count
+        ((count++))
+        done
+        """
 
 #rule synteny:
 #    input:

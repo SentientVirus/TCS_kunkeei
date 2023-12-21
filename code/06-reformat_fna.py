@@ -32,10 +32,16 @@ sys.stdout = open(snakemake.log[0], 'a')
 # =============================================================================
 # Defining inputs
 # =============================================================================
+
 input_files = snakemake.input
 output_files = snakemake.output
 
 line_length = 80
+
+
+# =============================================================================
+# Changing length of lines in fasta files
+# =============================================================================
 
 for i in range(len(input_files)):
     input_file = input_files[i]
