@@ -3,8 +3,9 @@ genomes=${@:2}
 
 mkdir -p $outdir
 
-for ((i=0; i<${#genomes[@]}; i++))
+for genome in $genomes;
 do
-prefix=$(basename "${genomes[i]}" | cut -d '.' -f1);
-python PhaseFinder/PhaseFinder.py locate -f ${genomes[i]} -t $outdir/$prefix.tab -g 15 85 -p; 
+prefix=$(basename "${genome}" | cut -d '.' -f1);
+echo $genome
+python PhaseFinder/PhaseFinder.py locate -f $genome -t $outdir/$prefix.tab -g 15 85 -p; 
 done

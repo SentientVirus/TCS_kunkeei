@@ -128,7 +128,7 @@ rule Phase_Finder:
     shell:
         """
         > {log}
-        bash PhaseFinder.sh {output.general} {input} >> {log} 2>> {log}
+        bash code/07-PhaseFinder.sh {output.general} {input} >> {log} 2>> {log}
         """
 
 ##Add new rule to align reads to the genome
