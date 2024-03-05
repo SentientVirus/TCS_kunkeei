@@ -63,7 +63,7 @@ rule pgv_mauve:
     output:
         "results/pmauve/result.png"
     input:
-        og_strain = "../Akunkeei_files/fna/H3B1-04J_genomic.fna",
+        og_strain = os.path.expanduser(~) + "/Akunkeei_files/fna/H3B1-04J_genomic.fna",
         new_seqs = expand("data/fixed_ori/fixed_ori{i}.fasta", i = ["1", "2", "3", "4"])
     log: "logs/03-pmauve.log"
     conda: "envs/plot_region_env.yml"

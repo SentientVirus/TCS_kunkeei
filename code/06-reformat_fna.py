@@ -3,7 +3,10 @@
 """
 Created on Thu Jul  6 10:52:44 2023
 
-@author: marina
+Script to change the format of nucleotide FASTA files so that they show 80
+nucleotides per line instead of 60.
+
+@author: Marina Mota-Merlo
 
 """
 import logging, traceback

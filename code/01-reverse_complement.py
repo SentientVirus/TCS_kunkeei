@@ -3,7 +3,10 @@
 """
 Created on Mon Apr  3 11:26:50 2023
 
-@author: marina
+Script to reverse the strand of the genome of isolate 10, which has the
+reverse strand as forward strand in the raw assembly.
+
+@author: Marina Mota-Merlo
 """
 
 from Bio import SeqIO

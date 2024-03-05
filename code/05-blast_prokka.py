@@ -2,7 +2,10 @@
 """
 Created on Thu Apr 15 18:24:07 2021
 
-@author: usuario
+Script to Blast all the genes, annotated by Prokka, from the newly-sequenced
+genomes to the reference genome.
+
+@author: Marina Mota-Merlo
 """
 import os
 import logging, traceback

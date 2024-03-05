@@ -3,7 +3,10 @@
 """
 Created on Tue Feb  7 11:05:32 2023
 
-@author: marina
+Script to run progressive Mauve to compare the genomes of each isolate to the
+previous one, including the reference isolate.
+
+@author: Marina Mota-Merlo
 """
 import os
 import logging, traceback
@@ -38,7 +41,7 @@ for infile in snakemake.input['new_seqs']:
     infiles += f'{infile} '
     
 # =============================================================================
-# Running progressive Mauve¨
+# Running progressive Mauve
 # =============================================================================
         
 os.system(f'pgv-pmauve --seq_files {infiles}\
