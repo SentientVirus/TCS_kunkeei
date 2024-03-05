@@ -45,7 +45,7 @@ rule index_genome:
         ht2 = expand("index/H3B1-04J.{no}.ht2", no = list(range(1,9)))
     input:
         fna = os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna"
-    conda: "alignment.yml"
+    conda: "envs/alignment.yml"
     log: "logs/01-index_genome.log"
     shell:
         "bash code/01-index_genome.sh {input} {output.fna} 2> {log}"
@@ -59,7 +59,7 @@ rule trim_reads:
         R2 = input_strand(all_input, strand = -1, path = "files/VF-3336/221006_M06455_0144_000000000-KMH8C", extension = "fastq.gz"),
         adapter = "TruSeq3-PE-2.fa"
     params: outdir = "trimmed_reads"
-    conda: "alignment.yml"
+    conda: "envs/alignment.yml"
     log: add_path_extension(all_input, path = "logs/02-read_trimming", extension = "log", extra = "-trimmed")
     shell:
         """
@@ -78,7 +78,7 @@ rule align2fna:
         indir = "trimmed_reads",
         outdir = "results/bam"
     log: "logs/03-read_alignment.log"
-    conda: "alignment.yml"
+    conda: "envs/alignment.yml"
     shell:
         "bash code/03-read_alignment.sh {params.outdir} {input.genome} {log} {input.R1}"
 
@@ -93,7 +93,7 @@ rule count_genes:
         gff = os.path.expanduser("~") + "/Akunkeei_files/gff/H3B1-04J_genomic.gff"
     params: out1 = "featureCounts_reverse/nofilter", out2 = "featureCounts_forward/nofilter"
     log: "logs/04-read_counts.log"
-    conda: "alignment.yml"
+    conda: "envs/alignment.yml"
     shell:
         "bash code/04-read_counts.sh {params.out1} {params.out2} {input.gff} {log} {input.bam}"
 
@@ -103,7 +103,7 @@ rule calculate_coverage:
     input:
         add_path_extension(all_input, "results/bam", "bam")
     params: "results/coverage"
-    conda: "circular.yml"
+    conda: "envs/circular.yml"
     log: "logs/05-coverage.log"
     shell:
         "bash code/05-coverage.sh {params} {input} 1>&2 2> {log}"
@@ -115,7 +115,7 @@ rule picard_tools:
     input:
         add_path_extension(all_input, "results/bam", "bam")
     params: "results/picard"
-    conda: "alignment.yml"
+    conda: "envs/alignment.yml"
     log: "logs/06-picard.log"
     shell:
         "bash code/06-picard.sh {params} {input} 1>&2 2> {log}"
@@ -128,7 +128,7 @@ rule get_TPM:
         counts = add_path_extension(all_input, "featureCounts_reverse/nofilter", "featureCounts")
     params: os.getcwd()
     log: "logs/07-calculate_TPM.log"
-    conda: "alignment.yml"
+    conda: "envs/alignment.yml"
     script:
         "code/07-calculate_TPM.py"
 
@@ -139,7 +139,7 @@ rule filter_counts:
     input:
         counts = add_path_extension(all_input, "featureCounts_reverse/nofilter", "featureCounts"),
         gbff = os.path.expanduser("~") + "/Akunkeei_files/gbff/H3B1-04J_genomic.gbff" 
-    conda: "alignment.yml"
+    conda: "envs/alignment.yml"
     params: workdir = os.getcwd()
     log: "logs/08-prefilter_counts.log"
     script:
@@ -158,7 +158,7 @@ rule parse_counts:
         counts = add_path_extension(all_input, "featureCounts_reverse/nofilter", "featureCounts"),
         counts_filtered = add_path_extension(all_input, "featureCounts_reverse/filtered", "featureCounts")
     params: countdir = "featureCounts_reverse/nofilter", filtered_countdir = "featureCounts_reverse/filtered"
-    conda: "alignment.yml"
+    conda: "envs/alignment.yml"
     log: "logs/09-filter_counts.log"
     script:
         "code/09-filter_counts.py"
@@ -171,7 +171,7 @@ rule saturation:
         counts = expand("featureCounts_reverse/countfiles/filtered/H3B1-04J_{isol}{cond}_counts.tsv", isol = ["01", "02", "09", "10"], cond = ["F", "S"]),
         meta = "featureCounts_reverse/countfiles/H3B1-04J_metadata.tsv",
         pos = "meta/gene_positions.tsv"
-    conda: "renv.yml"
+    conda: "envs/renv.yml"
     log: "logs/10-saturation_analysis.log"
     script:
         "code/10-saturation_analysis.R"
@@ -185,7 +185,7 @@ rule differential_expression:
     input:
         counts = expand("featureCounts_reverse/countfiles/filtered/H3B1-04J_{isol}{cond}_counts.tsv", isol = ["01", "02", "09", "10"], cond = ["F", "S"]),
         meta = "featureCounts_reverse/countfiles/H3B1-04J_metadata.tsv"
-    conda: "renv.yml"
+    conda: "envs/renv.yml"
     log: "logs/11-dif_expression.log"
     script:
         "code/11-dif_expression.R"
@@ -196,6 +196,6 @@ rule annotate_results:
     input:
         dif_expr = expand("results/DE/{comparison}{ext}.csv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["_lfc1", ""]),
         gbk = os.path.expanduser("~") + "/Akunkeei_files/gbff/H3B1-04J_genomic.gbff"
-    conda: "alignment.yml"
+    conda: "envs/alignment.yml"
     log: "logs/12-add_annotations.log"
     script: "code/12-add_annotations.py"

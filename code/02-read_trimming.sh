@@ -3,6 +3,8 @@
 ###       RUN Skewer       ###
 ### (Samtools environment) ###
 ##############################
+
+# Read variables from Snakemake
 samples=${@:3}
 outdir=$1
 adapter=$2
