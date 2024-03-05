@@ -48,14 +48,7 @@ rule fix_ori:
     shell:
         """
         > {log}
-        dir=$(echo {output[0]} | cut -d'/' -f 1)
-        dir2=$(echo {output[0]} | cut -d'/' -f 2)
-        mkdir -p $dir/$dir2
-        for i in {input};
-        do
-        j=$(echo $i | cut -d'/' -f 2 | cut -d'.' -f 1 | cut -d'0' -f 3)
-        circlator fixstart $i $dir/$dir2/$dir2$j 2>> {log}; 
-        done
+        bash code/02-circularize.sh {input} {output} {log}
         """
 
 ##Run progressive Mauve to compare with reference
@@ -63,7 +56,7 @@ rule pgv_mauve:
     output:
         "results/pmauve/result.png"
     input:
-        og_strain = os.path.expanduser(~) + "/Akunkeei_files/fna/H3B1-04J_genomic.fna",
+        og_strain = os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna",
         new_seqs = expand("data/fixed_ori/fixed_ori{i}.fasta", i = ["1", "2", "3", "4"])
     log: "logs/03-pmauve.log"
     conda: "envs/plot_region_env.yml"
@@ -74,7 +67,7 @@ rule prokka_annot:
     output:
         expand("results/annotations/sample{i}.fna", i = ["1", "2", "3", "4"])
     input:
-        protein_list = "../Akunkeei_files/faa/H3B1-04J_protein.faa",
+        protein_list = os.path.expanduser("~") + "/Akunkeei_files/faa/H3B1-04J_protein.faa",
         assemblies = expand("data/fixed_ori/fixed_ori{i}.fasta", i = ["1", "2", "3", "4"])
     log: "logs/04-prokka.log"
     conda: "envs/genome_analysis_env.yml"
@@ -82,15 +75,7 @@ rule prokka_annot:
     shell:
         """
         > {log}
-        for in in {input.assemblies};
-        do
-        n=$(echo $in | cut -d"/" -f 3 | cut -d"." -f 1 | cut -d"i" -f 3)
-        echo $n
-        prokka $in --outdir results/annotations --prefix sample$n \
-        --force --addgenes --genus Apilactobacillus \
-        --species kunkeei --strain H3B1-04J --gram positive \
-        --usegenus --protein {input.protein_list} --cpus {threads} >> {log} 2>> {log};
-        done
+        bash code/04-prokka.sh {threads} {input.protein_list} {input.assemblies} >> {log} 2>> {log};
         """
 
 ##All vs all Blast
@@ -99,7 +84,7 @@ rule all_blast:
         expand("results/blast/sample{i}.tab", i = ["1", "2", "3", "4"])
     input:
         fnas = expand("results/annotations/sample{i}.ffn", i = ["1", "2", "3", "4"]),
-        og_strain = "../Akunkeei_files/cds/H3B1-04J_cds_from_genomic.fna"
+        og_strain = os.path.expanduser("~") + "/Akunkeei_files/cds/H3B1-04J_cds_from_genomic.fna"
     params:
         outpath = "results/blast"
     threads: 16
@@ -107,6 +92,7 @@ rule all_blast:
     conda: "envs/plot_region_env.yml"
     script: "05-blast_prokka.py"
 
+##Change FASTA line length from 60 nts to 80 nts
 rule reformat_fna:
     output:
         expand("data/fixed_ori/sample{i}_genomic.fna", i = ["1", "2", "3", "4"])
@@ -116,6 +102,7 @@ rule reformat_fna:
     conda: "envs/plot_region_env.yml"
     script: "06-reformat_fna.py"
 
+##Check for inversions
 rule Phase_Finder:
     output:
         per_sample=expand("results/PhaseFinder/sample{i}_genomic.tab", i = ["1", "2", "3", "4"]),
@@ -152,7 +139,7 @@ rule run_bwa:
         outfile=$outdir/$(basename -- ${{file%.fastq.gz}}).bam
         bwa mem -x pacbio -t {threads} {input.index} $file 2>> {log} | samtools sort > $outfile 2>> {log}
         mv $outfile ${{outputs[$count]}}
-        echo "Generated ${{outputs[$count]}}" >> {log}
+        echo 'Generated ${{outputs[$count]}}' >> {log}
         ((count++))
         done
         """
