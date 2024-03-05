@@ -1,3 +1,10 @@
+#!/bin/bash
+
+###################################
+###  Script to run PhaseFinder  ###
+###    (Samtools environment)   ###
+###################################
+
 outdir=$(dirname $1)
 genomes=${@:2}
 

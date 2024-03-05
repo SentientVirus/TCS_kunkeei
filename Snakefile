@@ -150,10 +150,9 @@ rule run_bwa:
         for file in {input.reads};
         do
         outfile=$outdir/$(basename -- ${{file%.fastq.gz}}).bam
-        bwa mem -x pacbio -t {threads} {input.index} $file | samtools sort > $outfile 2>> {log}
+        bwa mem -x pacbio -t {threads} {input.index} $file 2>> {log} | samtools sort > $outfile 2>> {log}
         mv $outfile ${{outputs[$count]}}
-        echo ${{outputs[$count]}}
-        echo $count
+        echo "Generated ${{outputs[$count]}}" >> {log}
         ((count++))
         done
         """
