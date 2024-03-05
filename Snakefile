@@ -57,7 +57,7 @@ rule trim_reads:
     input:
         R1 = input_strand(all_input, strand = 1, path = "files/VF-3336/221006_M06455_0144_000000000-KMH8C", extension = "fastq.gz"),
         R2 = input_strand(all_input, strand = -1, path = "files/VF-3336/221006_M06455_0144_000000000-KMH8C", extension = "fastq.gz"),
-        adapter = "TruSeq3-PE-2.fa"
+        adapter = "adapters/TruSeq3-PE-2.fa"
     params: outdir = "trimmed_reads"
     conda: "envs/alignment.yml"
     log: add_path_extension(all_input, path = "logs/02-read_trimming", extension = "log", extra = "-trimmed")
