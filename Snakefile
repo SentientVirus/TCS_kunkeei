@@ -130,18 +130,19 @@ rule run_bwa:
     shell:
         """
         > {log}
-        outdir=$(dirname -- {output[0]})
-        outputs=("" {output})
-        count=1
-        mkdir -p $outdir
-        for file in {input.reads};
-        do
-        outfile=$outdir/$(basename -- ${{file%.fastq.gz}}).bam
-        bwa mem -x pacbio -t {threads} {input.index} $file 2>> {log} | samtools sort > $outfile 2>> {log}
-        mv $outfile ${{outputs[$count]}}
-        echo 'Generated ${{outputs[$count]}}' >> {log}
-        ((count++))
-        done
+        bash code/08-reads2bam.sh {input.index} {threads} {output} {input.reads} >> {log} 2>> {log}
+#        outdir=$(dirname -- {output[0]})
+#        outputs=("" {output})
+#        count=1
+#        mkdir -p $outdir
+#        for file in {input.reads};
+#        do
+#        outfile=$outdir/$(basename -- ${{file%.fastq.gz}}).bam
+#        bwa mem -x pacbio -t {threads} {input.index} $file 2>> {log} | samtools sort > $outfile 2>> {log}
+#        mv $outfile ${{outputs[$count]}}
+#        echo 'Generated ${{outputs[$count]}}' >> {log}
+#        ((count++))
+#        done
         """
 
 #rule synteny:
