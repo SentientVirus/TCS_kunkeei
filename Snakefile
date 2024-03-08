@@ -12,6 +12,8 @@ input_base = []
 all_input = [f"VF-3336-H3B1-04J-{key}_{value}_L001" for key, value in isol_code.items()]
 summary_input = [f"I{key.replace('-', '_')[:-2]}_{value}" for key, value in isol_code.items()]
 
+
+##Functions to retrieve inputs
 def add_path_extension(lst, path = "", extension = "", extra = ""):
     new_list = []
     for element in lst:
@@ -38,6 +40,16 @@ def input_strand(lst, strand = 1, path = "", extension = ""):
     return new_list
 
 
+##Rule to define all desired outputs
+rule all:
+    input:
+        multiqc = "results/multiqc/multiqc_report.html",
+        DE = expand("results/DE/{comparison}{ext}_annotated.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"]),
+        coverage = add_path_extension(all_input, "results/coverage", "perbase.cov"),
+        picard = add_path_extension(all_input, "results/picard", "pdf", "_insert_size_histogram"),
+        saturation = expand("plots/saturation{extra}_k0.ps", extra = ["_collapsed", ""])
+
+##Rule to index the reference genome of strain H3B1-04J
 rule index_genome:
     output:
         fna = "index/H3B1-04J.fna",
@@ -50,6 +62,7 @@ rule index_genome:
     shell:
         "bash code/01-index_genome.sh {input} {output.fna} 2> {log}"
 
+##Rule to trim the Illumina MiSeq RNA reads from the resequenced isolates of H3B1-04J
 rule trim_reads:
     output:
         R1 = add_path_extension(all_input, path = "trimmed_reads", extension = "fastq", extra = "-trimmed-pair1"),
@@ -57,7 +70,7 @@ rule trim_reads:
     input:
         R1 = input_strand(all_input, strand = 1, path = "files/VF-3336/221006_M06455_0144_000000000-KMH8C", extension = "fastq.gz"),
         R2 = input_strand(all_input, strand = -1, path = "files/VF-3336/221006_M06455_0144_000000000-KMH8C", extension = "fastq.gz"),
-        adapter = "adapters/TruSeq3-PE-2.fa"
+        adapter = "adapters/adapters.fasta"
     params: outdir = "trimmed_reads"
     conda: "envs/alignment.yml"
     log: add_path_extension(all_input, path = "logs/02-read_trimming", extension = "log", extra = "-trimmed")
@@ -66,7 +79,25 @@ rule trim_reads:
         bash code/02-read_trimming.sh {params.outdir} {input.adapter} {input.R1} &&
         mv trimmed_reads/*.log logs/02-read_trimming
         """
-        
+
+##Rule to run FastQC and MultiQC on trimmed reads
+rule RNA_read_quality_control:
+    output:
+        R1 = add_path_extension(all_input, path = "results/fastqc", extension = "zip", extra = "-trimmed-pair1_fastqc"),
+        R2 = add_path_extension(all_input, path = "results/fastqc", extension = "zip", extra = "-trimmed-pair2_fastqc"),
+        multiqc = "results/multiqc/multiqc_report.html"
+    input: 
+        R1 = add_path_extension(all_input, path = "trimmed_reads", extension = "fastq", extra = "-trimmed-pair1"),
+        R2 = add_path_extension(all_input, path = "trimmed_reads", extension = "fastq", extra = "-trimmed-pair2")
+    threads: 2
+    conda: "envs/read_QC.yml"
+    log: "logs/02.1-read_QC.log"
+    shell:
+        """
+        bash code/02.1-read_QC.sh {threads} {output.R1[0]} {output.multiqc} {input} >> {log} 2>> {log}
+        """
+
+##Rule to align the RNA reads to the reference genome of H3B1-04J
 rule align2fna:
     output:
         outbam = add_path_extension(all_input, "results/bam", "bam")
@@ -82,6 +113,7 @@ rule align2fna:
     shell:
         "bash code/03-read_alignment.sh {params.outdir} {input.genome} {log} {input.R1}"
 
+##Rule to calculate gene counts using the read alignment and the annotation of the reference strain
 rule count_genes:
     output:
         counts_reverse = add_path_extension(all_input, "featureCounts_reverse/nofilter", "featureCounts"),
@@ -97,6 +129,7 @@ rule count_genes:
     shell:
         "bash code/04-read_counts.sh {params.out1} {params.out2} {input.gff} {log} {input.bam}"
 
+##Rule to calculate RNA read coverage along the genome
 rule calculate_coverage:
     output:
         add_path_extension(all_input, "results/coverage", "perbase.cov")
@@ -108,6 +141,7 @@ rule calculate_coverage:
     shell:
         "bash code/05-coverage.sh {params} {input} 1>&2 2> {log}"
 
+##Rule to calculate several metrics related to the alignment
 rule picard_tools:
     output:
         pdf = add_path_extension(all_input, "results/picard", "pdf", "_insert_size_histogram"),
@@ -120,6 +154,7 @@ rule picard_tools:
     shell:
         "bash code/06-picard.sh {params} {input} 1>&2 2> {log}"
 
+##Rule to calculate TPM per sample and per isolate
 rule get_TPM:
     output:
         per_sample = "results/TPM/TPM_per_sample.tsv",
@@ -132,6 +167,7 @@ rule get_TPM:
     script:
         "code/07-calculate_TPM.py"
 
+##Rule to prefilter out genes with low counts before the differential expression analysis
 rule filter_counts:
     output:
         counts = add_path_extension(all_input, "featureCounts_reverse/filtered", "featureCounts"),
@@ -145,6 +181,7 @@ rule filter_counts:
     script:
         "code/08-prefilter_counts.py"
 
+##Rule to implement the filtering and change the count file format to a more readable format
 rule parse_counts:
     output:
         avg_nofilter = "featureCounts_reverse/countfiles/nofilter/avg_gene_counts.tsv",
@@ -163,6 +200,7 @@ rule parse_counts:
     script:
         "code/09-filter_counts.py"
 
+##Rule to run a saturation analysis before the differential expression analysis
 rule saturation:
     output:
         plots = expand("plots/saturation{extra}_k0.png", extra = ["_collapsed", ""]),
@@ -176,6 +214,7 @@ rule saturation:
     script:
         "code/10-saturation_analysis.R"
 
+##Rule to run a differential expression analysis, comparing several conditions
 rule differential_expression:   
     output:
         dif_expr = expand("results/DE/{comparison}{ext}.csv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"]),
@@ -190,6 +229,7 @@ rule differential_expression:
     script:
         "code/11-dif_expression.R"
 
+##Rule to add annotations from the reference to the results of the differential expression analysis when possible
 rule annotate_results:
     output: 
         expand("results/DE/{comparison}{ext}_annotated.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"])
