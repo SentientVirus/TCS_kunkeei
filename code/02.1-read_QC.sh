@@ -6,4 +6,4 @@ mqc_outdir=$(dirname $3)
 mkdir -p $outdir
 
 fastqc $inputs -o $outdir -t $cores
-multiqc -f $outdir -o $mqc_outdir
+multiqc -f $outdir/*.zip -o $mqc_outdir

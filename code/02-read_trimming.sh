@@ -20,6 +20,6 @@ echo $sample, ${sample/R1/"R2"}
 echo $outdir/$(basename -- ${sample::-16})
 
 # Trim reads
-skewer -m pe -Q 30 -t 12 -y $adapter $sample ${sample/R1/"R2"} -o $outdir/$(basename -- ${sample::-16})
+skewer -m pe -Q 30 -l 36 -t 12 -x $adapter -y $adapter $sample ${sample/R1/"R2"} -o $outdir/$(basename -- ${sample::-16})
 
 done
