@@ -8,12 +8,12 @@ sink(con, append = TRUE)
 #=============================================================================#
 list.of.packages <- c("BiocManager")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-if(length(new.packages)) install.packages(new.packages, repos='http://cran.us.r-project.org')
+if(length(new.packages)) install.packages(new.packages, repos='http://cran.us.r-project.org');
 
 to_install <- c("DESeq2", "ggplot2", "stringr", "apeglm", "pheatmap")
 new.packages <- to_install[!(to_install %in% installed.packages()[,"Package"])]
 for (package in new.packages){
-  BiocManager::install(package)
+  BiocManager::install(package);
 }
 
 #=============================================================================#
