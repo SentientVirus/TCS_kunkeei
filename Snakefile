@@ -58,9 +58,9 @@ rule pgv_mauve:
     input:
         og_strain = os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna",
         new_seqs = expand("data/fixed_ori/fixed_ori{i}.fasta", i = ["1", "2", "3", "4"])
-    log: "logs/03-pmauve.log"
+    log: "logs/03x-pmauve.log"
     conda: "envs/plot_region_env.yml"
-    script: "03-pgvmauve.py"
+    script: "03a-pgvmauve.py"
 
 ##Prokka annotations
 rule prokka_annot:
@@ -69,13 +69,13 @@ rule prokka_annot:
     input:
         protein_list = os.path.expanduser("~") + "/Akunkeei_files/faa/H3B1-04J_protein.faa",
         assemblies = expand("data/fixed_ori/fixed_ori{i}.fasta", i = ["1", "2", "3", "4"])
-    log: "logs/04-prokka.log"
+    log: "logs/03-prokka.log"
     conda: "envs/genome_analysis_env.yml"
     threads: 8
     shell:
         """
         > {log}
-        bash code/04-prokka.sh {threads} {input.protein_list} {input.assemblies} >> {log} 2>> {log};
+        bash code/03-prokka.sh {threads} {input.protein_list} {input.assemblies} >> {log} 2>> {log};
         """
 
 ##All vs all Blast
@@ -88,9 +88,19 @@ rule all_blast:
     params:
         outpath = "results/blast"
     threads: 16
-    log: "logs/05-blast_prokka.log"
+    log: "logs/04-blast_prokka.log"
     conda: "envs/plot_region_env.yml"
-    script: "05-blast_prokka.py"
+    script: "04-blast_prokka.py"
+
+##Retrieve genes that are different in the re-sequenced genomes than in the reference
+rule get_differences:
+    output: "differences.tab"
+    input: expand("results/blast/sample{i}.tab", i = ["1", "2", "3", "4"])
+    threads: 1
+    log: "logs/05-get_differences.log"
+    conda: "envs/plot_region_env.yml"
+    script: "05-parse_blast.py"
+
 
 ##Change FASTA line length from 60 nts to 80 nts
 rule reformat_fna:
@@ -100,7 +110,7 @@ rule reformat_fna:
         expand("data/fixed_ori/fixed_ori{i}.fasta", i = ["1", "2", "3", "4"])
     log: "logs/06-reformat_fna.log"
     conda: "envs/plot_region_env.yml"
-    script: "06-reformat_fna.py"
+    script: "03b-reformat_fna.py"
 
 ##Check for inversions
 rule Phase_Finder:
@@ -110,12 +120,12 @@ rule Phase_Finder:
     input:
         expand("data/fixed_ori/sample{i}_genomic.fna", i = ["1", "2", "3", "4"]),
         os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna"
-    log: "logs/07-Phase_finder.log"
+    log: "logs/04b-Phase_finder.log"
     conda: "envs/samtools_env.yml"
     shell:
         """
         > {log}
-        bash code/07-PhaseFinder.sh {output.general} {input} >> {log} 2>> {log}
+        bash code/04b-PhaseFinder.sh {output.general} {input} >> {log} 2>> {log}
         """
 
 ##Add new rule to align reads to the genome
@@ -125,12 +135,12 @@ rule run_bwa:
     input:
         index=os.path.expanduser("~") + "/snpseq00064/index/H3B1-04J.fna",
         reads=input_list
-    log: "logs/08-reads2bam.log"
+    log: "logs/01c-reads2bam.log"
     threads: 48
     shell:
         """
         > {log}
-        bash code/08-reads2bam.sh {input.index} {threads} {output} {input.reads} >> {log} 2>> {log}
+        bash code/01c-reads2bam.sh {input.index} {threads} {output} {input.reads} >> {log} 2>> {log}
         """
 
 #rule synteny:
