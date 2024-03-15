@@ -10,7 +10,7 @@ input_list = [f"subreads/ps_405_00{key}/demultiplex.bc10{value}_BAK8A_OA--bc10{v
 
 rule all:
     input:
-        blast = "differences.tab",
+        blast = "results/blast/differences.tab",
         phase_finder = "results/PhaseFinder/H3B1-04J_genomic.tab",
         pgvmauve = "results/pmauve/result.png",
         bamview = expand("bam_files/{no}.bam", no = ["01", "02", "09", "10"])
@@ -66,7 +66,7 @@ rule pgv_mauve:
         new_seqs = expand("data/fixed_ori/fixed_ori{i}.fasta", i = ["1", "2", "3", "4"])
     log: "logs/03a-pmauve.log"
     conda: "envs/plot_region_env.yml"
-    script: "03a-pgvmauve.py"
+    script: "code/03a-pgvmauve.py"
 
 ##Prokka annotations
 rule prokka_annot:
@@ -116,7 +116,7 @@ rule reformat_fna:
         expand("data/fixed_ori/fixed_ori{i}.fasta", i = ["1", "2", "3", "4"])
     log: "logs/03b-reformat_fna.log"
     conda: "envs/plot_region_env.yml"
-    script: "03b-reformat_fna.py"
+    script: "code/03b-reformat_fna.py"
 
 ##Check for inversions
 rule Phase_Finder:

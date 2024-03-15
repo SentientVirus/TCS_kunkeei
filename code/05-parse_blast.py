@@ -46,7 +46,7 @@ outfile = snakemake.output[0]
 # 2. Function to retrieve unique locus tag in each sample
 # =============================================================================
 
-def get_unique_seqs(file, outdict = {}):
+def get_unique_seqs(file, outdict = {}, id_dict = {}):
     bool_dict = {}
     print(f'Processing {file}...')
     with open(file) as infile:
@@ -54,7 +54,8 @@ def get_unique_seqs(file, outdict = {}):
         for index, row in df.iterrows():
             if row[0] not in bool_dict.keys():
                 bool_dict[row[0]] = True
-            if row[3] == row[9]:
+                id_dict[row[0]] = row[1].split('_')[2]
+            if row[2] == 100 and row[3] == row[9]:
                 bool_dict[row[0]] = False
             
     true_list = [k for k in bool_dict.keys() if bool_dict[k] == True]
@@ -65,11 +66,12 @@ def get_unique_seqs(file, outdict = {}):
 # 3. Function implementation
 # =============================================================================
 true_dict = {}
-[get_unique_seqs(file, true_dict) for file in infiles];
+loc_dict = {}
+[get_unique_seqs(file, true_dict, loc_dict) for file in infiles];
 
 # =============================================================================
 # 4. Saving results to file
 # =============================================================================
 with open(outfile, 'w') as txt:
-    txt.write('sample_no\tlocus_tag\n')
-    [txt.write(f'{sample}\t{locus}\n') for (sample, loci) in true_dict.items() for locus in loci]
+    txt.write('sample_no\tlocus_tag\treference_locus\n')
+    [txt.write(f'{sample}\t{locus}\t{loc_dict[locus]}\n') for (sample, loci) in true_dict.items() for locus in loci]
