@@ -1,1 +1,15 @@
+*data/
+analysis
+reports
+subreads
 /.snakemake/*
+notes
+old
+results
+bam_files
+PhaseFinder
+*.bam
+*.fasta
+*.faa
+*.fna
+.DS_Store
