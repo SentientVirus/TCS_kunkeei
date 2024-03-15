@@ -4,10 +4,16 @@ isol_code = {1: "02", 2: "03", 3: "08", 4: "10"}
 
 input_list = [f"subreads/ps_405_00{key}/demultiplex.bc10{value}_BAK8A_OA--bc10{value}_BAK8A_OA.fastq.gz" for key, value in isol_code.items()]
 
+#rule all:
+#    input:
+#        expand("analysis/ps_405_00{i}/ps_405_00{i}.polished_assembly.fasta", i = ["1", "2", "3", "4"])
+
 rule all:
     input:
-        expand("analysis/ps_405_00{i}/ps_405_00{i}.polished_assembly.fasta", i = ["1", "2", "3", "4"])
-
+        blast = "differences.tab",
+        phase_finder = "results/PhaseFinder/H3B1-04J_genomic.tab",
+        pgvmauve = "results/pmauve/result.png",
+        bamview = expand("bam_files/{no}.bam", no = ["01", "02", "09", "10"])
 
 
 ##First step, save all files to 001-004.fasta
@@ -58,14 +64,14 @@ rule pgv_mauve:
     input:
         og_strain = os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna",
         new_seqs = expand("data/fixed_ori/fixed_ori{i}.fasta", i = ["1", "2", "3", "4"])
-    log: "logs/03x-pmauve.log"
+    log: "logs/03a-pmauve.log"
     conda: "envs/plot_region_env.yml"
     script: "03a-pgvmauve.py"
 
 ##Prokka annotations
 rule prokka_annot:
     output:
-        expand("results/annotations/sample{i}.fna", i = ["1", "2", "3", "4"])
+        expand("results/annotations/sample{i}.{ext}", i = ["1", "2", "3", "4"], ext = ["err", "gbk", "gff", "faa", "fna", "ffn", "fsa", "log", "sqn", "tbl", "tsv", "txt"])
     input:
         protein_list = os.path.expanduser("~") + "/Akunkeei_files/faa/H3B1-04J_protein.faa",
         assemblies = expand("data/fixed_ori/fixed_ori{i}.fasta", i = ["1", "2", "3", "4"])
@@ -90,16 +96,16 @@ rule all_blast:
     threads: 16
     log: "logs/04-blast_prokka.log"
     conda: "envs/plot_region_env.yml"
-    script: "04-blast_prokka.py"
+    script: "code/04-blast_prokka.py"
 
 ##Retrieve genes that are different in the re-sequenced genomes than in the reference
 rule get_differences:
-    output: "differences.tab"
+    output: "results/blast/differences.tab"
     input: expand("results/blast/sample{i}.tab", i = ["1", "2", "3", "4"])
     threads: 1
     log: "logs/05-get_differences.log"
     conda: "envs/plot_region_env.yml"
-    script: "05-parse_blast.py"
+    script: "code/05-parse_blast.py"
 
 
 ##Change FASTA line length from 60 nts to 80 nts
@@ -108,7 +114,7 @@ rule reformat_fna:
         expand("data/fixed_ori/sample{i}_genomic.fna", i = ["1", "2", "3", "4"])
     input:
         expand("data/fixed_ori/fixed_ori{i}.fasta", i = ["1", "2", "3", "4"])
-    log: "logs/06-reformat_fna.log"
+    log: "logs/03b-reformat_fna.log"
     conda: "envs/plot_region_env.yml"
     script: "03b-reformat_fna.py"
 

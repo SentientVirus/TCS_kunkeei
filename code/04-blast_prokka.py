@@ -46,6 +46,6 @@ threads = snakemake.threads
 
 for i in range(len(files)):
     S = f'blastn -query {files[i]} -out {outpath}/{files[i][:-4].split("/")[2]}.tab \
-        -subject {subject} -outfmt 7'
+        -subject {subject} -outfmt 6'
     os.system(S)
     

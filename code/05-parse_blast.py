@@ -40,7 +40,7 @@ sys.stdout = open(snakemake.log[0], 'a')
 # 1. Defining inputs 
 # =============================================================================
 infiles = snakemake.input
-outfile = snakemake.output
+outfile = snakemake.output[0]
 
 # =============================================================================
 # 2. Function to retrieve unique locus tag in each sample
@@ -48,6 +48,7 @@ outfile = snakemake.output
 
 def get_unique_seqs(file, outdict = {}):
     bool_dict = {}
+    print(f'Processing {file}...')
     with open(file) as infile:
         df = pd.read_csv(infile, sep = '\t', header = None)
         for index, row in df.iterrows():
