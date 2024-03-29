@@ -114,16 +114,18 @@ percentVar <- round(100 * attr(pcaData, "percentVar"))
 
 # PCA plots and formatting
 p <- ggplot(pcaData, aes(PC1, PC2, color=condition2, shape=condition1)) +
-  geom_point(size=10, alpha=1, stroke=0) +
-  guides(color = guide_legend(title = "Substrate", theme = theme(legend.title = element_text(size = 24))), 
-  shape = guide_legend(title = "Morphology", theme = theme(legend.title = element_text(size = 24)))) +
+  geom_point(size=10, alpha=1, stroke=0) + scale_color_manual(values = c("S" = "#FF5733", "F" = "#0097EF")) +
+  guides(color = guide_legend(title = "Substrate", theme = theme(legend.title = element_text(size = 24), legend.text = element_text(size = 20))), 
+  shape = guide_legend(title = "Morphology", theme = theme(legend.title = element_text(size = 24), legend.text = element_text(size = 20)))) +
   xlab(paste0("PC1: ",percentVar[1],"% variance")) +
   ylab(paste0("PC2: ",percentVar[2],"% variance")) + 
   coord_fixed();
-p <- p + stat_ellipse(geom="polygon", aes(fill = pcaData$condition2), 
-  alpha = 0.2, show.legend = FALSE, level = 0.95) +
-  theme_minimal() + theme(panel.grid = element_blank(), 
-  panel.border = element_rect(fill= "transparent"));
+p <- p + 
+  #stat_ellipse(geom="polygon", aes(fill = pcaData$condition2), 
+  #alpha = 0.2, show.legend = FALSE, level = 0.95) + 
+  scale_fill_manual(values = c("S" = "#FF5733", "F" = "#0097EF")) +
+  theme_minimal() + theme(axis.title = element_text(size = 30), axis.text = element_text(size = 20), panel.grid = element_blank(), 
+  panel.border = element_rect(fill= "transparent", size = 5));
 
 # Saving the plots to files
 ggsave(pcaplot[1], width = 9, height = 6);
