@@ -114,7 +114,7 @@ percentVar <- round(100 * attr(pcaData, "percentVar"))
 
 # PCA plots and formatting
 p <- ggplot(pcaData, aes(PC1, PC2, color=condition2, shape=condition1)) +
-  geom_point(size=10, alpha=1, stroke=0) + scale_color_manual(values = c("S" = "#FF5733", "F" = "#0097EF")) +
+  geom_point(size=8, alpha=1, stroke=0) + scale_color_manual(values = c("S" = "#FF5733", "F" = "#0097EF")) +
   guides(color = guide_legend(title = "Substrate", theme = theme(legend.title = element_text(size = 24), legend.text = element_text(size = 20))), 
   shape = guide_legend(title = "Morphology", theme = theme(legend.title = element_text(size = 24), legend.text = element_text(size = 20)))) +
   xlab(paste0("PC1: ",percentVar[1],"% variance")) +
