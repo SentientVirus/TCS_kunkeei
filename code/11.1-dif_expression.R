@@ -35,13 +35,6 @@ flog.logger("saturation", TRACE, appender=appender.file(snakemake@log[[1]]))
 flog.info("R script to run a saturation analysis")
 
 #=============================================================================#
-# Provisional section to load GenBank file                                    #
-#=============================================================================#
-#gbk <- "/home/marina/Akunkeei_files/gbff/H3B1-04J_genomic.gbff"
-#readGenBank(gbk, text = readLines(gbk), partial = TRUE, ret.seq = TRUE,
-#            verbose = FALSE)
-
-#=============================================================================#
 # 1. Load input variables from Snakemake                                      #
 #=============================================================================#
 flog.info("Definining input variables")
@@ -114,9 +107,8 @@ percentVar <- round(100 * attr(pcaData, "percentVar"))
 
 # PCA plots and formatting
 p <- ggplot(pcaData, aes(PC1, PC2, color=condition2, shape=condition1)) +
-  geom_point(size=10, alpha=1, stroke=0) +
-  guides(color = guide_legend(title = "Substrate", theme = theme(legend.title = element_text(size = 24))), 
-  shape = guide_legend(title = "Morphology", theme = theme(legend.title = element_text(size = 24)))) +
+  geom_point(size=4, alpha=1, stroke=0) +
+  guides(color = guide_legend(title = "Substrate"), shape = guide_legend(title = "Morphology")) +
   xlab(paste0("PC1: ",percentVar[1],"% variance")) +
   ylab(paste0("PC2: ",percentVar[2],"% variance")) + 
   coord_fixed();
