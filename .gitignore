@@ -13,3 +13,6 @@ PhaseFinder
 *.faa
 *.fna
 .DS_Store
+code/excluded
+logs
+dag.pdf
