@@ -10,7 +10,7 @@ list.of.packages <- c("BiocManager")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages, repos='http://cran.us.r-project.org');
 
-to_install <- c("DESeq2", "ggplot2", "stringr", "apeglm", "pheatmap")
+to_install <- c("DESeq2", "ggplot2", "stringr", "apeglm", "pheatmap", "ggrepel")
 new.packages <- to_install[!(to_install %in% installed.packages()[,"Package"])]
 for (package in new.packages){
   BiocManager::install(package);
@@ -114,7 +114,7 @@ percentVar <- round(100 * attr(pcaData, "percentVar"))
 
 # PCA plots and formatting
 p <- ggplot(pcaData, aes(PC1, PC2, color=condition2, shape=condition1)) +
-  geom_point(size=5, alpha=1, stroke=0) + scale_color_manual(values = c("S" = "#FF5733", "F" = "#0097EF")) +
+  geom_point(size=8, alpha=1, stroke=0) + scale_color_manual(values = c("S" = "#FF5733", "F" = "#0097EF")) +
   guides(color = guide_legend(title = "Substrate", theme = theme(legend.title = element_text(size = 24), legend.text = element_text(size = 20))), 
   shape = guide_legend(title = "Morphology", theme = theme(legend.title = element_text(size = 24), legend.text = element_text(size = 20)))) +
   xlab(paste0("PC1: ",percentVar[1],"% variance")) +
@@ -125,7 +125,7 @@ p <- p +
   #alpha = 0.2, show.legend = FALSE, level = 0.95) + 
   scale_fill_manual(values = c("S" = "#FF5733", "F" = "#0097EF")) +
   theme_minimal() + theme(axis.title = element_text(size = 30), axis.text = element_text(size = 20), panel.grid = element_blank(), 
-  panel.border = element_rect(fill= "transparent", size = 5));
+  panel.border = element_rect(fill= "transparent", size = 2));
 
 # Saving the plots to files
 ggsave(pcaplot[1], width = 9, height = 6);
