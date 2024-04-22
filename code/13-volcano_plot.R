@@ -111,26 +111,28 @@ size_vector <- abs(res$log2FoldChange)
 volcanoplot <- ggplot(data = res, aes(x = log2FoldChange, y = yval, col = keyvals.col, label = vollabels)) +
   geom_vline(xintercept = c(-0.5, 0.5), col = "gray", linetype = "dashed") + # Add dashed line to show log2FC < 0.5
   geom_hline(yintercept = -log10(1e-5), col = "gray", linetype = "dashed") + # Add dashed line for p-value > 0.05
-  geom_point(aes(size = size_vector, shape = sign_shape), alpha = 0.5, stroke = 0) + 
-  #scale_shape_manual(values = c(21, 24)) + #, labels = c("Inhibitor", "Mucoid")) +
+  geom_point(aes(size = size_vector, shape = sign_shape, fill = keyvals.col), alpha = 0.6, stroke = 0.5, color = "brown1") + 
+  scale_shape_manual(values = c(21, 24)) + #, labels = c("Inhibitor", "Mucoid")) +
   scale_size(range = c(0.5, 3)) + #, guide = "none") + 
   theme_light() + # Set point size and overall graph appearance
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + # Remove grid
-  scale_color_manual(values = color_values, #c("#00AFBB", "#bb0c00", "black", "grey"), # Set the colors of up/downregulated points
-      labels = parse(text = labels)) + #c("Inhibitor", "Mucoid", expression("Log"[2]*"FC < 0.5"), expression("p"["adj"]*" < 0.05"))) + # Set the color labels
-  guides(colour = guide_legend(override.aes = list(size = 3)), 
+  scale_fill_manual(values = color_values, # Set the colors of up/downregulated points
+      labels = parse(text = labels), aesthetics = c("colour", "fill")) + # Set the color labels
+  #scale_fill_manual(values = color_values) +
+  guides(fill = guide_legend(override.aes = list(size = 3)), # Increase the size of legend points
          shape = guide_legend(override.aes = list(size = 3))) +
   coord_cartesian(ylim = c(0, 320), xlim = c(-8, 8)) + # Set plot limits
-  labs(color = "Differential expression", shape = "Morphology", size = expression("Log"[2]*italic("Fold Change")), # Legend title
+  labs(fill = "Differential expression", shape = "Morphology", size = expression("Log"[2]*italic("Fold Change")), # Legend title
       x = expression("Log"[2]*italic("Fold Change")), y = expression("-Log"[10]*italic("p"["adj"]))) +
-  scale_x_continuous(breaks = seq(-8, 8, 1)) + # Customize ticks in the x axis
-  scale_y_continuous(breaks = seq(0, 320, 20)) + # Customize ticks in y axis
+  scale_x_continuous(breaks = seq(-8, 8, 2)) + # Customize ticks in the x axis
+  scale_y_continuous(breaks = seq(0, 320, 40)) + # Customize ticks in y axis
   ggtitle("Mucoid vs Inhibitor", subtitle = "+ sucrose") + # Plot title
   geom_label_repel(max.overlaps = Inf, show_guide = FALSE, color = "black", 
       size = 3, box.padding = 0.4, fontface = "bold.italic") #, label.size = NA, fill = NA) # To show all labels
 
 volcanoplot <- volcanoplot + 
   theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5))
+volcanoplot
 # Saving the plots to files
 ggsave("../try.png", width = 9, height = 6)
 
@@ -154,7 +156,7 @@ keyvals.colour <- ifelse(
   ifelse(abs(new_res$log2FoldChange) > 3 & new_res$padj > 1e-5, "bisque2",
          "bisque3")))))
 keyvals.colour[is.na(keyvals.colour)] <- "red"
-names(keyvals.colour)[keyvals.colour == "aquamarine3"] <- expression("p"["adj"]) #*" < 1e"^(-5)*", Log"[2]~"FC > 3")
+names(keyvals.colour)[keyvals.colour == "aquamarine3"] <- "Significant, high" #expression("p"["adj"]) #*" < 1e"^(-5)*", Log"[2]~"FC > 3")
 names(keyvals.colour)[keyvals.colour == "cyan4"] <- "Significant, mid"
 names(keyvals.colour)[keyvals.colour == "darkblue"] <- "Significant, low"
 names(keyvals.colour)[keyvals.colour == "bisque2"] <- "Not significant, high"
@@ -177,3 +179,4 @@ enhanced_plot <- enhanced_plot +
     ggplot2::coord_cartesian(xlim=c(-8, 8)) +
     ggplot2::scale_x_continuous(breaks=seq(-8, 8, 2))
 enhanced_plot
+ggsave("../try2.png", width = 9, height = 6)
