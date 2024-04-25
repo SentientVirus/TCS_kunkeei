@@ -33,13 +33,12 @@ input_files <- c("../results/DE/Smucoid_vs_Sinhibitor_annotated.tsv",
                  "../results/DE/Sinhibitor_vs_Finhibitor_annotated.tsv")
 
 # Define vectors with formatting
-titles <- rep(c("Mucoid vs Inhibitor", " + Sucrose vs - Sucrose"), each = 2)
-subtitles <- c("+ sucrose", "- sucrose", "Mucoid", "Inhibitor")
-all_shapes <- rep(data.frame(c(21, 23), c(24, 25)), each = 2)
-comparison <- rep(data.frame(c("Inh", "Muc"), c("+", "-")), each = 2)
-size_breaks_all <- rep(data.frame(c(2, 4, 6), c(1, 2, 3)), each = 2)
-scales <- rep(data.frame(c(0.5, 3), c(0.25, 1.5)), each = 2)
-shape_names <- rep(c("Morphology", "Sucrose"), each = 2)
+titles <- rep(c("Mucoid vs Inhibitor", " + Sucrose vs - Sucrose"), each = 2) # Plot titles
+subtitles <- c("+ sucrose", "- sucrose", "Mucoid", "Inhibitor") # Plot subtitles
+all_shapes <- rep(data.frame(c(21, 23), c(25, 24)), each = 2) # Desired point shape for the plot
+comparison <- rep(data.frame(c("Inh", "Muc"), c("-", "+")), each = 2) # Comparisons to be plotted
+#shape_names <- rep(c("Morphology", "Sucrose"), each = 2)
+scale_val <- c(0, 3) # Variable to scale points
 
 # Loop through i to get res and plot
 for (i in 1:4){
@@ -55,28 +54,32 @@ res[, j] <- apply(res[, j], 2, function(x) as.numeric(x))
 
 # Get shapes and titles for the plot
 shapes <- as.vector(unlist(all_shapes[i]))
-size_breaks <- as.vector(unlist(size_breaks_all[i]))
-scale <- as.vector(unlist(scales[i]))
-size_labels <- apply(expand.grid(size_breaks, as.vector(unlist(comparison[i]))), 1, paste, collapse=", ") # Set different values for different comparisons
 title <- titles[i]
 subtitle <- subtitles[i]
-shape_label <- shape_names[i]
+#shape_label <- shape_names[i]
 
 #=============================================================================#
 # 2. Volcano plot with ggplot and standard plotting                           #
 #=============================================================================#
-# Set the variable 
+# Set the x and y varuables 
 yax <- -log10(res$padj)
 xax <- res$log2FoldChange
+
+# Get maximum and set infinite values (padj = 0) to maximum
 yval <- yax
 ymax <- max(yval[is.finite(yval)])
 yval[!is.finite(yval)] <- ymax
 xmax <- max(abs(xax))
 
+# Define breaks in size legend based on data in the comparison
+lowest <- xmax/4
+medium <- max(xmax/2, lowest + 0.5) # Make sure to round to a higher number than lowest
+highest <- xmax-0.5 # Make sure to round to lower number
+size_breaks <- round(c(lowest, medium, xmax-0.5), digits = 0)
+size_labels <- apply(expand.grid(size_breaks, as.vector(unlist(comparison[i]))), 1, paste, collapse=", ") # Set different values for different comparisons
 
-# Variable used to change the shape of the points
+# Variable used to set the shapes of the points (side of the plot)
 sign_shape <- sign(xax)
-# TO DO: Adapt these lines so they are all set to +-sucrose (and to the + and - signs) for the other comparisons
 sign_shape[sign_shape == 1] <- shapes[2]
 sign_shape[sign_shape == -1] <- shapes[1]
 sign_shape <- as.factor(sign_shape)
@@ -110,25 +113,19 @@ keyvals.col <- ifelse(
                               "#CDB79E")))))
 
 # Labels for each color
-keyvals.col[is.na(keyvals.col)] <- "red"
+keyvals.col[is.na(keyvals.col)] <- "red" # NAs should not be in the data
 names(keyvals.col)[keyvals.col == "#66CDAA"] <- expression(italic("p"["adj"])*" < 10"^-5*", Log"[2]*italic("FC")*" > 3")
 names(keyvals.col)[keyvals.col == "#008B8B"] <- expression(italic("p"["adj"])*" < 10"^-5*", 0.5 < Log"[2]*italic("FC")*" < 3")
 names(keyvals.col)[keyvals.col == "#00008B"] <- expression(italic("p"["adj"])*" < 10"^-5*", Log"[2]*italic("FC")*" < 0.5")
-names(keyvals.col)[keyvals.col == "#EED5B7"] <- expression(italic("p"["adj"])*" > 10"^-5*", Log"[2]*italic("FC")*" < 0.5")
+names(keyvals.col)[keyvals.col == "#EED5B7"] <- expression(italic("p"["adj"])*" > 10"^-5*", Log"[2]*italic("FC")*" < 3")
 names(keyvals.col)[keyvals.col == "#CDB79E"] <- expression(italic("p"["adj"])*" > 10"^-5*", 0.5 < Log"[2]*italic("FC")*" < 3")
 names(keyvals.col)[keyvals.col == "#8B7D6B"] <- expression(italic("p"["adj"])*" > 10"^-5*", Log"[2]*italic("FC")*" < 0.5")
 
 # Assign colors to data points
 color_values <- unique(keyvals.col)
-color_values <- color_values[order(color_values)] # Colors must be ordered alphabetically to match the plot
+color_values <- color_values[order(color_values)] # Colors must be ordered to match the plot
 labels <- unlist(lapply(color_values, function(color) {
   unique(names(keyvals.col)[keyvals.col == color])}))
-  
-#labels <- c(unique(names(keyvals.col)[keyvals.col == color_values[1]]), # Add the right label to each color
-#            unique(names(keyvals.col)[keyvals.col == color_values[2]]), 
-#            unique(names(keyvals.col)[keyvals.col == color_values[3]]), 
-#            unique(names(keyvals.col)[keyvals.col == color_values[4]]), 
-#            unique(names(keyvals.col)[keyvals.col == color_values[5]]))
 
 # Vector to scale the size of data points
 size_vector <- abs(res$log2FoldChange)
@@ -140,18 +137,16 @@ volcanoplot <- ggplot(data = res, aes(x = log2FoldChange, y = yval, col = keyval
   geom_point(aes(size = size_vector, shape = sign_shape, fill = keyvals.col), alpha = 0.6, stroke = 0.5, color = "darkorchid") + # Line the size, shape, color (fill + border) and stroke of the points
   geom_label_repel(max.overlaps = Inf, show_guide = FALSE, color = "black", 
         size = 3, box.padding = 0.4, fontface = "bold.italic") + # Add label boxes
-  scale_shape_manual(values = shapes, guide = "none") + # TO DO: Make a shape vector to use different shapes depending on the comparison
-  #scale_size(range = c(0.5, 3)) + # Scale point size so that it is not too big
+  scale_shape_manual(values = shapes[order(shapes)], guide = "none") + # Set point shapes
   theme_light() + # Set point size and overall graph appearance
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + # Remove grid
-  scale_size_continuous(breaks = rep(size_breaks, times = 2), labels = size_labels, range = scale) +
+  scale_size_continuous(breaks = rep(size_breaks, times = 2), labels = size_labels, range = scale_val) + # Set the legend for point size
   scale_fill_manual(values = color_values, # Set the colors of up/downregulated points
       labels = parse(text = labels)) + # Set the color labels
-  guides(fill = guide_legend(override.aes = list(order = 3, size = 3, shape = 21, color = "darkorchid")), # Increase the size of legend points, change shape to add border color
-       #shape = guide_legend(override.aes = list(order = 2, size = 3, color = "darkorchid")), # Same as above, but for the shape legend
-       size = guide_legend(nrow = 3, ncol = 2, bycol = TRUE, 
-       override.aes = list(shape = rep(shapes, each = 3), order = 1, color = "darkorchid"))) + # Change the color of the size legend to gray, TO DO: Try to add triangles as well to the legend
-  labs(fill = "Differential expression", shape = shape_label, 
+  guides(fill = guide_legend(order = 1, override.aes = list(size = 3, shape = 21, color = "darkorchid")), # Increase the size of legend points, change shape to add border color
+       size = guide_legend(nrow = 3, ncol = 2, bycol = TRUE, order = 2,
+       override.aes = list(shape = rep(shapes, each = 3), color = "darkorchid"))) + # Make size legend include shape information
+  labs(fill = "Differential expression", #shape = shape_label, # Set legend labels
        size = expression("Log"[2]*italic("Fold Change")), # Legend title
        x = expression("Log"[2]*italic("Fold Change")), # Title of main axes
        y = expression("-Log"[10]*italic("p"["adj"])), color = FALSE) +
