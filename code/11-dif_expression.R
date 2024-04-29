@@ -10,7 +10,7 @@ list.of.packages <- c("BiocManager")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages, repos='http://cran.us.r-project.org');
 
-to_install <- c("DESeq2", "ggplot2", "stringr", "apeglm", "pheatmap", "ggrepel")
+to_install <- c("DESeq2", "ggplot2", "stringr", "apeglm", "pheatmap", "ggrepel", "ape")
 new.packages <- to_install[!(to_install %in% installed.packages()[,"Package"])]
 for (package in new.packages){
   BiocManager::install(package);
@@ -24,6 +24,7 @@ library("ggplot2")
 library("pheatmap")
 library("RColorBrewer")
 library("stringr")
+library("ape")
 library(futile.logger)
 
 #=============================================================================#
@@ -37,9 +38,27 @@ flog.info("R script to run a saturation analysis")
 #=============================================================================#
 # Provisional section to load GenBank file                                    #
 #=============================================================================#
-#gbk <- "/home/marina/Akunkeei_files/gbff/H3B1-04J_genomic.gbff"
-#readGenBank(gbk, text = readLines(gbk), partial = TRUE, ret.seq = TRUE,
-#            verbose = FALSE)
+# Read two GBKS, chromosome and plasmid for strain H3B1-04J
+gbks <- c("OX335197", "OX335198")
+
+# Get annotations from both GenBanks
+my_annot <- getAnnotationsGenBank(gbks)
+
+# Create a vector to store locus tags
+loctags <- c()
+
+# Create a new object to filter out annotations for repeat regions
+new_annot <- my_annot
+new_annot$OX335197 <- new_annot$OX335197[new_annot$OX335197$type == "gene",]
+
+# Create vector with the annotations
+annots <- c(new_annot$OX335197$gene, new_annot$OX335198$gene)
+
+# Retrieve all the locus tags from the GenBank information
+for (value in c(new_annot$OX335197$others, new_annot$OX335198$others)) {
+  locus_tag <- str_extract(value, "(?<=locus_tag: )[A-Z0-9_]+")
+  loctags <- c(loctags, locus_tag)}
+loctags <- na.omit(loctags)
 
 #=============================================================================#
 # 1. Load input variables from Snakemake                                      #
@@ -159,6 +178,29 @@ rownames(vsd_htmp) <- str_sub(rownames(vsd_htmp), 4, -1)
 rownames(df) <- sub("_", "", rownames(df))
 colnames(vsd_htmp) <- sub("_", "", colnames(vsd_htmp))
 
+# Get annotations for each locus tag
+my_rownames <- c()
+for (rown in rownames(vsd_htmp)){
+  comp <- annots[paste("AKU", rown, sep = "") == loctags][1]
+  print(comp)
+  if (!is.na(comp)){
+    my_rownames <- c(my_rownames, comp)
+  } else {
+    my_rownames <- c(my_rownames, rown)
+    }
+}
+
+flog.info("Add annotations to heatmap")
+rownames(vsd_htmp) <- my_rownames
+
+# Replace the names of certain rows
+to_replace <- c("H3B104J_00510", "H3B104J_00520", "H3B104J_01020", "H3B104J_14310", "H3B104J_PKUN00040")
+replacement <- c("adhesin_510", "adhesin_520", "adhesin_1020", "adhesin_14310", "kukA")
+
+# Implement replacement
+rownames(vsd_htmp)[which(rownames(vsd_htmp) %in% to_replace)] <- replacement
+
+flog.info("Save global heatmap")
 png(file = heatplot, width = 600, height = 400);
 pheatmap(assay(vsd_htmp)[select,], cluster_rows=FALSE, show_rownames=TRUE,
          cluster_cols=TRUE, annotation_col=df, cellwidth=40)
@@ -228,6 +270,23 @@ colnames(df) <- c("Phenotype", "Batch")
 vsd_subset <- vsd[, sapply(colnames(vsd), grepl, pattern = "_S_")]
 rownames(vsd_subset) <- str_sub(rownames(vsd_subset), 4, -1)
 
+# Get annotations for each locus tag
+my_rownames <- c()
+for (rown in rownames(vsd_subset)){
+  comp <- annots[paste("AKU", rown, sep = "") == loctags][1]
+  print(comp)
+  if (!is.na(comp)){
+    my_rownames <- c(my_rownames, comp)
+  } else {
+    my_rownames <- c(my_rownames, rown)
+  }
+}
+rownames(vsd_subset) <- my_rownames
+to_replace <- c("H3B104J_00510", "H3B104J_00520", "H3B104J_01020", "H3B104J_14310", "H3B104J_PKUN00040")
+replacement <- c("adhesin_510", "adhesin_520", "adhesin_1020", "adhesin_14310", "kukA")
+rownames(vsd_subset)[which(rownames(vsd_subset) %in% to_replace)] <- replacement
+
+# Save heatmap to files
 png(file = snakemake@output[["heatmap"]][3], width = 600, height = 400)
 pheatmap(assay(vsd_subset)[select,], cluster_rows=FALSE, show_rownames=TRUE,
          cluster_cols=TRUE, annotation_col=df, cellwidth=cw)
@@ -281,6 +340,21 @@ colnames(df) <- c("Phenotype", "Batch")
 vsd_subset <- vsd[, sapply(colnames(vsd), grepl, pattern = "_F_")]
 rownames(vsd_subset) <- str_sub(rownames(vsd_subset), 4, -1)
 
+my_rownames <- c()
+for (rown in rownames(vsd_subset)){
+  comp <- annots[paste("AKU", rown, sep = "") == loctags][1]
+  print(comp)
+  if (!is.na(comp)){
+    my_rownames <- c(my_rownames, comp)
+  } else {
+    my_rownames <- c(my_rownames, rown)
+  }
+}
+rownames(vsd_subset) <- my_rownames
+to_replace <- c("H3B104J_00510", "H3B104J_00520", "H3B104J_01020", "H3B104J_14310", "H3B104J_PKUN00040")
+replacement <- c("adhesin_510", "adhesin_520", "adhesin_1020", "adhesin_14310", "kukA")
+rownames(vsd_subset)[which(rownames(vsd_subset) %in% to_replace)] <- replacement
+
 png(file = snakemake@output[["heatmap"]][5], width = 600, height = 400)
 pheatmap(assay(vsd_subset)[select,], cluster_rows=FALSE, show_rownames=TRUE,
          cluster_cols=TRUE, annotation_col=df, cellwidth=cw)
@@ -333,6 +407,21 @@ colnames(df) <- c("Phenotype", "Batch")
 vsd_subset <- vsd[, sapply(colnames(vsd), grepl, pattern = "I01|I02")]
 rownames(vsd_subset) <- str_sub(rownames(vsd_subset), 4, -1)
 
+my_rownames <- c()
+for (rown in rownames(vsd_subset)){
+  comp <- annots[paste("AKU", rown, sep = "") == loctags][1]
+  print(comp)
+  if (!is.na(comp)){
+    my_rownames <- c(my_rownames, comp)
+  } else {
+    my_rownames <- c(my_rownames, rown)
+  }
+}
+rownames(vsd_subset) <- my_rownames
+to_replace <- c("H3B104J_00510", "H3B104J_00520", "H3B104J_01020", "H3B104J_14310", "H3B104J_PKUN00040")
+replacement <- c("adhesin_510", "adhesin_520", "adhesin_1020", "adhesin_14310", "kukA")
+rownames(vsd_subset)[which(rownames(vsd_subset) %in% to_replace)] <- replacement
+
 png(file = snakemake@output[["heatmap"]][7], width = 600, height = 400)
 pheatmap(assay(vsd_subset)[select,], cluster_rows=FALSE, show_rownames=TRUE,
          cluster_cols=TRUE, annotation_col=df, cellwidth=cw)
@@ -383,6 +472,21 @@ df <- as.data.frame(colData(dds)[,c("condition2", "condition3")])
 colnames(df) <- c("Phenotype", "Batch")
 vsd_subset <- vsd[, sapply(colnames(vsd), grepl, pattern = "I09|I10")]
 rownames(vsd_subset) <- str_sub(rownames(vsd_subset), 4, -1)
+
+my_rownames <- c()
+for (rown in rownames(vsd_subset)){
+  comp <- annots[paste("AKU", rown, sep = "") == loctags][1]
+  print(comp)
+  if (!is.na(comp)){
+    my_rownames <- c(my_rownames, comp)
+  } else {
+    my_rownames <- c(my_rownames, rown)
+  }
+}
+rownames(vsd_subset) <- my_rownames
+to_replace <- c("H3B104J_00510", "H3B104J_00520", "H3B104J_01020", "H3B104J_14310", "H3B104J_PKUN00040")
+replacement <- c("adhesin_510", "adhesin_520", "adhesin_1020", "adhesin_14310", "kukA")
+rownames(vsd_subset)[which(rownames(vsd_subset) %in% to_replace)] <- replacement
 
 png(file = snakemake@output[["heatmap"]][9], width = 600, height = 400)
 pheatmap(assay(vsd_subset)[select,], cluster_rows=FALSE, show_rownames=TRUE,
