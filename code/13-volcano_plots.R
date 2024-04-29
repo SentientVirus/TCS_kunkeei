@@ -38,12 +38,6 @@ flog.info("R script to run a saturation analysis")
 flog.info("Definining input variables")
 input_files <- snakemake@input[["annotated_expr"]]
 output_files <- snakemake@output[["volcano"]]
-#input_files <- c("../results/DE/Smucoid_vs_Sinhibitor_annotated.tsv",
-#                 "../results/DE/Fmucoid_vs_Finhibitor_annotated.tsv",
-#                 "../results/DE/Smucoid_vs_Fmucoid_annotated.tsv",
-#                 "../results/DE/Sinhibitor_vs_Finhibitor_annotated.tsv")
-#output_prefix <- c("Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor",
-#                  "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor")
 
 # Define vectors with formatting
 titles <- rep(c("Mucoid vs Inhibitor", " + Sucrose vs - Sucrose"), each = 2) # Plot titles
