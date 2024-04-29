@@ -46,7 +46,7 @@ my_annot <- getAnnotationsGenBank(gbks)
 
 # Create a vector to store locus tags
 loctags <- c()
-products <- c()
+#products <- c()
 
 # Create a new object to filter out annotations for repeat regions
 new_annot <- my_annot
@@ -61,10 +61,9 @@ for (value in c(new_annot$OX335197$others, new_annot$OX335198$others)) {
   loctags <- c(loctags, locus_tag)
 }
 
-for (value2 in c(new_annot$OX335197$product, new_annot$OX335198$product)){
-  products <- c(products, value2)
-}
-#loctags <- na.omit(loctags)
+#for (value2 in c(new_annot$OX335197$product, new_annot$OX335198$product)){
+#  products <- c(products, value2)
+#}
 
 #=============================================================================#
 # 1. Load input variables from Snakemake                                      #
@@ -236,10 +235,6 @@ invisible(dev.off())
 #=============================================================================#
 # 5. Differential expression analyses                                         #
 #=============================================================================#
-comparisons <- c("Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor",
-                 "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor")
-
-
 # Run a differential expression analysis for Smucoid vs Sinhibitor
 flog.info("Running DESeq2")
 savename <- "Smucoid_vs_Sinhibitor"
@@ -503,25 +498,25 @@ pheatmap(assay(vsd_subset)[select,], cluster_rows=FALSE, show_rownames=TRUE,
          cluster_cols=TRUE, annotation_col=df, cellwidth=cw)
 invisible(dev.off())
 
-gene_names <- c()
-prod <- c()
-for (rown in rownames(res_filter)){
-  add_names <- annots[rown == loctags][1]
-  prod <- c(prod, products[rown == loctags][1])
-  if (!is.na(add_names)){
-    gene_names <- c(gene_names, add_names)
-  } else {
-    gene_names <- c(gene_names, "-")
-  }
-}
-res_filter$gene_names <- gene_names
-res_filter$product <- prod
-new_cols <- c("locus_tag", colnames(res_filter))
-print(new_cols)
+#gene_names <- c()
+#prod <- c()
+#for (rown in rownames(res_filter)){
+#  add_names <- annots[rown == loctags][1]
+#  prod <- c(prod, products[rown == loctags][1])
+#  if (!is.na(add_names)){
+#    gene_names <- c(gene_names, add_names)
+#  } else {
+#    gene_names <- c(gene_names, "-")
+#  }
+#}
+#res_filter$gene_names <- gene_names
+#res_filter$product <- prod
+#new_cols <- c("locus_tag", colnames(res_filter))
+#print(new_cols)
 
-write.table(res_filter, file = snakemake@output[["DE_annot"]][7], quote=FALSE, sep = ";", col.names = NA);
+#write.table(res_filter, file = snakemake@output[["DE_annot"]][7], quote=FALSE, sep = ";", col.names = NA);
 write.csv(res_filter, file = snakemake@output[["dif_expr"]][7], quote=FALSE)
-write.table(res_filter, file = snakemake@output[["DE_annot"]][8], quote=FALSE, sep = ";", col.names = NA);
+#write.table(res_filter, file = snakemake@output[["DE_annot"]][8], quote=FALSE, sep = ";", col.names = NA);
 write.csv(res_subset, file = snakemake@output[["dif_expr"]][8], quote=FALSE);
 
 png(file = snakemake@output[["plots"]][7], width = 600, height = 400);
