@@ -239,3 +239,12 @@ rule annotate_results:
     conda: "envs/alignment.yml"
     log: "logs/12-add_annotations.log"
     script: "code/12-add_annotations.py"
+
+rule volcano_plots:
+    output:
+        volcano = expand("plots/{comparison}_volcano.{ext}", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["png", "ps"])
+    input:
+        annotated_expr = expand("results/DE/{comparison}_annotated.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"])
+    conda: "envs/renv.yml"
+    log: "logs/13-volcano_plots.log"
+    script: "code/13-volcano_plots.R"

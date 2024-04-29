@@ -1,3 +1,8 @@
+# Redirect all output to log file
+con <- file(snakemake@log[[1]], "a+")
+sink(con, append = TRUE, type="message")
+sink(con, append = TRUE)
+
 #=============================================================================#
 # 0. Install packages if needed                                               #
 #=============================================================================#
@@ -5,7 +10,7 @@ list.of.packages <- c("BiocManager")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages, repos='http://cran.us.r-project.org');
 
-to_install <- c("ggplot2", "ggrepel", "EnhancedVolcano")
+to_install <- c("ggplot2", "ggrepel")
 new.packages <- to_install[!(to_install %in% installed.packages()[,"Package"])]
 for (package in new.packages){
   BiocManager::install(package);
@@ -14,23 +19,31 @@ for (package in new.packages){
 #=============================================================================#
 # 0. Load required libraries                                                  #
 #=============================================================================#
-#library("DESeq2")
 library("ggplot2")
 library("ggrepel")
-library("EnhancedVolcano")
-#library("pheatmap")
-#library("RColorBrewer")
-#library("stringr")
-#library(futile.logger)
+library(futile.logger)
+
+#=============================================================================#
+# 0. Logging                                                                  #
+#=============================================================================#
+# Create a logger that will be saved to a file
+flog.logger("saturation", TRACE, appender=appender.file(snakemake@log[[1]]))
+
+flog.info("R script to run a saturation analysis")
 
 #=============================================================================#
 # 1. Load dataframe with DESeq2 output + annotations                          #
 #=============================================================================#
 # Define inputs
-input_files <- c("../results/DE/Smucoid_vs_Sinhibitor_annotated.tsv",
-                 "../results/DE/Fmucoid_vs_Finhibitor_annotated.tsv",
-                 "../results/DE/Smucoid_vs_Fmucoid_annotated.tsv",
-                 "../results/DE/Sinhibitor_vs_Finhibitor_annotated.tsv")
+flog.info("Definining input variables")
+input_files <- snakemake@input[["annotated_expr"]]
+output_files <- snakemake@output[["volcano"]]
+#input_files <- c("../results/DE/Smucoid_vs_Sinhibitor_annotated.tsv",
+#                 "../results/DE/Fmucoid_vs_Finhibitor_annotated.tsv",
+#                 "../results/DE/Smucoid_vs_Fmucoid_annotated.tsv",
+#                 "../results/DE/Sinhibitor_vs_Finhibitor_annotated.tsv")
+#output_prefix <- c("Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor",
+#                  "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor")
 
 # Define vectors with formatting
 titles <- rep(c("Mucoid vs Inhibitor", " + Sucrose vs - Sucrose"), each = 2) # Plot titles
@@ -42,8 +55,9 @@ scale_val <- c(0, 3) # Variable to scale points
 
 # Loop through i to get res and plot
 for (i in 1:4){
-
+  
 # Read the annotated DESeq2 output
+flog.info(paste("Reading file ", input_files[i])) 
 res <- read.table(input_files[i], sep = "\t", 
                  numerals = "no.loss", header = TRUE, row.names = 1, quote = "",
                  stringsAsFactors = FALSE)
@@ -56,12 +70,12 @@ res[, j] <- apply(res[, j], 2, function(x) as.numeric(x))
 shapes <- as.vector(unlist(all_shapes[i]))
 title <- titles[i]
 subtitle <- subtitles[i]
-#shape_label <- shape_names[i]
 
 #=============================================================================#
 # 2. Volcano plot with ggplot and standard plotting                           #
 #=============================================================================#
-# Set the x and y varuables 
+# Set the x and y variables 
+flog.info("Calculate x and y") 
 yax <- -log10(res$padj)
 xax <- res$log2FoldChange
 
@@ -72,18 +86,21 @@ yval[!is.finite(yval)] <- ymax
 xmax <- max(abs(xax))
 
 # Define breaks in size legend based on data in the comparison
+flog.info("Define point size") 
 lowest <- xmax/4
 medium <- max(xmax/2, lowest + 0.5) # Make sure to round to a higher number than lowest
 highest <- xmax-0.5 # Make sure to round to lower number
 size_breaks <- round(c(lowest, medium, xmax-0.5), digits = 0)
 size_labels <- apply(expand.grid(size_breaks, as.vector(unlist(comparison[i]))), 1, paste, collapse=", ") # Set different values for different comparisons
 
+flog.info("Define point shape")
 # Variable used to set the shapes of the points (side of the plot)
 sign_shape <- sign(xax)
 sign_shape[sign_shape == 1] <- shapes[2]
 sign_shape[sign_shape == -1] <- shapes[1]
 sign_shape <- as.factor(sign_shape)
 
+flog.info("Create and format labels") 
 # Variable used to annotate genes in the plots
 vollabels <- res$gene_name # Get gene names
 # Label genes of interest manually
@@ -100,7 +117,8 @@ italic_labels <- vollabels
 italic_labels[!italic_labels == ""] <- paste0("bolditalic('", vollabels[!vollabels == ""],"')")
 select_labs <- italic_labels[!italic_labels == ""]
 
-# Variable that I use to store the colors
+flog.info("Assign colors to data points") 
+# Variable to store the colors
 keyvals.col <- c()
 # Coloring depending on x (different colors if it's < 0.5, > 3 or between) and y
 # (different colors depending on if the padj is <1e-5 or >1e-5)
@@ -130,6 +148,7 @@ labels <- unlist(lapply(color_values, function(color) {
 # Vector to scale the size of data points
 size_vector <- abs(res$log2FoldChange)
 
+flog.info(paste("Generate the volcano plot for file"), input_files[i]) 
 # Code to generate the Volcano plot
 volcanoplot <- ggplot(data = res, aes(x = log2FoldChange, y = yval, col = keyvals.col, label = vollabels)) +
   geom_vline(xintercept = c(-0.5, 0.5), col = "gray", linetype = "dashed") + # Add dashed line to show log2FC < 0.5
@@ -158,8 +177,11 @@ volcanoplot <- ggplot(data = res, aes(x = log2FoldChange, y = yval, col = keyval
        plot.subtitle = element_text(hjust = 0.5)) # Center subtitle
 
 # Show plot in console
-volcanoplot
+#volcanoplot
 
-# Saving the plots to files, TO DO: save each plot a different file, maybe using a function
-ggsave(paste("../", paste(i, ".png", sep = ""), sep = ""), width = 9, height = 6)}
+# Save the plots to files
+flog.info(paste("Saving plot to ", output_files[2*i -1], " and to ", output_files[2*i]))
+ggsave(output_files[2*i -1], width = 9, height = 6)
+ggsave(output_files[2*i], width = 9, height = 6)
+}
 
