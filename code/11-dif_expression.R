@@ -33,7 +33,7 @@ library(futile.logger)
 # Create a logger that will be saved to a file
 flog.logger("saturation", TRACE, appender=appender.file(snakemake@log[[1]]))
 
-flog.info("R script to run a saturation analysis")
+flog.info("R script to run a differential expression analysis")
 
 #=============================================================================#
 # Provisional section to load GenBank file                                    #
@@ -46,6 +46,7 @@ my_annot <- getAnnotationsGenBank(gbks)
 
 # Create a vector to store locus tags
 loctags <- c()
+products <- c()
 
 # Create a new object to filter out annotations for repeat regions
 new_annot <- my_annot
@@ -58,6 +59,10 @@ annots <- c(new_annot$OX335197$gene, new_annot$OX335198$gene)
 for (value in c(new_annot$OX335197$others, new_annot$OX335198$others)) {
   locus_tag <- str_extract(value, "(?<=locus_tag: )[A-Z0-9_]+")
   loctags <- c(loctags, locus_tag)
+}
+
+for (value2 in c(new_annot$OX335197$product, new_annot$OX335198$product)){
+  products <- c(products, value2)
 }
 
 #=============================================================================#
@@ -230,43 +235,82 @@ invisible(dev.off())
 #=============================================================================#
 # 5. Differential expression analyses                                         #
 #=============================================================================#
-# Run a differential expression analysis for Smucoid vs Sinhibitor
-flog.info("Running DESeq2")
-savename <- "Smucoid_vs_Sinhibitor"
-flog.info(paste("Comparison", savename, sep = " "))
+comparisons <- c("Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor",
+                 "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor")
 
-# Get data for the differential expression analysis
-coldata2 <- coldata[coldata$condition2 == "S",]
-coldata2 <- coldata2[rownames(coldata2) %in% colnames(counts),]
-counts2 <- counts[, colnames(counts) %in% rownames(coldata2)]
-coldata2$condition3 = droplevels(coldata2$condition3)
+coefs <- c("condition1_mucoid_vs_inhibitor", "condition1_mucoid_vs_inhibitor",
+           "condition2_S_vs_F", "condition2_S_vs_F")
 
-# Create DESeq2 object
-dds <- DESeqDataSetFromMatrix(countData = counts2,
-                              colData = coldata2,
-                              design = ~ condition3 + condition1)
+my_condition <- c("condition1", "condition1", "condition2", "condition2")
+labels <- c("Phenotype", "Phenotype", "Carbon source", "Carbon source")
+  
+grep_patterns <- c("_S_", "_F_", "I01|I02", "I09|I10")
+
+for (i in 1:length(comparisons)){
+  # Run a differential expression analysis for each comparison
+  savename <- comparisons[i]
+  flog.info(paste("Running DESeq2 for comparison", savename))
+  
+  # Get data for the differential expression analysis
+  if (grepl("mucoid", savename) & grepl("inhibitor", savename)){
+    if (grepl("S", savename)){
+      flog.info("Muc vs Inh, S+")
+      coldata2 <- coldata[coldata$condition2 == "S",]
+    }
+    else {
+      flog.info("Muc vs Inh, S-")
+      coldata2 <- coldata[coldata$condition2 == "F",]
+    }
+  coldata2 <- coldata2[rownames(coldata2) %in% colnames(counts),]
+  counts2 <- counts[, colnames(counts) %in% rownames(coldata2)]
+  coldata2$condition3 = droplevels(coldata2$condition3)
+    
+  # Create DESeq2 object
+  dds <- DESeqDataSetFromMatrix(countData = counts2,
+                                  colData = coldata2,
+                                  design = ~ condition3 + condition1)
+  }
+  else {
+    if(grepl("mucoid", savename)){
+      flog.info("S+ vs S-, Muc")
+      coldata2 <- coldata[coldata$condition1 == "mucoid",]
+    }
+    else {
+      flog.info("S+ vs S-, Inh")
+      coldata2 <- coldata[coldata$condition1 == "inhibitor",]
+    }
+  coldata2 <- coldata2[rownames(coldata2) %in% colnames(counts),]
+  counts2 <- counts[, colnames(counts) %in% rownames(coldata2)]
+  coldata2$condition3 = droplevels(coldata2$condition3)
+    
+  dds <- DESeqDataSetFromMatrix(countData = counts2, colData = coldata2,
+                                design = ~ condition3 + condition2)
+}
 
 # Run the differential expression analysis
+flog.info("Run DESeq2")
 dds <- DESeq(dds)
 
-
 # Get results with and without lfc threshold filters
-res <- lfcShrink(dds, coef="condition1_mucoid_vs_inhibitor", type="apeglm")
+flog.info("Add lfc shrinkage and threshold")
+res <- lfcShrink(dds, coef=coefs[i], type="apeglm")
 res_subset <- results(dds, lfcThreshold=1);
 summary(res);
 
+flog.info("Filter by p-value")
 res_subset <- subset(res_subset, padj < .1);
 res_filter <- subset(res, padj < .1);
 res_comp_htmp <- subset(res_filter, baseMean >= 100);
 
 # Create a heatmap for this comparison
+flog.info(paste("Create a heatmap for comparison", savename))
 res_select <- res_comp_htmp[order(abs(res_comp_htmp$log2FoldChange), decreasing = TRUE),]
 res_select <- rownames(res_select)[1:20]
 select <- rownames(dds) %in% res_select
 
-df <- as.data.frame(colData(dds)[,c("condition1", "condition3")])
-colnames(df) <- c("Phenotype", "Batch")
-vsd_subset <- vsd[, sapply(colnames(vsd), grepl, pattern = "_S_")]
+df <- as.data.frame(colData(dds)[,c(my_condition[i], "condition3")])
+colnames(df) <- c(labels[i], "Batch")
+vsd_subset <- vsd[, sapply(colnames(vsd), grepl, pattern = grep_patterns[i])]
 rownames(vsd_subset) <- str_sub(rownames(vsd_subset), 4, -1)
 
 # Get annotations for each locus tag
@@ -280,225 +324,63 @@ for (rown in rownames(vsd_subset)){
   }
 }
 rownames(vsd_subset) <- my_rownames
-to_replace <- c("H3B104J_00510", "H3B104J_00520", "H3B104J_01020", "H3B104J_14310", "H3B104J_PKUN00040")
-replacement <- c("adhesin_510", "adhesin_520", "adhesin_1020", "adhesin_14310", "kukA")
+to_replace <- c("H3B104J_00510", "H3B104J_00520", "H3B104J_01020", "H3B104J_13020", "H3B104J_14310", "H3B104J_PKUN00040")
+replacement <- c("adhesin_510", "adhesin_520", "adhesin_1020", "GS2_BRS", "adhesin_14310", "kukA")
 rownames(vsd_subset)[which(rownames(vsd_subset) %in% to_replace)] <- replacement
 
 # Save heatmap to files
-png(file = snakemake@output[["heatmap"]][3], width = 600, height = 400)
+png(file = snakemake@output[["heatmap"]][2*i+1], width = 600, height = 400) 
 pheatmap(assay(vsd_subset)[select,], cluster_rows=FALSE, show_rownames=TRUE,
          cluster_cols=TRUE, annotation_col=df, cellwidth=cw)
 invisible(dev.off())
 
-postscript(file = snakemake@output[["heatmap"]][4], width = 600, height = 400)
+postscript(file = snakemake@output[["heatmap"]][2*(i+1)], width = 600, height = 400)
 pheatmap(assay(vsd_subset)[select,], cluster_rows=FALSE, show_rownames=TRUE,
          cluster_cols=TRUE, annotation_col=df, cellwidth=cw)
 invisible(dev.off())
 
-# Save results to csv files
-write.csv(res_filter, file = snakemake@output[["dif_expr"]][1], quote=FALSE);
-write.csv(res_subset, file = snakemake@output[["dif_expr"]][2], quote=FALSE);
+# Save unnanotated output to file
+flog.info(paste("Save DE output (without annotations) to file for comparison", savename))
+write.csv(res_filter, file = snakemake@output[["dif_expr"]][2*i-1], quote=FALSE);
+write.csv(res_subset, file = snakemake@output[["dif_expr"]][2*i], quote=FALSE);
+
+# Add annotations to output
+flog.info(paste("Add annotations to", savename))
+to_annotate <- list(res_filter, res_subset)
+
+get_annot <- function(res_df, loci, annotation, descriptions){
+  gene_names <- c()
+  prod <- c()
+  for (rown in rownames(res_df)){
+    add_names <- annotation[rown == loci][1]
+    prod <- c(prod, descriptions[rown == loci][1])
+    if (!is.na(add_names)){
+      gene_names <- c(gene_names, add_names)
+    } else {
+      gene_names <- c(gene_names, "-")
+    }
+  }
+  return(cbind(gene_names, prod))
+}
+
+resf_info <- get_annot(res_filter, loctags, annots, products)
+res_filter$gene_names <- resf_info[, 1]
+res_filter$products <- resf_info[, 2]
+ress_info <- get_annot(res_subset, loctags, annots, products)
+res_subset$gene_names <- ress_info[, 1]
+res_subset$products <- ress_info[, 2]
+
+#new_cols <- c("locus_tag", colnames(res_filter))
+#print(new_cols)
+
+# Save annotated results to tsv files
+write.table(res_filter, file = snakemake@output[["DE_annot"]][2*i-1], quote=FALSE, sep = "\t", col.names = NA);
+write.table(res_subset, file = snakemake@output[["DE_annot"]][2*i], quote=FALSE, sep = "\t", col.names = NA);
 
 # Generate MA plots (png and postscript)
-png(file = snakemake@output[["plots"]][1], width = 600, height = 400);
+png(file = snakemake@output[["plots"]][2*i-1], width = 600, height = 400); #OBS!
 plotMA(res, ylim = c(-3,3), colSig = "#c00000");
 invisible(dev.off())
-postscript(file = snakemake@output[["plots"]][2], width = 900, height = 600);
+postscript(file = snakemake@output[["plots"]][2*i], width = 900, height = 600); #OBS!
 plotMA(res, ylim = c(-3,3), colSig = "#c00000");
-invisible(dev.off())
-
-# Run a differential expression analysis for Fmucoid vs Finhibitor
-savename <- "Fmucoid_vs_Finhibitor"
-flog.info(paste("Comparison", savename, sep = " "))
-coldata2 <- coldata[coldata$condition2 == "F",]
-coldata2 <- coldata2[rownames(coldata2) %in% colnames(counts),]
-counts2 <- counts[, colnames(counts) %in% rownames(coldata2)]
-coldata2$condition3 = droplevels(coldata2$condition3)
-
-dds <- DESeqDataSetFromMatrix(countData = counts2,
-                              colData = coldata2,
-                              design = ~ condition3 + condition1)
-
-dds <- DESeq(dds)
-
-res <- lfcShrink(dds, coef="condition1_mucoid_vs_inhibitor", type="apeglm")
-res_subset <- results(dds, lfcThreshold=1);
-summary(res);
-
-res_subset <- subset(res_subset, padj < .1);
-res_filter <- subset(res, padj < .1);
-res_comp_htmp <- subset(res_filter, baseMean >= 100);
-
-res_select <- res_comp_htmp[order(abs(res_comp_htmp$log2FoldChange), decreasing = TRUE),]
-res_select <- rownames(res_select)[1:20]
-select <- rownames(dds) %in% res_select
-
-df <- as.data.frame(colData(dds)[,c("condition1", "condition3")])
-colnames(df) <- c("Phenotype", "Batch")
-vsd_subset <- vsd[, sapply(colnames(vsd), grepl, pattern = "_F_")]
-rownames(vsd_subset) <- str_sub(rownames(vsd_subset), 4, -1)
-
-my_rownames <- c()
-for (rown in rownames(vsd_subset)){
-  comp <- annots[paste("AKU", rown, sep = "") == loctags][1]
-  if (!is.na(comp)){
-    my_rownames <- c(my_rownames, comp)
-  } else {
-    my_rownames <- c(my_rownames, rown)
-  }
-}
-rownames(vsd_subset) <- my_rownames
-to_replace <- c("H3B104J_00510", "H3B104J_00520", "H3B104J_01020", "H3B104J_14310", "H3B104J_PKUN00040")
-replacement <- c("adhesin_510", "adhesin_520", "adhesin_1020", "adhesin_14310", "kukA")
-rownames(vsd_subset)[which(rownames(vsd_subset) %in% to_replace)] <- replacement
-
-png(file = snakemake@output[["heatmap"]][5], width = 600, height = 400)
-pheatmap(assay(vsd_subset)[select,], cluster_rows=FALSE, show_rownames=TRUE,
-         cluster_cols=TRUE, annotation_col=df, cellwidth=cw)
-invisible(dev.off())
-
-postscript(file = snakemake@output[["heatmap"]][6], width = 600, height = 400)
-pheatmap(assay(vsd_subset)[select,], cluster_rows=FALSE, show_rownames=TRUE,
-         cluster_cols=TRUE, annotation_col=df, cellwidth=cw)
-invisible(dev.off())
-
-write.csv(res_filter, file = snakemake@output[["dif_expr"]][3], quote=FALSE);
-write.csv(res_subset, file = snakemake@output[["dif_expr"]][4], quote=FALSE);
-
-postscript(file=snakemake@output[["plots"]][4], width=900, height=600);
-plotMA(res, ylim=c(-3,3), colSig = "#c00000");
-invisible(dev.off())
-png(file=snakemake@output[["plots"]][3], width=600, height=400);
-plotMA(res, ylim=c(-3,3), colSig = "#c00000");
-invisible(dev.off())
-
-
-# Run a differential expression analysis for Smucoid vs Fmucoid
-savename <- "Smucoid_vs_Fmucoid"
-flog.info(paste("Comparison", savename, sep = " "))
-coldata2 <- coldata[coldata$condition1 == "mucoid",]
-coldata2 <- coldata2[rownames(coldata2) %in% colnames(counts),]
-counts2 <- counts[, colnames(counts) %in% rownames(coldata2)]
-coldata2$condition3 = droplevels(coldata2$condition3)
-
-dds <- DESeqDataSetFromMatrix(countData = counts2,
-                              colData = coldata2,
-                              design = ~ condition3 + condition2)
-
-dds <- DESeq(dds)
-
-res <- lfcShrink(dds, coef="condition2_S_vs_F", type="apeglm")
-res_subset <- results(dds, lfcThreshold=1);
-summary(res);
-
-res_subset <- subset(res_subset, padj < .1);
-res_filter <- subset(res, padj < .1);
-res_comp_htmp <- subset(res_filter, baseMean >= 100);
-
-res_select <- res_comp_htmp[order(abs(res_comp_htmp$log2FoldChange), decreasing = TRUE),]
-res_select <- rownames(res_select)[1:20]
-select <- rownames(dds) %in% res_select
-
-df <- as.data.frame(colData(dds)[,c("condition2", "condition3")])
-colnames(df) <- c("Phenotype", "Batch")
-vsd_subset <- vsd[, sapply(colnames(vsd), grepl, pattern = "I01|I02")]
-rownames(vsd_subset) <- str_sub(rownames(vsd_subset), 4, -1)
-
-my_rownames <- c()
-for (rown in rownames(vsd_subset)){
-  comp <- annots[paste("AKU", rown, sep = "") == loctags][1]
-  if (!is.na(comp)){
-    my_rownames <- c(my_rownames, comp)
-  } else {
-    my_rownames <- c(my_rownames, rown)
-  }
-}
-rownames(vsd_subset) <- my_rownames
-to_replace <- c("H3B104J_00510", "H3B104J_00520", "H3B104J_01020", "H3B104J_14310", "H3B104J_PKUN00040")
-replacement <- c("adhesin_510", "adhesin_520", "adhesin_1020", "adhesin_14310", "kukA")
-rownames(vsd_subset)[which(rownames(vsd_subset) %in% to_replace)] <- replacement
-
-png(file = snakemake@output[["heatmap"]][7], width = 600, height = 400)
-pheatmap(assay(vsd_subset)[select,], cluster_rows=FALSE, show_rownames=TRUE,
-         cluster_cols=TRUE, annotation_col=df, cellwidth=cw)
-invisible(dev.off())
-
-postscript(file = snakemake@output[["heatmap"]][8], width = 600, height = 400)
-pheatmap(assay(vsd_subset)[select,], cluster_rows=FALSE, show_rownames=TRUE,
-         cluster_cols=TRUE, annotation_col=df, cellwidth=cw)
-invisible(dev.off())
-
-write.csv(res_filter, file = snakemake@output[["dif_expr"]][5], quote=FALSE);
-write.csv(res_subset, file = snakemake@output[["dif_expr"]][6], quote=FALSE);
-
-png(file = snakemake@output[["plots"]][5], width = 600, height = 400);
-plotMA(res, ylim = c(-3,3), colSig = "#c00000");
-invisible(dev.off())
-postscript(file = snakemake@output[["plots"]][6], width = 900, height = 600);
-plotMA(res, ylim = c(-3,3), colSig = "#c00000");
-invisible(dev.off())
-
-# Run a differential expression analysis for Sinhibitor vs Finhibitor
-savename <- "Sinhibitor_vs_Finhibitor"
-flog.info(paste("Comparison", savename, sep = " "))
-coldata2 <- coldata[coldata$condition1 == "inhibitor",]
-coldata2 <- coldata2[rownames(coldata2) %in% colnames(counts),]
-counts2 <- counts[, colnames(counts) %in% rownames(coldata2)]
-coldata2$condition3 = droplevels(coldata2$condition3)
-
-dds <- DESeqDataSetFromMatrix(countData = counts2,
-                              colData = coldata2,
-                              design = ~ condition3 + condition2)
-
-dds <- DESeq(dds)
-
-res <- lfcShrink(dds, coef="condition2_S_vs_F", type="apeglm")
-res_subset <- results(dds, lfcThreshold=1);
-summary(res);
-
-res_subset <- subset(res_subset, padj < .1);
-res_filter <- subset(res, padj < .1);
-res_comp_htmp <- subset(res_filter, baseMean >= 100);
-
-res_select <- res_comp_htmp[order(abs(res_comp_htmp$log2FoldChange), decreasing = TRUE),]
-res_select <- rownames(res_select)[1:20]
-select <- rownames(dds) %in% res_select
-
-df <- as.data.frame(colData(dds)[,c("condition2", "condition3")])
-colnames(df) <- c("Phenotype", "Batch")
-vsd_subset <- vsd[, sapply(colnames(vsd), grepl, pattern = "I09|I10")]
-rownames(vsd_subset) <- str_sub(rownames(vsd_subset), 4, -1)
-
-my_rownames <- c()
-for (rown in rownames(vsd_subset)){
-  comp <- annots[paste("AKU", rown, sep = "") == loctags][1]
-  if (!is.na(comp)){
-    my_rownames <- c(my_rownames, comp)
-  } else {
-    my_rownames <- c(my_rownames, rown)
-  }
-}
-rownames(vsd_subset) <- my_rownames
-to_replace <- c("H3B104J_00510", "H3B104J_00520", "H3B104J_01020", "H3B104J_14310", "H3B104J_PKUN00040")
-replacement <- c("adhesin_510", "adhesin_520", "adhesin_1020", "adhesin_14310", "kukA")
-rownames(vsd_subset)[which(rownames(vsd_subset) %in% to_replace)] <- replacement
-
-png(file = snakemake@output[["heatmap"]][9], width = 600, height = 400)
-pheatmap(assay(vsd_subset)[select,], cluster_rows=FALSE, show_rownames=TRUE,
-         cluster_cols=TRUE, annotation_col=df, cellwidth=cw)
-invisible(dev.off())
-
-postscript(file = snakemake@output[["heatmap"]][10], width = 600, height = 400)
-pheatmap(assay(vsd_subset)[select,], cluster_rows=FALSE, show_rownames=TRUE,
-         cluster_cols=TRUE, annotation_col=df, cellwidth=cw)
-invisible(dev.off())
-
-write.csv(res_filter, file = snakemake@output[["dif_expr"]][7], quote=FALSE)
-write.csv(res_subset, file = snakemake@output[["dif_expr"]][8], quote=FALSE);
-
-png(file = snakemake@output[["plots"]][7], width = 600, height = 400);
-plotMA(res, ylim = c(-3,3), colSig = "#c00000");
-invisible(dev.off())
-postscript(file = snakemake@output[["plots"]][8], width = 900, height = 600);
-plotMA(res, ylim = c(-3,3), colSig = "#c00000");
-invisible(dev.off())
+invisible(dev.off())}

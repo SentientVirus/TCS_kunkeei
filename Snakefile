@@ -218,7 +218,7 @@ rule saturation:
 rule differential_expression:   
     output:
         dif_expr = expand("results/DE/{comparison}{ext}.csv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"]),
-#        DE_annot = expand("results/DE/{comparison}{ext}_annotated.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"]),
+        DE_annot = expand("results/DE/{comparison}{ext}_annotated.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"]),
         pca = expand("plots/pcaplot.{ext}", ext = ["png", "pdf"]), dist = expand("plots/dist_plot.{ext}", ext = ["png", "ps"]),
         heatmap = expand("plots/{comparison}_heatmap.{ext}", comparison = ["global", "Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["png", "ps"]), 
         plots = expand("plots/{comparison}.{ext}", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["png", "ps"])
@@ -228,7 +228,7 @@ rule differential_expression:
     conda: "envs/renv.yml"
     log: "logs/11-dif_expression.log"
     script:
-        "code/11-dif_expression.R"
+        "code/11.2-dif_expression.R"
 
 ##Rule to add annotations from the reference to the results of the differential expression analysis when possible
 rule annotate_results:
