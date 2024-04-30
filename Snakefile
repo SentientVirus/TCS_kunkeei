@@ -47,7 +47,8 @@ rule all:
         DE = expand("results/DE/{comparison}{ext}_annotated.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"]),
         coverage = add_path_extension(all_input, "results/coverage", "perbase.cov"),
         picard = add_path_extension(all_input, "results/picard", "pdf", "_insert_size_histogram"),
-        saturation = expand("plots/saturation{extra}_k0.ps", extra = ["_collapsed", ""])
+        saturation = expand("plots/saturation{extra}_k0.ps", extra = ["_collapsed", ""]),
+        volcano = expand("plots/{comparison}_volcano.{ext}", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["png", "ps"])
 
 ##Rule to index the reference genome of strain H3B1-04J
 rule index_genome:
@@ -230,22 +231,11 @@ rule differential_expression:
     script:
         "code/11-dif_expression.R"
 
-##Rule to add annotations from the reference to the results of the differential expression analysis when possible
-rule annotate_results:
-    output: 
-        expand("results/DE/{comparison}{ext}_annotated.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"])
-    input:
-        dif_expr = expand("results/DE/{comparison}{ext}.csv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["_lfc1", ""]),
-        gbk = os.path.expanduser("~") + "/Akunkeei_files/gbff/H3B1-04J_genomic.gbff"
-    conda: "envs/alignment.yml"
-    log: "logs/12-add_annotations.log"
-    script: "code/12-add_annotations.py"
-
 rule volcano_plots:
     output:
         volcano = expand("plots/{comparison}_volcano.{ext}", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["png", "ps"])
     input:
         annotated_expr = expand("results/DE/{comparison}_annotated.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"])
     conda: "envs/renv.yml"
-    log: "logs/13-volcano_plots.log"
-    script: "code/13-volcano_plots.R"
+    log: "logs/12-volcano_plots.log"
+    script: "code/12-volcano_plots.R"

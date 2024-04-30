@@ -7,3 +7,13 @@ featureCounts_forward/*
 files/*
 wrong_code/*
 old_files/*
+plots
+results
+index
+logs
+trimmed_reads
+notes
+featureCounts*
+dag.pdf
+meta/*.tsv
+meta/*.xlsx
