@@ -36,36 +36,6 @@ flog.logger("saturation", TRACE, appender=appender.file(snakemake@log[[1]]))
 flog.info("R script to run a differential expression analysis")
 
 #=============================================================================#
-# Provisional section to load GenBank file                                    #
-#=============================================================================#
-# Read two GBKS, chromosome and plasmid for strain H3B1-04J
-gbks <- c("OX335197", "OX335198")
-
-# Get annotations from both GenBanks
-my_annot <- getAnnotationsGenBank(gbks)
-
-# Create a vector to store locus tags
-loctags <- c()
-products <- c()
-
-# Create a new object to filter out annotations for repeat regions
-new_annot <- my_annot
-new_annot$OX335197 <- new_annot$OX335197[new_annot$OX335197$type == "gene",]
-
-# Create vector with the annotations
-annots <- c(new_annot$OX335197$gene, new_annot$OX335198$gene)
-
-# Retrieve all the locus tags from the GenBank information
-for (value in c(new_annot$OX335197$others, new_annot$OX335198$others)) {
-  locus_tag <- str_extract(value, "(?<=locus_tag: )[A-Z0-9_]+")
-  loctags <- c(loctags, locus_tag)
-}
-
-for (value2 in c(new_annot$OX335197$product, new_annot$OX335198$product)){
-  products <- c(products, value2)
-}
-
-#=============================================================================#
 # 1. Load input variables from Snakemake                                      #
 #=============================================================================#
 flog.info("Definining input variables")
@@ -88,9 +58,49 @@ if (!file.exists(plot_dir)){
 }
 
 #=============================================================================#
-# 2. Read counts and create metadata                                          #
+# 2. Load annotations from the GenBank file                                   #
 #=============================================================================#
-flog.info("Reading input files")
+flog.info("Loading annotations...")
+# Read two GBKS, chromosome and plasmid for strain H3B1-04J
+gbks <- c("OX335197", "OX335198")
+
+# Get annotations from both GenBanks
+flog.info("Read GenBank files")
+my_annot <- getAnnotationsGenBank(gbks)
+
+# Create a vector to store locus tags
+loctags <- c()
+products <- c()
+
+# Create a new object to filter out annotations for repeat regions
+new_annot <- my_annot
+new_annot$OX335197 <- new_annot$OX335197[new_annot$OX335197$type == "gene",]
+
+# Create vector with the annotations
+flog.info("Store gene names in variable")
+annots <- c(new_annot$OX335197$gene, new_annot$OX335198$gene)
+
+# Retrieve all the locus tags and product descriptions from the GenBank file
+flog.info("Store locus tags and gene descriptions in separate variables")
+for (value in c(new_annot$OX335197$others, new_annot$OX335198$others)) {
+  locus_tag <- str_extract(value, "(?<=locus_tag: )[A-Z0-9_]+")
+  loctags <- c(loctags, locus_tag)
+}
+
+for (value2 in c(new_annot$OX335197$product, new_annot$OX335198$product)){
+  products <- c(products, value2)
+}
+
+# Annotations to replace manually
+to_replace <- c("H3B104J_00510", "H3B104J_00520", "H3B104J_01020", 
+                "H3B104J_13020", "H3B104J_14310", "H3B104J_PKUN00040")
+replacement <- c("adhesin_510", "adhesin_520", "adhesin_1020", "GS2_BRS",
+                 "adhesin_14310", "kukA")
+
+#=============================================================================#
+# 3. Read counts and create metadata                                          #
+#=============================================================================#
+flog.info("Reading input count files")
 
 # Assign a condition to each sample
 sampleCondition <- c()
@@ -128,7 +138,7 @@ dds_pcr <- DESeqDataSetFromMatrix(countData = counts,
                                   design = ~ condition3 + condition1 + condition2)
 
 #=============================================================================#
-# 3. Run a PCA for the complete dataset                                       #
+# 4. Run a PCA for the complete dataset                                       #
 #=============================================================================#
 flog.info("Running PCA")
 # PCA calculations
@@ -138,31 +148,42 @@ percentVar <- round(100 * attr(pcaData, "percentVar"))
 
 # PCA plots and formatting
 p <- ggplot(pcaData, aes(PC1, PC2, color=condition2, shape=condition1)) +
-  geom_point(size=8, alpha=1, stroke=0) + scale_color_manual(values = c("S" = "#FF5733", "F" = "#0097EF")) +
-  guides(color = guide_legend(title = "Substrate", theme = theme(legend.title = element_text(size = 24), legend.text = element_text(size = 20))), 
-  shape = guide_legend(title = "Morphology", theme = theme(legend.title = element_text(size = 24), legend.text = element_text(size = 20)))) +
-  xlab(paste0("PC1: ",percentVar[1],"% variance")) +
-  ylab(paste0("PC2: ",percentVar[2],"% variance")) + 
+  geom_point(size=8, alpha=1, stroke=0) + 
+  scale_color_manual(values = c("S" = "#FF5733", "F" = "#0097EF")) +
+  guides(color = guide_legend(title = "Substrate", 
+                              theme = theme(legend.title = element_text(size = 24), 
+                                            legend.text = element_text(size = 20))), 
+  shape = guide_legend(title = "Morphology",
+                       theme = theme(legend.title = element_text(size = 24), 
+                                     legend.text = element_text(size = 20)))) +
+  xlab(paste0("PC1: ", percentVar[1], "% variance")) +
+  ylab(paste0("PC2: ", percentVar[2], "% variance")) + 
   coord_fixed();
 p <- p + 
   #stat_ellipse(geom="polygon", aes(fill = pcaData$condition2), 
   #alpha = 0.2, show.legend = FALSE, level = 0.95) + 
   scale_fill_manual(values = c("S" = "#FF5733", "F" = "#0097EF")) +
-  theme_minimal() + theme(axis.title = element_text(size = 30), axis.text = element_text(size = 20), panel.grid = element_blank(), 
+  theme_minimal() + theme(axis.title = element_text(size = 30), 
+                          axis.text = element_text(size = 20), 
+                          panel.grid = element_blank(), 
   panel.border = element_rect(fill= "transparent", size = 2));
 
 # Saving the plots to files
+flog.info("Save PCA to figure")
 ggsave(pcaplot[1], width = 9, height = 6);
 ggsave(pcaplot[2], width = 9, height = 6);
 
 #=============================================================================#
-# 3. Create a global heatmap                                                  #
+# 5. Create a global heatmap                                                  #
 #=============================================================================#
 flog.info("Creating a global heatmap")
 dds_htmp <- DESeqDataSetFromMatrix(countData = counts,
                                   colData = coldata,
                                   design = ~ condition1 + condition2)
-dds_htmp <- collapseReplicates(dds_htmp, as.factor(str_sub(colnames(dds_htmp), 1, 5)))
+
+dds_htmp <- collapseReplicates(dds_htmp, 
+                               as.factor(str_sub(colnames(dds_htmp), 1, 5)))
+
 global_dds <- DESeq(dds_htmp)
 
 res_htmp <- results(global_dds)
@@ -183,23 +204,27 @@ rownames(vsd_htmp) <- str_sub(rownames(vsd_htmp), 4, -1)
 rownames(df) <- sub("_", "", rownames(df))
 colnames(vsd_htmp) <- sub("_", "", colnames(vsd_htmp))
 
-# Get annotations for each locus tag
-my_rownames <- c()
-for (rown in rownames(vsd_htmp)){
-  comp <- annots[paste("AKU", rown, sep = "") == loctags][1]
-  if (!is.na(comp)){
-    my_rownames <- c(my_rownames, comp)
-  } else {
-    my_rownames <- c(my_rownames, rown)
+# Function to get annotations for each gene
+get_annot <- function(res_df, loci, annotation, descriptions, prefix = ""){
+  gene_names <- c()
+  prod <- c()
+  for (rown in rownames(res_df)){
+    add_names <- annotation[paste(prefix, rown, sep = "") == loci][1]
+    prod <- c(prod, descriptions[rown == loci][1])
+    if (!is.na(add_names)){
+      gene_names <- c(gene_names, add_names)
+    } else {
+      gene_names <- c(gene_names, "-")
     }
+  }
+  return(cbind(gene_names, prod))
 }
 
-flog.info("Add annotations to heatmap")
-rownames(vsd_htmp) <- my_rownames
+# Get annotations for each locus tag
+vsd_info <- get_annot(vsd_htmp, loctags, annots, products, "AKU")
 
-# Replace the names of certain rows
-to_replace <- c("H3B104J_00510", "H3B104J_00520", "H3B104J_01020", "H3B104J_14310", "H3B104J_PKUN00040")
-replacement <- c("adhesin_510", "adhesin_520", "adhesin_1020", "adhesin_14310", "kukA")
+flog.info("Add annotations to heatmap")
+rownames(vsd_htmp) <- ifelse(!vsd_info[, 1] == "-", vsd_info[, 1], rownames(vsd_htmp))
 
 # Implement replacement
 rownames(vsd_htmp)[which(rownames(vsd_htmp) %in% to_replace)] <- replacement
@@ -218,7 +243,7 @@ invisible(dev.off())
 sampleDists <- dist(t(assay(vsd_htmp)))
 
 #=============================================================================#
-# 4. Create a distance plot                                                   #
+# 6. Create a distance plot                                                   #
 #=============================================================================#
 flog.info("Creating a distance plot")
 sampleDistMatrix <- as.matrix(sampleDists)
@@ -233,8 +258,9 @@ pheatmap(sampleDistMatrix,
 invisible(dev.off())
 
 #=============================================================================#
-# 5. Differential expression analyses                                         #
+# 7. Differential expression analyses                                         #
 #=============================================================================#
+# Define lists with information to loop over
 comparisons <- c("Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor",
                  "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor")
 
@@ -246,8 +272,8 @@ labels <- c("Phenotype", "Phenotype", "Carbon source", "Carbon source")
   
 grep_patterns <- c("_S_", "_F_", "I01|I02", "I09|I10")
 
+# Loop to generate results for each comparison
 for (i in 1:length(comparisons)){
-  # Run a differential expression analysis for each comparison
   savename <- comparisons[i]
   flog.info(paste("Running DESeq2 for comparison", savename))
   
@@ -314,18 +340,10 @@ vsd_subset <- vsd[, sapply(colnames(vsd), grepl, pattern = grep_patterns[i])]
 rownames(vsd_subset) <- str_sub(rownames(vsd_subset), 4, -1)
 
 # Get annotations for each locus tag
-my_rownames <- c()
-for (rown in rownames(vsd_subset)){
-  comp <- annots[paste("AKU", rown, sep = "") == loctags][1]
-  if (!is.na(comp)){
-    my_rownames <- c(my_rownames, comp)
-  } else {
-    my_rownames <- c(my_rownames, rown)
-  }
-}
-rownames(vsd_subset) <- my_rownames
-to_replace <- c("H3B104J_00510", "H3B104J_00520", "H3B104J_01020", "H3B104J_13020", "H3B104J_14310", "H3B104J_PKUN00040")
-replacement <- c("adhesin_510", "adhesin_520", "adhesin_1020", "GS2_BRS", "adhesin_14310", "kukA")
+vsd_info <- get_annot(vsd_subset, loctags, annots, products, "AKU")
+rownames(vsd_subset) <- ifelse(!vsd_info[, 1] == "-", vsd_info[, 1], rownames(vsd_subset))
+
+# Replace certain gene names
 rownames(vsd_subset)[which(rownames(vsd_subset) %in% to_replace)] <- replacement
 
 # Save heatmap to files
@@ -344,38 +362,19 @@ flog.info(paste("Save DE output (without annotations) to file for comparison", s
 write.csv(res_filter, file = snakemake@output[["dif_expr"]][2*i-1], quote=FALSE);
 write.csv(res_subset, file = snakemake@output[["dif_expr"]][2*i], quote=FALSE);
 
-# Add annotations to output
+# Section to annotate output
 flog.info(paste("Add annotations to", savename))
 to_annotate <- list(res_filter, res_subset)
 
-get_annot <- function(res_df, loci, annotation, descriptions){
-  gene_names <- c()
-  prod <- c()
-  for (rown in rownames(res_df)){
-    add_names <- annotation[rown == loci][1]
-    prod <- c(prod, descriptions[rown == loci][1])
-    if (!is.na(add_names)){
-      gene_names <- c(gene_names, add_names)
-    } else {
-      gene_names <- c(gene_names, "-")
-    }
+# Implement function to add annotations
+k <- 2*i-1
+for (my_res in to_annotate){
+  res_info <- get_annot(my_res, loctags, annots, products)
+  my_res$gene_names <- res_info[, 1]
+  my_res$products <- res_info[ , 2]
+  write.table(my_res, file = snakemake@output[["DE_annot"]][k], quote=FALSE, sep = "\t", col.names = NA);
+  k <- k + 1
   }
-  return(cbind(gene_names, prod))
-}
-
-resf_info <- get_annot(res_filter, loctags, annots, products)
-res_filter$gene_names <- resf_info[, 1]
-res_filter$products <- resf_info[, 2]
-ress_info <- get_annot(res_subset, loctags, annots, products)
-res_subset$gene_names <- ress_info[, 1]
-res_subset$products <- ress_info[, 2]
-
-#new_cols <- c("locus_tag", colnames(res_filter))
-#print(new_cols)
-
-# Save annotated results to tsv files
-write.table(res_filter, file = snakemake@output[["DE_annot"]][2*i-1], quote=FALSE, sep = "\t", col.names = NA);
-write.table(res_subset, file = snakemake@output[["DE_annot"]][2*i], quote=FALSE, sep = "\t", col.names = NA);
 
 # Generate MA plots (png and postscript)
 png(file = snakemake@output[["plots"]][2*i-1], width = 600, height = 400); #OBS!

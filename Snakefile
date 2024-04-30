@@ -228,7 +228,7 @@ rule differential_expression:
     conda: "envs/renv.yml"
     log: "logs/11-dif_expression.log"
     script:
-        "code/11.2-dif_expression.R"
+        "code/11-dif_expression.R"
 
 ##Rule to add annotations from the reference to the results of the differential expression analysis when possible
 rule annotate_results:
