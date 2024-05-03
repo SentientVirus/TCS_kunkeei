@@ -1,3 +1,6 @@
+# Welcome to the **Genome resequencing** project!
+Here you will find the code to curate, annotate and compare bacterial genomes that was used to study an *Apilactobacillus kunkeei* strain that showed different phenotypes depending on the isolate.
+
 # Assembly information
 ## Project Info
 
