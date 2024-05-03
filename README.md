@@ -21,5 +21,5 @@ The folder ``reports`` contains the run-reports.
 | H3B1-04J-03	| ps_405_003	| bc1008	| Isolate 09 (Inhibitor) |
 | H3B1-04J-04	| ps_405_004	| bc1010	| Isolate 10 (Inhibitor) |
 
-# Processing Info
+# Processing information
 Here I will write a brief summary of the folder structure after running all the analyses.
