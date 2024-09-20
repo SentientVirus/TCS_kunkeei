@@ -3,6 +3,8 @@
 """
 Created on Thu Sep 19 15:41:24 2024
 
+Script to add locus tags to the proteomics outputs
+
 @author: Marina Mota Merlo
 """
 import os
@@ -10,9 +12,10 @@ import pandas as pd
 from Bio import GenBank
 
 gbff = os.path.expanduser('~') + '/Akunkeei_files/gbff/H3B1-04J_genomic.gbff'
-infile1 = os.path.expanduser('~') + '/proteomics/files/up_downregulated.tsv'
-infile2 = os.path.expanduser('~') + '/proteomics/files/unique_proteins.tsv'
-infiles = [infile1, infile2]
+infile = os.path.expanduser('~') + '/proteomics/files/MaxQuant_results.tsv'
+# infile1 = os.path.expanduser('~') + '/proteomics/files/up_downregulated.tsv'
+# infile2 = os.path.expanduser('~') + '/proteomics/files/unique_proteins.tsv'
+# infiles = [infile1, infile2]
 
 
 replace_dict = {}
@@ -67,12 +70,21 @@ def add_loctags(df, rep_dict, out_file):
     
     df.to_csv(out_file, sep = '\t', index = False)
     
-for infile in infiles:
-    df = pd.read_csv(infile, sep = '\t')
+# for infile in infiles:
+#     df = pd.read_csv(infile, sep = '\t')
 
-    df['Locus tags'] = df.loc[:, 'Protein IDs']
-    df['Majority locus tags'] = df.loc[:, 'Majority protein IDs']
+#     df['Locus tags'] = df.loc[:, 'Protein IDs']
+#     df['Majority locus tags'] = df.loc[:, 'Majority protein IDs']
     
-    outfile = infile.replace('files', 'files/loci')
+#     outfile = infile.replace('files', 'files/loci')
     
-    add_loctags(df, replace_dict, outfile)
+#     add_loctags(df, replace_dict, outfile)
+
+df = pd.read_csv(infile, sep = '\t')
+
+df['Locus tags'] = df.loc[:, 'Protein IDs']
+df['Majority locus tags'] = df.loc[:, 'Majority protein IDs']
+
+outfile = infile.replace('files', 'files/loci')
+
+add_loctags(df, replace_dict, outfile)
