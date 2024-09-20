@@ -3,7 +3,7 @@
 """
 Created on Thu Sep 19 15:41:24 2024
 
-Script to add locus tags to the proteomics outputs
+Script to add locus tags and SignalP predictions to the proteomics outputs
 
 @author: Marina Mota Merlo
 """
@@ -13,6 +13,15 @@ from Bio import GenBank
 
 gbff = os.path.expanduser('~') + '/Akunkeei_files/gbff/H3B1-04J_genomic.gbff'
 infile = os.path.expanduser('~') + '/proteomics/files/MaxQuant_results.tsv'
+signalP = os.path.expanduser('~') + '/proteomics/results/SignalP/H3B1-04J_SignalP.txt'
+SP_tab = signalP.replace('txt', 'tsv')
+
+outfile = infile.replace('files', 'files/loci')
+
+outdir = os.path.dirname(outfile)
+
+if not os.path.exists(outdir):
+    os.makedirs(outdir)
 # infile1 = os.path.expanduser('~') + '/proteomics/files/up_downregulated.tsv'
 # infile2 = os.path.expanduser('~') + '/proteomics/files/unique_proteins.tsv'
 # infiles = [infile1, infile2]
@@ -34,7 +43,9 @@ with open(gbff) as handle:
                 print(f'Saving protein {prot_id} with locus tag {loctag}...')
                 
 
-def add_loctags(df, rep_dict, out_file):
+def add_loctags(df, rep_dict):
+    df['Locus tags'] = df.loc[:, 'Protein IDs']
+    df['Majority locus tags'] = df.loc[:, 'Majority protein IDs']
     for index, row in df.iterrows():
         id_list = df.loc[index, 'Locus tags'].split(';')
         locus_list = []
@@ -63,12 +74,8 @@ def add_loctags(df, rep_dict, out_file):
     
     df = df.loc[:, cols]
     
-    outdir = os.path.dirname(out_file)
-
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
-    
-    df.to_csv(out_file, sep = '\t', index = False)
+    return df
+    # df.to_csv(out_file, sep = '\t', index = False)
     
 # for infile in infiles:
 #     df = pd.read_csv(infile, sep = '\t')
@@ -82,9 +89,39 @@ def add_loctags(df, rep_dict, out_file):
 
 df = pd.read_csv(infile, sep = '\t')
 
-df['Locus tags'] = df.loc[:, 'Protein IDs']
-df['Majority locus tags'] = df.loc[:, 'Majority protein IDs']
+df = add_loctags(df, replace_dict)
 
-outfile = infile.replace('files', 'files/loci')
+with open(signalP) as SP_file, open(SP_tab, 'w') as tabfile:
+    for line in SP_file:
+        line = line.split(' ')
+        while '' in line:
+            line.remove('')
+        if 'name' in line:
+            line = line[1:]
+            line[4] = 'end'
+        line_text = '\t'.join(line) + '\n'
+        if '#' not in line_text:
+            tabfile.write(line_text)
+        
+        
+SP_df = pd.read_csv(SP_tab, sep = '\t')
 
-add_loctags(df, replace_dict, outfile)
+df['SP?'] = df.loc[:, 'Protein IDs']
+df['SP positions'] = df.loc[:, 'Protein IDs']
+for index, row in df.iterrows():
+    for index2, row2 in SP_df.iterrows():
+        if df.loc[index, 'Majority protein IDs'] == SP_df.loc[index2, 'name']:
+            print(f'Adding signal peptide prediction to protein {df.loc[index, "Majority protein IDs"]}')
+            df.loc[index, 'SP?'] = SP_df.loc[index2, '?']
+            if SP_df.loc[index2, '?'] == 'Y':
+                df.loc[index, 'SP positions'] = f'1-{int(SP_df.loc[index2, "end"])-1}'
+            else:
+                df.loc[index, 'SP positions'] = float('nan')
+            
+cols = list(df)
+
+cols.insert(5, cols.pop(cols.index('SP?')))
+cols.insert(6, cols.pop(cols.index('SP positions')))
+df = df.loc[:, cols]
+
+df.to_csv(outfile, sep = '\t', index = False)
