@@ -82,7 +82,7 @@ for index, row in exp1_df.iterrows(): #Loop through one of the dfs
         row_add = {'Protein IDs': row['Protein IDs'], #Create a row with protein IDs and fasta headers 
                    'Majority protein IDs': protein_id, 
                    'Fasta headers': row['Fasta headers']}
-        exp2_df._append(row_add, ignore_index = True, inplace = True) #Add the row to the other dataframe
+        exp2_df = exp2_df._append(row_add, ignore_index = True) #Add the row to the other dataframe
         
 exp2_df.sort_values(['Majority protein IDs'], ignore_index = True, inplace = True) #Sort the dataframe by protein ID and update the index
 
@@ -93,7 +93,7 @@ for index, row in exp2_df.iterrows(): #Same thing, but with the opposite datafra
         row_add = {'Protein IDs': row['Protein IDs'], 
                    'Majority protein IDs': protein_id, 
                    'Fasta headers': row['Fasta headers']}
-        exp1_df._append(row_add, ignore_index = True, inplace = True)
+        exp1_df = exp1_df._append(row_add, ignore_index = True)
         
 exp1_df.sort_values(['Majority protein IDs'], ignore_index = True, inplace = True)
 
@@ -136,6 +136,7 @@ while i < max(exp2_dict.keys()):
 # Loop through subsets and calculate p-values when possible
 # =============================================================================
 
+df_list.reverse() #Reverse the order of the dataframes
 for df1 in df_list: #Loop through all the dataframes with subsets of the data
     cval_bool = df1.iloc[:, 3].name #Get the name of the sample (includes information about sample conditions)
     cval = cval_bool.split('_') #Divide the information
