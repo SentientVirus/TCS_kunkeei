@@ -107,11 +107,11 @@ df_list = [] #Create an empty list to save dataframes
 
 i = 1 #Variable to loop
 while i < max(exp1_dict.keys()): #As long as i < the maximum index of the samples
-    df = exp1_df[['Protein IDs', 'Majority protein IDs', 'Fasta headers', #Create a dataframe with the samples of interest only
+    df = exp1_df[['Majority protein IDs', 'Fasta headers', #Create a dataframe with the samples of interest only
                   f'LFQ intensity {i}', f'LFQ intensity {i+1}', 
                   f'LFQ intensity {i+2}']]
     
-    column_list = list(df.columns[:3]) + [f'LFQ_{exp1_dict[i]}', #Variable to update the name of the LFQ columns in the dataframe
+    column_list = list(df.columns[:2]) + [f'LFQ_{exp1_dict[i]}', #Variable to update the name of the LFQ columns in the dataframe
                                     f'LFQ_{exp1_dict[i+1]}', 
                                     f'LFQ_{exp1_dict[i+2]}']
     df.columns = column_list #Apply column name changes to dataframe
@@ -121,11 +121,11 @@ while i < max(exp1_dict.keys()): #As long as i < the maximum index of the sample
 
 i = 1 #Same thing, but for the second dataset
 while i < max(exp2_dict.keys()):
-    df = exp2_df[['Protein IDs', 'Majority protein IDs', 'Fasta headers', 
+    df = exp2_df[['Majority protein IDs', 'Fasta headers', 
                   f'LFQ intensity {i}', f'LFQ intensity {i+1}', 
                   f'LFQ intensity {i+2}']]
     
-    column_list = list(df.columns[:3]) + [f'LFQ_{exp2_dict[i]}', 
+    column_list = list(df.columns[:2]) + [f'LFQ_{exp2_dict[i]}', 
                                     f'LFQ_{exp2_dict[i+1]}', 
                                     f'LFQ_{exp2_dict[i+2]}']
     
@@ -138,6 +138,7 @@ while i < max(exp2_dict.keys()):
 # Loop through subsets and calculate p-values when possible
 # =============================================================================
 
+comparisons_list = []
 df_list.reverse() #Reverse the order of the dataframes
 for df1 in df_list: #Loop through all the dataframes with subsets of the data
     cval_bool = df1.iloc[:, 3].name #Get the name of the sample (includes information about sample conditions)
@@ -151,33 +152,40 @@ for df1 in df_list: #Loop through all the dataframes with subsets of the data
         no_sim = sum([val in cval2.replace('LFQ_', '') for val in val_list]) #Get the number of conditions that are similar between the dataframes
         if cval_bool != cval2 and no_sim >= 2: #The dataframes have to differ, but at least two conditions have to be identical (dextranase disregarded)
             print(val_list, cval2, no_sim)
-            comparison_df = pd.merge(df1, df2, on = ['Protein IDs', 
-                                                     'Majority protein IDs', 
+            comparison_df = pd.merge(df1, df2, on = ['Majority protein IDs', 
                                                      'Fasta headers']) #Merge the dataframes keeping the common columns
             
-            dataset1 = list(comparison_df.iloc[:, 3:6].columns) #Get the data from the first condition
-            dataset2 = list(comparison_df.iloc[:, 6:9].columns) #Get the data from the second condition
             label1 = cval_bool[:-2].replace('LFQ_', '') #Create a label for one condition
             label2 = cval2[:-2].replace('LFQ_', '') #Create a label for the other condition
-            comparison_df[f'avg_{label1}'] = comparison_df[dataset1].mean(axis=1) #Get the mean LFQ for one condition
-            comparison_df[f'avg_{label2}'] = comparison_df[dataset2].mean(axis=1) #Get the mean LFQ for the other condition
-            comparison_df.replace(0, np.nan, inplace = True) #Replace the averages of 0 with NaNs
-            comparison_df[f'ratio_{label1}/{label2}'] = comparison_df[f'avg_{label1}']/comparison_df[f'avg_{label2}'] #Create a column with the ratio between the averages
+            labels = [label1, label2]
+            labels.sort(reverse = True)
+            if labels not in comparisons_list: #Check that the opposite comparison has not been done already
+                comparisons_list.append(labels) #Add comparison to the dictionary
+            
+                dataset1 = list(comparison_df.iloc[:, 2:5].columns) #Get the data from the first condition
+                dataset2 = list(comparison_df.iloc[:, 5:8].columns) #Get the data from the second condition
+                comparison_df[f'avg_{label1}'] = comparison_df[dataset1].mean(axis=1) #Get the mean LFQ for one condition
+                comparison_df[f'avg_{label2}'] = comparison_df[dataset2].mean(axis=1) #Get the mean LFQ for the other condition
+                comparison_df.replace(0, np.nan, inplace = True) #Replace the averages of 0 with NaNs
+                comparison_df[f'ratio_{label1}/{label2}'] = comparison_df[f'avg_{label1}']/comparison_df[f'avg_{label2}'] #Create a column with the ratio between the averages
+                comparison_df[f'ratio_{label2}/{label1}'] = comparison_df[f'avg_{label2}']/comparison_df[f'avg_{label1}'] #Create a column with the opposite ratio
 
-            pval_list = [] #Create a list to store pvalues
-            for index, row in comparison_df.iterrows(): #Loop through the dataframe
-                pval = ttest_ind(list(row[3:6].values), list(row[6:9].values)) #Calculate the p-value for each row
-                pval_list.append(pval.pvalue) #Add the p-value to the list
-            comparison_df['p-value'] = pval_list #Create a column from the p-value list
-            
-            comparison_df.dropna(axis = 0, thresh = 4, inplace = True) #Remove all the columns where all the LFQ values are NaNs
-            
-            comparison_df.sort_values('p-value', ignore_index = True, #Sort the results by p-value
-                                      inplace = True)
-            
-            file_title = f'{label1}_vs_{label2}' #Set the title of the output file
-            comparison_df.to_csv(f'{outdir}/{file_title}.tsv', #Write the dataframe to a tab file
-                                 header = comparison_df.columns, 
-                                 index = None, sep = '\t', mode = 'w')
+                pval_list = [] #Create a list to store pvalues
+                for index, row in comparison_df.iterrows(): #Loop through the dataframe
+                    pval = ttest_ind(list(row[2:5].values), list(row[5:8].values), 
+                                     equal_var = True) #Calculate the p-value for each row
+                    pval_list.append(pval.pvalue) #Add the p-value to the list
+ 
+                comparison_df['p-value'] = pval_list #Create a column from the p-value list
+                
+                comparison_df.dropna(axis = 0, thresh = 4, inplace = True) #Remove all the columns where all the LFQ values are NaNs
+                
+                comparison_df.sort_values('p-value', ignore_index = True, #Sort the results by p-value
+                                          inplace = True)
+                
+                file_title = f'{label1}_vs_{label2}' #Set the title of the output file
+                comparison_df.to_csv(f'{outdir}/{file_title}.tsv', #Write the dataframe to a tab file
+                                     header = comparison_df.columns, 
+                                     index = None, sep = '\t', mode = 'w')
 
     
