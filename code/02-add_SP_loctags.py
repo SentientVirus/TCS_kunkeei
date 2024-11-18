@@ -11,6 +11,7 @@ Script to add locus tags and SignalP predictions to the proteomics outputs
 # =============================================================================
 # 0. Import required packages
 # =============================================================================
+
 import os
 import pandas as pd
 from Bio import GenBank
@@ -20,108 +21,114 @@ from Bio import GenBank
 # =============================================================================
 
 def add_loctags(df, rep_dict):
-    df['Locus tags'] = df.loc[:, 'Protein IDs']
-    df['Majority locus tags'] = df.loc[:, 'Majority protein IDs']
-    for index, row in df.iterrows():
-        id_list = df.loc[index, 'Locus tags'].split(';')
-        locus_list = []
+    """Function to add a column with locus tags to a pre-existing dataframe
+    Inputs: 
+        - df: The input dataframe.
+        - rep_dict: Dictionary with locus tags."""
         
-        for protid in id_list:
-            for prot in replace_dict.keys():
-                rep = df.loc[index, 'Majority locus tags']
-                if prot in rep:
-                    df.loc[index, 'Majority locus tags'] = rep.replace(prot, replace_dict[prot])
-                if prot in protid:
-                    locus = protid.replace(prot, replace_dict[prot])
-                    
-            
-            locus_list.append(locus)
-        
-        locus_tags = ';'.join(locus_list)
-        
-        df.loc[index, 'Locus tags'] = locus_tags
-        
-        
-        
-    cols = list(df)
+    # df['Locus tags'] = df.loc[:, 'Majority protein IDs'] #Copy a column from the original dataframe
+    df['Majority locus tags'] = df.loc[:, 'Majority protein IDs'] #Same as above
     
-    cols.insert(0, cols.pop(cols.index('Locus tags')))
-    cols.insert(1, cols.pop(cols.index('Majority locus tags')))
+    for index, row in df.iterrows(): #Loop through the indexed rows of the dataframe
+        # id_list = df.loc[index, 'Locus tags'].split(';') #This is needed if the Protein ID column can be kept
+        # locus_list = [] #Create empty list to store locus tags
+        # for protid in id_list: #Loop through proteins in the ID list
+        
+        for prot in replace_dict.keys(): #Loop through proteins in the dictionary
+            rep = df.loc[index, 'Majority locus tags'] #Save the column to be modified
+            if prot in rep: #If the protein ID is in the column
+                df.loc[index, 'Majority locus tags'] = rep.replace(prot, replace_dict[prot]) #Replace it with the locus tag
+                # if prot in protid: #If the protein ID is in the list of protein IDs
+                #     locus = protid.replace(prot, replace_dict[prot]) #Replace the protein ID with the locus tag
+        
+            # locus_list.append(locus) #Add the current locus tag to the list
+        # locus_tags = ';'.join(locus_list) #Join the list of locus tags into a single string
+        # df.loc[index, 'Locus tags'] = locus_tags #Apply the changes to the column in the dataframe
+        
+    cols = list(df) #Get a list of the dataframe columns
     
-    df = df.loc[:, cols]
+    # cols.insert(0, cols.pop(cols.index('Locus tags')))
+    cols.insert(0, cols.pop(cols.index('Majority locus tags'))) #Insert the locus tag column in the beginning
     
-    return df
+    df = df.loc[:, cols] #Apply changes to the dataframe
+    
+    return df #Return the modified dataframe
 
 # =============================================================================
 # 1. Define paths to inputs and outputs
 # =============================================================================
-workdir = os.path.expanduser('~') + '/proteomics'
-gbff = os.path.expanduser('~') + '/Akunkeei_files/gbff/H3B1-04J_genomic.gbff'
-indir = f'{workdir}/files/parsed'
-signalP = os.path.expanduser('~') + '/proteomics/results/SignalP/H3B1-04J_SignalP.txt'
-SP_tab = signalP.replace('txt', 'tsv')
-outdir = f'{workdir}/files/loci'
 
-if not os.path.exists(outdir):
-    os.makedirs(outdir)
+workdir = os.path.expanduser('~') + '/proteomics' #Working directory
+gbff = os.path.expanduser('~') + '/Akunkeei_files/gbff/H3B1-04J_genomic.gbff' #GenBank input with locus tag and protein ID information
+indir = f'{workdir}/files/parsed' #Directory with input files
+signalP = os.path.expanduser('~') + '/proteomics/results/SignalP/H3B1-04J_SignalP.txt' #Path to SignalP output
+SP_tab = signalP.replace('txt', 'tsv') #Path to SignalP tab file to be writted and loaded as a dataframe
+outdir = f'{workdir}/files/loci' #Directory to save outputs
+
+if not os.path.exists(outdir): #If the output directory does not exist
+    os.makedirs(outdir) #Create it
     
 # =============================================================================
-# 2. Add information to the input file and write it to an output
+# 2. Retrieve information from the input files
 # =============================================================================
-infiles = [file for file in os.listdir(indir) if file.endswith('.tsv')]
-for infile in infiles:
-    outfile = f'{outdir}/{infile}'
     
-    replace_dict = {}
-    with open(gbff) as handle:
-        for record in GenBank.parse(handle):
-            for feature in record.features:
-                loctag = ''
-                prot_id = ''
-                for qual in feature.qualifiers:
-                    if 'locus_tag' in qual.key:
-                        loctag = qual.value.strip('"')
-                    elif 'protein_id' in qual.key:
-                        prot_id = qual.value.strip('"')
-                if loctag != '' and prot_id != '':
-                    replace_dict[prot_id] = loctag
-                    print(f'Saving protein {prot_id} with locus tag {loctag}...')
-    
-    df = pd.read_csv(f'{indir}/{infile}', sep = '\t')
-    
-    df = add_loctags(df, replace_dict)
-    
-    with open(signalP) as SP_file, open(SP_tab, 'w') as tabfile:
-        for line in SP_file:
-            line = line.split(' ')
-            while '' in line:
-                line.remove('')
-            if 'name' in line:
-                line = line[1:]
-                line[4] = 'end'
-            line_text = '\t'.join(line) + '\n'
-            if '#' not in line_text:
-                tabfile.write(line_text)
-            
-            
-    SP_df = pd.read_csv(SP_tab, sep = '\t')
-    
-    df['SP?'] = df.loc[:, 'Protein IDs']
-    df['SP positions'] = df.loc[:, 'Protein IDs']
-    for index, row in df.iterrows():
-        for index2, row2 in SP_df.iterrows():
-            if df.loc[index, 'Majority protein IDs'] == SP_df.loc[index2, 'name']:
-                print(f'Adding signal peptide prediction to protein {df.loc[index, "Majority protein IDs"]}')
-                df.loc[index, 'SP?'] = SP_df.loc[index2, '?']
-                if SP_df.loc[index2, '?'] == 'Y':
-                    df.loc[index, 'SP positions'] = f'1-{int(SP_df.loc[index2, "end"])-1}'
-                else:
-                    df.loc[index, 'SP positions'] = float('nan')
+replace_dict = {} #Create empty dictionary to store locus tags
+with open(gbff) as handle: #Open GenBank file
+    for record in GenBank.parse(handle): #Loop through records in the file
+        for feature in record.features: #Loop through features in the records
+            loctag = '' #Create a variable to store the locus tag
+            prot_id = '' #Create a variable to store the protein ID
+            for qual in feature.qualifiers: #Loop through qualifiers in the features
+                if 'locus_tag' in qual.key: #If the qualifier is the locus tag
+                    loctag = qual.value.strip('"') #Retrieve the locus tag removing any " at the end
+                elif 'protein_id' in qual.key: #If the qualifier is the protein ID
+                    prot_id = qual.value.strip('"') #Do the same as for the locus tag
+            if loctag != '' and prot_id != '': #If there is a locus tag and a protein ID
+                replace_dict[prot_id] = loctag #Store them as a key-value pair in a dictionary
+                print(f'Saving protein {prot_id} with locus tag {loctag}...') #Print progress
                 
-    cols = list(df)
+                
+with open(signalP) as SP_file, open(SP_tab, 'w') as tabfile: #Open the file with SignalP outputs
+    for line in SP_file: #Loop through lines in the file
+        line = line.split(' ') #Create a list by splitting the line by spaces
+        while '' in line: #While the list contains empty strings
+            line.remove('') #Remove the empty strings
+        if 'name' in line: #If the list contains the string name
+            line = line[1:] #Remove the first element of the list
+            line[4] = 'end' #Update the value of the fifth element to the string end
+        line_text = '\t'.join(line) + '\n' #Re-join the line as a tab-separated string, ending with a linebreak
+        if '#' not in line_text: #If the character # is not in the string
+            tabfile.write(line_text) #Write the string to a file
+        
+SP_df = pd.read_csv(SP_tab, sep = '\t') #Read the tab file as a dataframe
     
-    cols.insert(5, cols.pop(cols.index('SP?')))
-    cols.insert(6, cols.pop(cols.index('SP positions')))
-    df = df.loc[:, cols]
+# =============================================================================
+# 3. Add information to the input file and write it to an output
+# =============================================================================
+
+infiles = [file for file in os.listdir(indir) if file.endswith('.tsv')] #Get a list of files to loop through
+for infile in infiles: #Loop through the input files
+    outfile = f'{outdir}/{infile}' #Set the path to the output file
     
-    df.to_csv(outfile, sep = '\t', index = False)
+    df = pd.read_csv(f'{indir}/{infile}', sep = '\t') #Read the input file as a dataframe
+    df = add_loctags(df, replace_dict) #Add column with the locus tags to the dataframe
+    
+    df['SP?'] = df.loc[:, 'Majority protein IDs'] #Copy a column from the original dataframe to create a signal peptide presence/absence column
+    df['SP positions'] = df.loc[:, 'Majority protein IDs'] #Do the same to create a column to store signal peptide positions
+    
+    for index, row in df.iterrows(): #Loop through indexed rows in the dataframe from the MS input file
+        for index2, row2 in SP_df.iterrows(): #Loop through rows in the SignalP dataframe
+            if df.loc[index, 'Majority protein IDs'] == SP_df.loc[index2, 'name']: #If the locus tag in the MS dataframe matches the locus tag in SignalP
+                print(f'Adding signal peptide prediction to protein {df.loc[index, "Majority protein IDs"]}') #Print progress
+                df.loc[index, 'SP?'] = SP_df.loc[index2, '?'] #Add the SignalP information to the presence/absence column
+                if SP_df.loc[index2, '?'] == 'Y': #If the signal peptide is present
+                    df.loc[index, 'SP positions'] = f'1-{int(SP_df.loc[index2, "end"])-1}' #Add additional information to the position column
+                else: #If it is not present
+                    df.loc[index, 'SP positions'] = float('nan') #Add NaN to the position column
+                
+    cols = list(df) #Get a list of the dataframe columns
+    cols.insert(3, cols.pop(cols.index('SP?'))) #Change the placement in the dataframe of the presence/absence column
+    cols.insert(4, cols.pop(cols.index('SP positions'))) #Change the placement of the Signal peptide position column
+    df = df.loc[:, cols] #Apply column changes to the dataframe
+    
+    df.to_csv(outfile, sep = '\t', index = False) #Save the dataframe to a tab-separated file

@@ -125,8 +125,8 @@ for infile in infiles: #Loop through input files
     
     df = pd.read_csv(f'{indir}/{infile}', sep = '\t') #Read the input file
     
-    df['TMH?'] = df.loc[:, 'Protein IDs'] #Create a new column in the dataframe by copying another column
-    df['TMH positions'] = df.loc[:, 'Protein IDs'] #Create a new column in the dataframe by copying another column
+    df['TMH?'] = df.loc[:, 'Majority protein IDs'] #Create a new column in the dataframe by copying another column
+    df['TMH positions'] = df.loc[:, 'Majority protein IDs'] #Create a new column in the dataframe by copying another column
     for index, row in df.iterrows(): #Loopthrough index and row in the dataframe
         if df.loc[index, 'Majority protein IDs'] in add_info.keys(): #If the majority protein ID in the row is in the keys of the helix dictionary
             df.loc[index, 'TMH?'] = 'Y' #Set the value of the presence/absence column to Y(es)
@@ -137,8 +137,8 @@ for infile in infiles: #Loop through input files
             
     cols = list(df) #Get the dataframe columns
     
-    cols.insert(7, cols.pop(cols.index('TMH?'))) #Change the position of the new columns
-    cols.insert(8, cols.pop(cols.index('TMH positions')))
+    cols.insert(5, cols.pop(cols.index('TMH?'))) #Change the position of the new columns
+    cols.insert(6, cols.pop(cols.index('TMH positions')))
     df = df.loc[:, cols] #Apply changes to the dataframe
     
     df.to_csv(outfile, sep = '\t', index = False) #Save the dataframe to a tab-separated file´
