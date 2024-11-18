@@ -40,7 +40,7 @@ indir = f'{workdir}/files/loci'
 if not os.path.exists(os.path.dirname(pred_out)):
     os.makedirs(os.path.dirname(pred_out))
  
-infiles = [file for file in os.listdir(indir) if file.endswith('.tsv')]
+infiles = [file for file in os.listdir(indir) if 'TMH' not in file and file.endswith('.tsv')]
 
 for infile in infiles:
     outfile = f'{indir}/{infile.replace(".tsv", "_TMH.tsv")}'
