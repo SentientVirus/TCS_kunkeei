@@ -71,6 +71,7 @@ max_index = max(exp2_dict.keys()) + 1
 exp2_df[f'LFQ intensity {max_index}'] = exp2_df[f'LFQ intensity {max_index}'].fillna(0)
 for key in exp2_dict.keys():
     exp2_df[f'LFQ intensity {key}'] =  exp2_df[f'LFQ intensity {key}'] - exp2_df[f'LFQ intensity {max_index}']
+    exp2_df[exp2_df[f'LFQ intensity {key}'] < 0] = np.nan
 
 # =============================================================================
 # Make sure that all rows have the same index (add missing genes as NaNs)
