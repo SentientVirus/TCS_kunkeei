@@ -59,9 +59,9 @@ exp1_df = exp1_df.drop('i', axis = 1) #Remove column i
 exp1_df = exp1_df[exp1_df['Majority protein IDs'].notna()] #Filter out empty rows and rows with column averages
 max_index = max(exp1_dict.keys()) + 1 #Get the blank column index
 exp1_df[f'LFQ intensity {max_index}'] = exp1_df[f'LFQ intensity {max_index}'].fillna(0) #Change the nan of the blank to 0s (otherwise, n - nan = nan)
-for key in exp1_dict.keys(): #Loop through LFQ columns
-    exp1_df[f'LFQ intensity {key}'] =  exp1_df[f'LFQ intensity {key}'] - exp1_df[f'LFQ intensity {max_index}'] #Substract the value of the blank from the column
-    exp1_df[exp1_df[f'LFQ intensity {key}'] < 0] = np.nan #Convert values < blank to nan
+# for key in exp1_dict.keys(): #Loop through LFQ columns
+#     exp1_df[f'LFQ intensity {key}'] =  exp1_df[f'LFQ intensity {key}'] - exp1_df[f'LFQ intensity {max_index}'] #Substract the value of the blank from the column
+#     exp1_df[exp1_df[f'LFQ intensity {key}'] < 0] = np.nan #Convert values < blank to nan
 
 exp2_df = pd.read_excel(exp2, sheet_name = 'All')
 exp2_df['LFQ intensity 1'] = np.nan #Fill lost sample with NaNs
@@ -69,9 +69,9 @@ exp2_df['LFQ intensity 2'] = np.nan #Fill lost sample with NaNs
 exp2_df = exp2_df[exp2_df['Majority protein IDs'].notna()]
 max_index = max(exp2_dict.keys()) + 1
 exp2_df[f'LFQ intensity {max_index}'] = exp2_df[f'LFQ intensity {max_index}'].fillna(0)
-for key in exp2_dict.keys():
-    exp2_df[f'LFQ intensity {key}'] =  exp2_df[f'LFQ intensity {key}'] - exp2_df[f'LFQ intensity {max_index}']
-    exp2_df[exp2_df[f'LFQ intensity {key}'] < 0] = np.nan
+# for key in exp2_dict.keys():
+#     exp2_df[f'LFQ intensity {key}'] =  exp2_df[f'LFQ intensity {key}'] - exp2_df[f'LFQ intensity {max_index}']
+#     exp2_df[exp2_df[f'LFQ intensity {key}'] < 0] = np.nan
 
 # =============================================================================
 # Make sure that all rows have the same index (add missing genes as NaNs)
@@ -148,7 +148,7 @@ for df1 in df_list: #Loop through all the dataframes with subsets of the data
     val_list = [c1, c2, c3] #Add conditions to a list
     for df2 in df_list: #Loop through dataframes again
         cval2 = df2.iloc[:, 3].name #Get the sample information from the other dataframe
-        no_sim = sum([val in cval2 for val in val_list]) #Get the number of conditions that are similar between the dataframes
+        no_sim = sum([val in cval2.replace('LFQ_', '') for val in val_list]) #Get the number of conditions that are similar between the dataframes
         if cval_bool != cval2 and no_sim >= 2: #The dataframes have to differ, but at least two conditions have to be identical (dextranase disregarded)
             print(val_list, cval2, no_sim)
             comparison_df = pd.merge(df1, df2, on = ['Protein IDs', 
