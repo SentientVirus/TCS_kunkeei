@@ -61,6 +61,7 @@ max_index = max(exp1_dict.keys()) + 1 #Get the blank column index
 exp1_df[f'LFQ intensity {max_index}'] = exp1_df[f'LFQ intensity {max_index}'].fillna(0) #Change the nan of the blank to 0s (otherwise, n - nan = nan)
 for key in exp1_dict.keys(): #Loop through LFQ columns
     exp1_df[f'LFQ intensity {key}'] =  exp1_df[f'LFQ intensity {key}'] - exp1_df[f'LFQ intensity {max_index}'] #Substract the value of the blank from the column
+    exp1_df[exp1_df[f'LFQ intensity {key}'] < 0] = np.nan #Convert values < blank to nan
 
 exp2_df = pd.read_excel(exp2, sheet_name = 'All')
 exp2_df['LFQ intensity 1'] = np.nan #Fill lost sample with NaNs
