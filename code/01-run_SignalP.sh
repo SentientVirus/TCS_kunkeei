@@ -1,7 +1,7 @@
 #!/bin/bash
-infile=~/Akunkeei_files/faa/H3B1-04J_protein.faa #Input file with all protein sequences in strain H3B1-04J in FASTA format
-outfile=~/proteomics/results/SignalP/H3B1-04J_SignalP.txt #Path to output file
-logfile=~/proteomics/logs/signalp.log #Path to log file
+infile=$1 #~/Akunkeei_files/faa/H3B1-04J_protein.faa #Input file with all protein sequences in strain H3B1-04J in FASTA format
+outfile=$2 #~/proteomics/results/SignalP/H3B1-04J_SignalP.txt #Path to output file
+logfile=$3 #~/proteomics/logs/signalp.log #Path to log file
 
 mkdir -p $(dirname $outfile) #Create output directory if it doesn't exist
 mkdir -p $(dirname $logfile) #Create log directory if it doesn't exist
