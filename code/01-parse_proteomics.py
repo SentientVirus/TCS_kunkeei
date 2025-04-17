@@ -25,7 +25,7 @@ import pandas as pd
 import os, logging, traceback
 from scipy.stats import ttest_ind
 from Bio import SeqIO
-
+#OBS! Some error in the current code, the values of LFQ are not right!
 # =============================================================================
 # 0. Logging
 # =============================================================================
@@ -67,9 +67,9 @@ exp1_dict = {1: 'mucSD_stat01', 2: 'mucSD_stat02', 3: 'mucSD_stat03', #Sample an
 
 exp2_dict = {1: 'mucS_log01', 2: 'mucS_log02', 3: 'mucS_log03', #Sample annotations of the second dataset
              4: 'mucF_log04', 5: 'mucF_log05', 6: 'mucF_log06',  
-             7: 'mucF_stat04', 8: 'mucF_stat05', 9: 'mucF_stat06',
-             10: 'mucFD_stat07', 11: 'mucFD_stat08', 12: 'mucFD_stat09',
-             13: 'inhS_log10', 14: 'inhS_log11', 15: 'inhS_log12',
+             7: 'mucF_stat07', 8: 'mucF_stat08', 9: 'mucF_stat09',
+             10: 'mucFD_stat10', 11: 'mucFD_stat11', 12: 'mucFD_stat12',
+             13: 'inhS_log13', 14: 'inhS_log14', 15: 'inhS_log15',
              16: 'inhF_log16', 17: 'inhF_log17', 18: 'inhF_log18',
              19: 'inhF_stat19', 20: 'inhF_stat20', 21: 'inhF_stat21'}
 
@@ -223,7 +223,8 @@ for df1 in df_list: #Loop through all the dataframes with subsets of the data
                 comparisons_list.append(labels) #Add comparison to the dictionary
             
                 dataset1 = list(comparison_df.iloc[:, 3:6].columns) #Get the data from the first condition
-                dataset2 = list(comparison_df.iloc[:, 7:10].columns) #Get the data from the second condition
+                dataset2 = list(comparison_df.iloc[:, 6:9].columns) #Get the data from the second condition
+                print(dataset1, dataset2)
                 comparison_df[f'avg_{label1}'] = comparison_df[dataset1].mean(axis=1) #Get the mean LFQ for one condition
                 comparison_df[f'avg_{label2}'] = comparison_df[dataset2].mean(axis=1) #Get the mean LFQ for the other condition
                 comparison_df.replace(0, np.nan, inplace = True) #Replace the averages of 0 with NaNs
@@ -232,7 +233,7 @@ for df1 in df_list: #Loop through all the dataframes with subsets of the data
 
                 pval_list = [] #Create a list to store pvalues
                 for index, row in comparison_df.iterrows(): #Loop through the dataframe
-                    pval = ttest_ind(list(row[3:6].values), list(row[7:10].values), 
+                    pval = ttest_ind(list(row[3:6].values), list(row[6:9].values), 
                                      equal_var = True) #Calculate the p-value for each row
                     pval_list.append(pval.pvalue) #Add the p-value to the list
  
