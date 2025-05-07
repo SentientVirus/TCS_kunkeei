@@ -231,6 +231,7 @@ rule differential_expression:
     script:
         "code/11-dif_expression.R"
 
+##Rule to generate volcano plots
 rule volcano_plots:
     output:
         volcano = expand("plots/{comparison}_volcano.{ext}", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["png", "ps"])

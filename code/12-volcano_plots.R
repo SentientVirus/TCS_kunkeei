@@ -29,7 +29,7 @@ library(futile.logger)
 # Create a logger that will be saved to a file
 flog.logger("saturation", TRACE, appender=appender.file(snakemake@log[[1]]))
 
-flog.info("R script to run a saturation analysis")
+flog.info("R script to generate volcano plots")
 
 #=============================================================================#
 # 1. Load dataframe with DESeq2 output + annotations                          #
