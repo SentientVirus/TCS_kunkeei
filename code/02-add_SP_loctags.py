@@ -12,9 +12,30 @@ Script to add locus tags and SignalP predictions to the proteomics outputs
 # 0. Import required packages
 # =============================================================================
 
-import os
+import os, logging, traceback
 import pandas as pd
 from Bio import GenBank
+
+# =============================================================================
+# 0. Logging
+# =============================================================================
+
+logging.basicConfig(filename = snakemake.log[0], level = logging.INFO,
+                    format = '%(asctime)s %(message)s',
+                    datefmt = '%Y-%m-%d %H:%M:%S')
+
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
+    logger.error(''.join(["Uncaught exception: ",
+                          *traceback.format_exception(exc_type, exc_value, exc_traceback)
+                          ]))
+
+sys.excepthook = handle_exception
+
+sys.stdout = open(snakemake.log[0], 'a')
 
 # =============================================================================
 # 0. Define functions
@@ -59,11 +80,12 @@ def add_loctags(df, rep_dict):
 # =============================================================================
 
 workdir = os.path.expanduser('~') + '/proteomics' #Working directory
-gbff = os.path.expanduser('~') + '/Akunkeei_files/gbff/H3B1-04J_genomic.gbff' #GenBank input with locus tag and protein ID information
-indir = f'{workdir}/files/parsed' #Directory with input files
-signalP = os.path.expanduser('~') + '/proteomics/results/SignalP/H3B1-04J_SignalP.txt' #Path to SignalP output
-SP_tab = signalP.replace('txt', 'tsv') #Path to SignalP tab file to be writted and loaded as a dataframe
-outdir = f'{workdir}/files/loci' #Directory to save outputs
+gbff = snakemake.input.gbk #os.path.expanduser('~') + '/Akunkeei_files/gbff/H3B1-04J_genomic.gbff' #GenBank input with locus tag and protein ID information
+# indir = f'{workdir}/files/parsed' #Directory with input files
+signalP = snakemake.input.signalP #os.path.expanduser('~') + '/proteomics/results/SignalP/H3B1-04J_SignalP.txt' #Path to SignalP output
+SP_tab = snakemake.output.signalP #signalP.replace('txt', 'tsv') #Path to SignalP tab file to be writted and loaded as a dataframe
+outdir = os.path.dirname(snakemake.output.loci[0]) #f'{workdir}/files/loci' #Directory to save outputs
+infiles = snakemake.input.infiles
 
 if not os.path.exists(outdir): #If the output directory does not exist
     os.makedirs(outdir) #Create it
@@ -106,11 +128,11 @@ SP_df = pd.read_csv(SP_tab, sep = '\t') #Read the tab file as a dataframe
 # 3. Add information to the input file and write it to an output
 # =============================================================================
 
-infiles = [file for file in os.listdir(indir) if file.endswith('.tsv')] #Get a list of files to loop through
+# infiles = [file for file in os.listdir(indir) if file.endswith('.tsv')] #Get a list of files to loop through
 for infile in infiles: #Loop through the input files
-    outfile = f'{outdir}/{infile}' #Set the path to the output file
+    outfile = f'{outdir}/{os.path.basename(infile)}' #Set the path to the output file
     
-    df = pd.read_csv(f'{indir}/{infile}', sep = '\t') #Read the input file as a dataframe
+    df = pd.read_csv(infile, sep = '\t') #Read the input file as a dataframe
     df = add_loctags(df, replace_dict) #Add column with the locus tags to the dataframe
     
     df['SP?'] = df.loc[:, 'Majority protein IDs'] #Copy a column from the original dataframe to create a signal peptide presence/absence column
@@ -127,8 +149,8 @@ for infile in infiles: #Loop through the input files
                     df.loc[index, 'SP positions'] = float('nan') #Add NaN to the position column
                 
     cols = list(df) #Get a list of the dataframe columns
-    cols.insert(3, cols.pop(cols.index('SP?'))) #Change the placement in the dataframe of the presence/absence column
-    cols.insert(4, cols.pop(cols.index('SP positions'))) #Change the placement of the Signal peptide position column
+    cols.insert(4, cols.pop(cols.index('SP?'))) #Change the placement in the dataframe of the presence/absence column
+    cols.insert(5, cols.pop(cols.index('SP positions'))) #Change the placement of the Signal peptide position column
     df = df.loc[:, cols] #Apply column changes to the dataframe
     
     df.to_csv(outfile, sep = '\t', index = False) #Save the dataframe to a tab-separated file

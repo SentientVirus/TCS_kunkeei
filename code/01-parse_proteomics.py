@@ -25,7 +25,7 @@ import pandas as pd
 import os, logging, traceback
 from scipy.stats import ttest_ind
 from Bio import SeqIO
-#OBS! Some error in the current code, the values of LFQ are not right!
+
 # =============================================================================
 # 0. Logging
 # =============================================================================
@@ -109,10 +109,14 @@ with open(annot) as handle: #Open annotation file
                 
 #Manually add the annotations of proteins of interest
 cds_dict['CAI2650094.1'] = 'GS2-BRS'
+cds_dict['CAI2649694.1'] = 'GS1'
+cds_dict['CAI2649852.1'] = 'BRS'
+cds_dict['CAI2649985.1'] = 'BRS'
 cds_dict['CAI2554085.1'] = 'adhesin_1020'
 cds_dict['CAI2550733.1'] = 'adhesin_520'
 cds_dict['CAI2550731.1'] = 'adhesin_510'
 cds_dict['CAI2663438.1'] = 'adhesin_14310'
+cds_dict['CAI2671341.1'] = 'kukA'
 
 # =============================================================================
 # 3. Make sure that all rows have the same index (add missing genes as NaNs)

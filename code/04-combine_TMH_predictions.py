@@ -17,6 +17,28 @@ with the protein ID and protein locus tag.
 import os
 import pandas as pd
 from Bio import GenBank
+import logging, traceback
+
+# =============================================================================
+# 0. Logging
+# =============================================================================
+
+logging.basicConfig(filename = snakemake.log[0], level = logging.INFO,
+                    format = '%(asctime)s %(message)s',
+                    datefmt = '%Y-%m-%d %H:%M:%S')
+
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
+    logger.error(''.join(["Uncaught exception: ",
+                          *traceback.format_exception(exc_type, exc_value, exc_traceback)
+                          ]))
+
+sys.excepthook = handle_exception
+
+sys.stdout = open(snakemake.log[0], 'a')
 
 # =============================================================================
 # 1. Create a class of objects to store TM prediction information
@@ -39,12 +61,12 @@ class TM:
 # 2. Define input variables and paths
 # =============================================================================
 
-workdir = os.path.expanduser('~') + '/proteomics' #Working directory
-indir = f'{workdir}/files/loci' #Directory with input files to which information will be added
-gbff = os.path.expanduser('~') + '/Akunkeei_files/gbff/H3B1-04J_genomic.gbff' #Reference GenBank file
-phob = f'{workdir}/results/Phobius/H3B1-04J_phobius.txt' #Path to Phobius predictions
-DTMH = f'{workdir}/results/DeepTMHMM/TMRs.gff3' #Path to DeepTMHMM predictions
-pred_out = f'{workdir}/results/TMH_predictions/TMH.tab' #File to save predictions that are consistent between methods 
+gbff = snakemake.input.gbk #os.path.expanduser('~') + '/Akunkeei_files/gbff/H3B1-04J_genomic.gbff' #Reference GenBank file
+phob = snakemake.input.Phobius #f'{workdir}/results/Phobius/H3B1-04J_phobius.txt' #Path to Phobius predictions
+DTMH = snakemake.input.DeepTMHMM #f'{workdir}/results/DeepTMHMM/TMRs.gff3' #Path to DeepTMHMM predictions
+pred_out = snakemake.output.common_pred #f'{workdir}/results/TMH_predictions/TMH.tab' #File to save predictions that are consistent between methods 
+infiles = snakemake.input.sample_in #Input files with proteomics results and SP predictions
+outfiles = snakemake.output.sample_pred #Output files
 
 if not os.path.exists(os.path.dirname(pred_out)): #If the directory where the consistent predictions will be saved does not exist
     os.makedirs(os.path.dirname(pred_out)) #Create it
@@ -115,15 +137,13 @@ for TMH1 in phobius_TM: #Loop through helices in Phobius predictions
 # 4. Add TMH predictions
 # =============================================================================
 
-infiles = [file for file in os.listdir(indir) if 'TMH' not in file and file.endswith('.tsv')] #Create a list with all input files in the input directory
-
-for infile in infiles: #Loop through input files
-    outfile = f'{indir}/{infile.replace(".tsv", "_TMH.tsv")}' #Set the path and name of the output file
+for i in range(len(infiles)): #Loop through input files
+    outfile = outfiles[i] #Set the path and name of the output file
     
     with open(outfile, 'w') as out_pred: #Open the output file in write mode
         out_pred.write('locus_tag\tprotein_id\tstart\tend\n') #Write the file headers
     
-    df = pd.read_csv(f'{indir}/{infile}', sep = '\t') #Read the input file
+    df = pd.read_csv(infiles[i], sep = '\t') #Read the input file
     
     df['TMH?'] = df.loc[:, 'Majority protein IDs'] #Create a new column in the dataframe by copying another column
     df['TMH positions'] = df.loc[:, 'Majority protein IDs'] #Create a new column in the dataframe by copying another column
@@ -137,8 +157,8 @@ for infile in infiles: #Loop through input files
             
     cols = list(df) #Get the dataframe columns
     
-    cols.insert(5, cols.pop(cols.index('TMH?'))) #Change the position of the new columns
-    cols.insert(6, cols.pop(cols.index('TMH positions')))
+    cols.insert(6, cols.pop(cols.index('TMH?'))) #Change the position of the new columns
+    cols.insert(7, cols.pop(cols.index('TMH positions')))
     df = df.loc[:, cols] #Apply changes to the dataframe
     
     df.to_csv(outfile, sep = '\t', index = False) #Save the dataframe to a tab-separated file´
