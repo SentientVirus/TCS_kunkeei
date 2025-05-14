@@ -66,18 +66,18 @@ rule DeepTMHMM:
 ##Rule to run Phobius
 rule Phobius:
     output:
-        "H3B1-04J_phobius.txt"
+        "results/Phobius/H3B1-04J_phobius.txt"
     input:
-        "Akunkeei_files/faa/H3B1-04J_protein.faa"
+        os.path.expanduser("~") + "/Akunkeei_files/faa/H3B1-04J_protein.faa"
     conda: "envs/python_env.yml"
     log: "logs/03-run_Phobius.log"
     shell:
-        "bash code/03-run_Phobius.log {input} {output} {log}"
+        "bash code/03-run_Phobius.sh {input} {output} {log}"
 
 ##Rule to combine TMHMM predictions and incorporate them into the proteomics file
 rule combine_TMHMM:
     output:
-        common_pred = results/TMH_predictions/TMH.tab,
+        common_pred = "results/TMH_predictions/TMH.tab",
         sample_pred = expand("files/loci/{comparison}_TMH.tsv", comparison = comparisons) 
     input:
         gbk = os.path.expanduser("~") + "/Akunkeei_files/gbff/H3B1-04J_genomic.gbff",
