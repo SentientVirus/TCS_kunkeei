@@ -15,6 +15,21 @@ rule all:
         pgvmauve = "results/pmauve/result.png",
         bamview = expand("bam_files/{no}.bam", no = ["01", "02", "09", "10"])
 
+##First step, running Flye to get the genomes with plasmids
+rule run_Flye:
+    output:
+        assembly = expand("assemblies/{isolate}/assembly.fasta", isolate = ["01", "02", "09", "10"]),
+        stats = expand("assemblies/{isolate}/assembly_info.txt", isolate = ["01", "02", "09", "10"])
+    input:
+        input_list
+    threads: 24
+    log: "logs/00-run_Flye.log"
+    conda: "envs/assembly_env.yml"
+    shell:
+        "bash code/00-Flye_assembly.sh {input} {output.assembly} {threads} > {log} 2> {log}"
+
+##Second step, filter out contigs with low coverage
+
 
 ##First step, save all files to 001-004.fasta
 rule simplify_paths:
