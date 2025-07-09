@@ -9,6 +9,12 @@ comparisons = ["inhF_log_vs_inhS_log", "inhF_stat_vs_inhS_stat", "inhS_log_vs_in
                "inhF_stat_vs_mucF_stat", "inhS_stat_vs_mucSD_stat", "mucFD_stat_vs_mucSD_stat",
                "mucF_stat_vs_mucSD_stat"]
 
+comparisons_DE = ["inhF_log_vs_inhS_log", "inhF_stat_vs_inhS_stat", "inhS_log_vs_inhS_stat",
+               "mucFD_stat_vs_mucF_log", "inhF_log_vs_mucF_log", "inhF_stat_vs_mucFD_stat",
+               "mucFD_stat_vs_mucF_stat", "mucF_stat_vs_mucF_log", "inhF_stat_vs_inhF_log",
+               "inhF_stat_vs_mucF_stat", "inhS_stat_vs_mucSD_stat", "mucFD_stat_vs_mucSD_stat",
+               "mucF_stat_vs_mucSD_stat"]
+
 ##Rule to index the reference genome of strain H3B1-04J
 rule parse_MS:
     output:
@@ -23,17 +29,6 @@ rule parse_MS:
     script:
         "code/01-parse_proteomics.py"
 
-##Rule to run SignalP
-rule run_SignalP:
-    output:
-        "results/SignalP/H3B1-04J_SignalP.txt"
-    input: 
-        os.path.expanduser("~") + "/Akunkeei_files/faa/H3B1-04J_protein.faa"
-    conda: "envs/python_env.yml"
-    log: "logs/01-run_SignalP.log"
-    shell:
-        "code/01-run_SignalP.sh {input} {output} {log}"
-
 ##Rule to add locus tag and SignalP information to the files
 rule add_SignalP:
     output:
@@ -42,7 +37,7 @@ rule add_SignalP:
     input:
         infiles = expand("files/parsed/{comparison}.tsv", comparison = comparisons),
         gbk = os.path.expanduser("~") + "/Akunkeei_files/gbff/H3B1-04J_genomic.gbff",
-        signalP = "results/SignalP/H3B1-04J_SignalP.txt"
+        signalP = "results/SignalP/prediction_results.txt" #Generated from the web server
     params: outdir = "files/loci"
     conda: "envs/python_env.yml"
     log: "logs/02-add_SignalP.log"
@@ -88,3 +83,15 @@ rule combine_TMHMM:
     log: "logs/04-combine_TMH_predictions.log"
     script:
         "code/04-combine_TMH_predictions.py"
+
+
+##Rule to generate Volcano plots in R
+rule volcano:
+    output:
+        plots = expand("plots/{comparison}.png", comparison = comparisons_DE)
+    input:
+        infiles = expand("files/loci/{comparison}.tsv", comparison = comparisons_DE)
+    conda: "envs/renv.yml" #OBS! The environment has to be installed and activated
+    log: "logs/05-volcano_plot.log"
+    script:
+        "code/05-volcano_proteomics.R"
