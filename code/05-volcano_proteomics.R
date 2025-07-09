@@ -55,11 +55,17 @@ for (file in input_files){
   samples <- strsplit(basefile, "_")
   samples <- samples[[1]]
   cond1_1 <- substr(samples[1], 1, 3)
-  cond1_2 <- substr(samples[1], 4, nchar(samples[1]))
+  cond1_2 <- substr(samples[1], 4, 4)
   cond1_3 <- samples[2]
+  if (grepl("D", samples[1], fixed = TRUE)){
+    cond1_4 <- "+D"
+  }else{cond1_4 <- "-D"}
   cond2_1 <- substr(samples[4], 1, 3)
-  cond2_2 <- substr(samples[4], 4, nchar(samples[1]))
+  cond2_2 <- substr(samples[4], 4, 4)
   cond2_3 <- samples[5]
+  if (grepl("D", samples[4], fixed = TRUE)){
+    cond2_4 <- "+D"
+  }else{cond2_4 <- "-D"}
   titles <- c(titles, basefile)
   comparison <- c(comparison, basefile)
   if (cond1_1 == "muc" & cond2_1 == "inh"){
@@ -70,21 +76,29 @@ for (file in input_files){
     shapes <- c(23, 21)
     conds <- c("Inh", "Muc")
   }
-  else if (cond1_2 == "S" & cond2_2 == "F"){
-    shapes <- c(25, 24)
-    conds <- c("+S", "-S")
-  }
   else if (cond1_2 == "F" & cond2_2 == "S"){
-    shapes <- c(24, 25)
+    shapes <- c(25, 24)
     conds <- c("-S", "+S")
+  }
+  else if (cond1_2 == "S" & cond2_2 == "F"){
+    shapes <- c(24, 25)
+    conds <- c("+S", "-S")
   }
   else if (cond1_3 == "log" & cond2_3 == "stat"){
     shapes <- c(21, 22)
     conds <- c("log", "stat")
   }
-  else {
+  else if (cond1_3 == "stat" & cond2_3 == "log"){
     shapes <- c(22, 21)
     conds <- c("stat", "log")
+  }
+  else if (cond1_4 == "+D" & cond2_4 == "-D"){
+    shapes <- c(24, 25)
+    conds <- c("+D", "-D")
+  }
+  else if (cond1_4 == "-D" & cond2_4 == "+D"){
+    shapes <- c(25, 24)
+    conds <- c("-D", "+D")
   }
   all_shapes[[length(all_shapes)+1]] <- shapes
   conditions[[length(conditions)+1]] <- conds
@@ -119,7 +133,7 @@ title <- titles[i]
 flog.info("Calculate x and y") 
 res <- res[!is.na(res$p.value),]
 yax <- -log10(res$p.value)
-xax <- log2(res[14])[, 1] #res$log2FoldChange
+xax <- log2(res[15])[, 1] #res$log2FoldChange
 
 # Get maximum and set infinite values (padj = 0) to maximum
 yval <- yax
@@ -138,33 +152,7 @@ x_plus <- length(xax[xax > 0])
 y_minus <- length(yval[(yval > 0.5) & (yval < 1)])
 y_plus <- length(yval[yval > 1])
 
-"if (x_plus > x_minus){
-  nx <- -0.02 
-} else {
-  nx <- 0.02
-}
-
-if (y_plus > y_minus){
-  ny <- -0.02
-} else {
-  ny <- 0.02
-}"
-
-size_breaks <- c()
-#size_breaks <- round(c(lowest, medium, highest), digits = 1)
-if (highest < 2){
-  size_breaks <- c(0.1, 0.25, 0.5, 1)
-} else if (highest < 3){
-  size_breaks <- c(0.25, 0.5, 1, 2) #0.3, 0.7)
-} else if (highest < 4){
-  size_breaks <- c(0.25, 0.75, 1.5, 3)
-} else if (highest < 5){
-  size_breaks <- c(0.5, 1, 2, 4)
-} else if (highest < 6){
-  size_breaks <- c(0.5, 1, 2.5, 5)
-} else {
-  size_breaks <- c(0.5, 1.5, 3, 6)
-}
+size_breaks <- round(c(lowest, medium, highest), digits = 1)
 size_labels <- apply(expand.grid(size_breaks, as.vector(unlist(conditions[i]))), 1, paste, collapse=", ") # Set different values for different comparisons
 
 flog.info("Define point shape")
@@ -214,7 +202,7 @@ labels <- unlist(lapply(color_values, function(color) {
   unique(names(keyvals.col)[keyvals.col == color])}))
 
 # Vector to scale the size of data points
-size_vector <- abs(xax)/2
+size_vector <- abs(xax)
 
 flog.info(paste("Generate the volcano plot for file", input_files[i]))
 # Code to generate the Volcano plot
