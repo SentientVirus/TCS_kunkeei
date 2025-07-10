@@ -108,15 +108,29 @@ with open(annot) as handle: #Open annotation file
                 cds_dict[cds.qualifiers['protein_id'][0]] = '-' #Use a minus symbol as gene name
                 
 #Manually add the annotations of proteins of interest
-cds_dict['CAI2650094.1'] = 'GS2-BRS'
-cds_dict['CAI2649694.1'] = 'GS1'
-cds_dict['CAI2649852.1'] = 'BRS'
-cds_dict['CAI2649985.1'] = 'BRS'
+cds_dict['CAI2650094.1'] = 'GS-BrS'
+cds_dict['CAI2649694.1'] = 'GS'
+cds_dict['CAI2649852.1'] = 'BrS'
+cds_dict['CAI2649985.1'] = 'BrS'
 cds_dict['CAI2554085.1'] = 'adhesin_1020'
 cds_dict['CAI2550733.1'] = 'adhesin_520'
 cds_dict['CAI2550731.1'] = 'adhesin_510'
 cds_dict['CAI2663438.1'] = 'adhesin_14310'
+cds_dict['CAI2671120.1'] = 'parA'
+cds_dict['CAI2671199.1'] = 'repC'
+cds_dict['CAI2671279.1'] = 'kukP'
 cds_dict['CAI2671341.1'] = 'kukA'
+cds_dict['CAI2671425.1'] = 'kukC'
+cds_dict['CAI2671510.1'] = 'kukT'
+cds_dict['CAI2671601.1'] = 'kukF'
+cds_dict['CAI2671711.1'] = 'kukE'
+cds_dict['CAI2671757.1'] = 'kukG1'
+cds_dict['CAI2671762.1'] = 'kukG2'
+cds_dict['CAI2671872.1'] = 'kukB'
+cds_dict['CAI2671986.1'] = 'pKUN_HK'
+cds_dict['CAI2672095.1'] = 'HTH'
+cds_dict['CAI2672155.1'] = 'tnpR'
+cds_dict['CAI2672555.1'] = 'repA'
 
 # =============================================================================
 # 3. Make sure that all rows have the same index (add missing genes as NaNs)
