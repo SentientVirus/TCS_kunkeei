@@ -44,6 +44,12 @@ flog.info("Definining input variables")
 input_files <- snakemake@input[["infiles"]]
 output_files <- snakemake@output[["plots"]]
 
+#Function to change the first letter of the labels to uppercase
+firstup <- function(x) {
+  substr(x, 1, 1) <- toupper(substr(x, 1, 1))
+  x
+}
+
 # Define vectors with formatting
 titles <- c() # Plot titles
 conditions <- c()
@@ -168,10 +174,6 @@ vollabels <- res$Gene.names # Get gene names
 # Add labels only in genes that are not hypothetical and have x > 0.5 and y > 1
 vollabels[(abs(xax) < 5) & (yax < 0.5)] <- ""
 vollabels[vollabels == "-"] <- ""
-# Make labels bold and italic
-italic_labels <- vollabels
-italic_labels[!italic_labels == ""] <- paste0("bolditalic('", vollabels[!vollabels == ""],"')")
-select_labs <- italic_labels[!italic_labels == ""]
 
 flog.info("Assign colors to data points") 
 # Variable to store the colors
@@ -206,12 +208,12 @@ size_vector <- abs(xax)
 
 flog.info(paste("Generate the volcano plot for file", input_files[i]))
 # Code to generate the Volcano plot
-volcanoplot <- ggplot(data = res, aes(x = xax, y = yval, col = keyvals.col, label = vollabels)) +
+volcanoplot <- ggplot(data = res, aes(x = xax, y = yval, col = keyvals.col, label = firstup(vollabels))) +
   geom_vline(xintercept = c(-0.5, 0.5), col = "gray", linetype = "dashed") + # Add dashed line to show log2FC < 0.5
   geom_hline(yintercept = 1, col = "gray", linetype = "dashed") + # Add dashed line for p-value > 1
   geom_point(aes(size = size_vector, shape = sign_shape, fill = keyvals.col), alpha = 0.6, stroke = 0.5, color = "darkorchid") + # Apply the size, shape, color (fill + border) and stroke of the points
   geom_label_repel(box.padding = 0.4, min.segment.length = 0, max.overlaps = Inf, show_guide = FALSE, color = "black", alpha = 0.7,
-        size = 3, fontface = "bold.italic", seed = 1, nudge_x = -0.4, nudge_y = 0.2) + # Add label boxes
+        size = 3, fontface = "bold", seed = 1, nudge_x = -0.4, nudge_y = 0.2) + # Add label boxes
   scale_shape_manual(values = shapes[order(shapes)], guide = "none") + # Set point shapes
   theme_light() + # Set point size and overall graph appearance
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + # Remove grid
