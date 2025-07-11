@@ -97,7 +97,7 @@ exp2_df[f'LFQ intensity {max_index}'] = exp2_df[f'LFQ intensity {max_index}'].fi
 # =============================================================================
 # 3. Create a dictionary with annotations
 # =============================================================================
-
+print(annot)
 with open(annot) as handle: #Open annotation file
     gbk = SeqIO.parse(handle, 'genbank') #Parse file as GenBank
     for record in gbk: #Loop through records in the file
@@ -106,6 +106,8 @@ with open(annot) as handle: #Open annotation file
                 cds_dict[cds.qualifiers['protein_id'][0]] = cds.qualifiers['gene'][0] #Add the gene name to the dictionary, using the protein ID as a key
             elif cds.type == 'CDS' and cds.qualifiers['protein_id'][0] not in cds_dict.keys(): #If the gene name is not in the annotations
                 cds_dict[cds.qualifiers['protein_id'][0]] = '-' #Use a minus symbol as gene name
+
+print(cds_dict)
                 
 #Manually add the annotations of proteins of interest
 cds_dict['CAI2650094.1'] = 'GS-BrS'
@@ -131,6 +133,12 @@ cds_dict['CAI2671986.1'] = 'pKUN_HK'
 cds_dict['CAI2672095.1'] = 'HTH'
 cds_dict['CAI2672155.1'] = 'tnpR'
 cds_dict['CAI2672555.1'] = 'repA'
+cds_dict['CAI2555830.1'] = '01250'
+cds_dict['CAI2561695.1'] = 'giant1' #02080
+cds_dict['CAI2561700.1'] = 'giant2' #02090
+cds_dict['CAI2561781.1'] = 'giant3' #02100
+cds_dict['CAI2561859.1'] = 'giant4' #02110
+cds_dict['CAI2561935.1'] = 'giant5' #02120
 
 # =============================================================================
 # 3. Make sure that all rows have the same index (add missing genes as NaNs)
