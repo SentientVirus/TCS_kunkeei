@@ -45,7 +45,7 @@ if (!file.exists(plot_dir)){
 }
 
 #=============================================================================#
-# 2. Loop through count files to retrieve the counts                           #
+# 2. Loop through count files to retrieve the counts                          #
 #=============================================================================#
 flog.info("Retrieving counts...")
 filename <- sampleFiles[1]

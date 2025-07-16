@@ -47,7 +47,7 @@ if not os.path.exists(outdir):
 
 print(f'{outdir} exists')
 # Initialize parameters for TPM calculation
-rl = 76 #Average read length 
+# rl = 76/10**3 #Average read length in kilobases
 TPM = {}
     
 # =============================================================================
@@ -64,8 +64,8 @@ for file in sorted(snakemake.input):
         count_df = pd.read_csv(counts, sep = '\t', skiprows = 1)
         for index, row in count_df.iterrows():
             rg = row[6] #Gene counts
-            flg = row['Length']
-            TPM_calc = (rg*rl)/flg
+            flg = row['Length']/10**3 #Gene length in kilobases
+            TPM_calc = rg/flg
             TPM_up.append(TPM_calc*1000000)
             T += TPM_calc
             if check:

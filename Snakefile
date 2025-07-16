@@ -156,7 +156,20 @@ rule picard_tools:
         "bash code/06-picard.sh {params} {input} 1>&2 2> {log}"
 
 ##Rule to calculate TPM per sample and per isolate
-rule get_TPM:
+#rule get_TPM:
+#    output:
+#        out = add_path_extension(all_input, "results/TPM", "out", "_genes"),
+#        ent = add_path_extension(all_input, "results/TPM", "ent", "_genes"),
+#        uni = add_path_extension(all_input, "results/TPM", "uni", "_genes") 
+#    input:
+#        bam = add_path_extension(all_input, "results/bam", "bam"),
+#        gtf = "H3B1-04J_genomic.gtf" #Modified gtf were CDS features have been renamed to exon
+#    conda: "envs/circular.yml"
+#    log: "logs/07-calculate_TPM.log"
+#    shell:
+#        "bash code/07-calculate_TPM.sh {input.gtf} {input.bam} 2> {log}"
+
+rule get_TPM_formula:
     output:
         per_sample = "results/TPM/TPM_per_sample.tsv",
         mean = "results/TPM/mean_TPM.tsv"
