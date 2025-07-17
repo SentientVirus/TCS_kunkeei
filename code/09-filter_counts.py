@@ -130,7 +130,7 @@ for isolate in isolate_list:
                     
                     # For each sample, check if the TPM criterion is met
                     TPM = TPM_samples[TPM_samples['locus_tag'] == gene['Geneid']][tag][index]
-                    if TPM < 10:
+                    if TPM < 50:
                         check = False
                     else:
                         check = True
