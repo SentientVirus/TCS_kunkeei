@@ -19,31 +19,31 @@ import pandas as pd
 # Logging
 # =============================================================================
 
-#logging.basicConfig(filename = snakemake.log[0], level = logging.INFO,
-#                    format = '%(asctime)s %(message)s',
-#                    datefmt = '%Y-%m-%d %H:%M:%S')
+logging.basicConfig(filename = snakemake.log[0], level = logging.INFO,
+                    format = '%(asctime)s %(message)s',
+                    datefmt = '%Y-%m-%d %H:%M:%S')
 
-#def handle_exception(exc_type, exc_value, exc_traceback):
-#    if issubclass(exc_type, KeyboardInterrupt):
-#        sys.__excepthook__(exc_type, exc_value, exc_traceback)
-#        return
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
 
-#    logger.error(''.join(["Uncaught exception: ",
-#                          *traceback.format_exception(exc_type, exc_value, exc_traceback)
-#                          ]))
+    logger.error(''.join(["Uncaught exception: ",
+                          *traceback.format_exception(exc_type, exc_value, exc_traceback)
+                          ]))
 
-#sys.excepthook = handle_exception
+sys.excepthook = handle_exception
 
-#sys.stdout = open(snakemake.log[0], 'a')
+sys.stdout = open(snakemake.log[0], 'a')
 
 # =============================================================================
 # Define inputs and outputs
 # =============================================================================
 
-indir = '../assemblies'
-infiles = [f'{file[0]}/{file[2][2]}' for file in os.walk(indir) if file[0].startswith(f'{indir}/') and len(file[0]) == len(indir) + 3] # if file.endswith('assembly.fasta')
-assemblies =  [f'{file[0]}/{file[2][1]}' for file in os.walk(indir) if file[0].startswith(f'{indir}/') and len(file[0]) == len(indir) + 3]
-outfiles = [f'{file[0]}/{file[2][1].replace(".fasta", "_filtered.fasta")}' for file in os.walk(indir) if file[0].startswith(f'{indir}/') and len(file[0]) == len(indir) + 3]
+# indir = '../assemblies'
+infiles = snakemake.input.stats #[f'{file[0]}/{file[2][2]}' for file in os.walk(indir) if file[0].startswith(f'{indir}/') and len(file[0]) == len(indir) + 3] # if file.endswith('assembly.fasta')
+assemblies =  snakemake.input.assembly #[f'{file[0]}/{file[2][1]}' for file in os.walk(indir) if file[0].startswith(f'{indir}/') and len(file[0]) == len(indir) + 3]
+outfiles = snakemake.output #[f'{file[0]}/{file[2][1].replace(".fasta", "_filtered.fasta")}' for file in os.walk(indir) if file[0].startswith(f'{indir}/') and len(file[0]) == len(indir) + 3]
 
 print(infiles)
 

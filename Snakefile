@@ -29,8 +29,58 @@ rule run_Flye:
         "bash code/00-Flye_assembly.sh {input} {output.assembly} {threads} > {log} 2> {log}"
 
 ##Second step, filter out contigs with low coverage
+rule filter_contigs:
+    output:
+        expand("assemblies/{isolate}/assembly_filtered.fasta", isolate = ["01", "02", "09", "10"])
+    input:
+        assembly = expand("assemblies/{isolate}/assembly.fasta", isolate = ["01", "02", "09", "10"]),
+        stats = expand("assemblies/{isolate}/assembly_info.txt", isolate = ["01", "02", "09", "10"])
+    threads: 2
+    log: "logs/01-filter_contigs.log"
+    conda: "envs/biopython_env.yml"
+    script:
+        "code/01-filter_contigs.py"
+
+##Set the oriC at the right position
+rule fix_ori:
+    output:
+        expand("assemblies/fixed_ori/{isolate}.fasta", isolate = ["01", "02", "09", "10"])
+    input:
+        expand("assemblies/{isolate}/assembly_filtered.fasta", isolate = ["01", "02", "09", "10"])
+    log: "logs/02-circularize.log"
+    conda: "envs/genome_analysis_env.yml"
+    shell:
+        """
+        mkdir -p $(basename -- {output[0]})
+        > {log}
+        bash code/02-circularize.sh {input} {output} {log}
+        """
+
+##Run progressive Mauve to compare with reference
+rule pgv_mauve:
+    output:
+        "results/pmauve/result.png"
+    input:
+        og_strain = os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna",
+        new_seqs = expand("assemblies/fixed_ori/{isolate}.fasta", isolate = ["01", "02", "09", "10"])
+    log: "logs/03a-pmauve.log"
+    conda: "envs/plot_region_env.yml"
+    script: "code/03a-pgvmauve.py"
 
 
+##Run progressive Mauve to compare with reference
+rule pgv_mauve_test:
+    output:
+        "results/pmauve_test/result.png"
+    input:
+        og_strain = os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna",
+        new_seqs = expand("assembly_tests/fixed_ori{isolate}.fasta", isolate = ["01", "02", "09", "10"])
+    log: "logs/03a-pmauve.log"
+    conda: "envs/plot_region_env.yml"
+    script: "code/03a-pgvmauve.py"
+
+
+##Assembly from the sequencing facility
 ##First step, save all files to 001-004.fasta
 rule simplify_paths:
     output:
@@ -59,29 +109,31 @@ rule reverse_file:
         "code/01-reverse_complement.py"
 
 ##Set the oriC at the right position
-rule fix_ori:
+rule fix_ori_seq:
     output:
         expand("data/fixed_ori/fixed_ori{i}.fasta", i = ["1", "2", "3", "4"])
     input:
-        expand("data/{sample}.fna", sample = ["001", "002", "003", "rev004"])
+        expand("data/{i}.fasta", i = ["001", "002", "003", "rev004"])
     log: "logs/02-circularize.log"
     conda: "envs/genome_analysis_env.yml"
     shell:
         """
+        mkdir -p $(basename -- {output[0]})
         > {log}
         bash code/02-circularize.sh {input} {output} {log}
         """
 
 ##Run progressive Mauve to compare with reference
-rule pgv_mauve:
+rule pgv_mauve_seq:
     output:
-        "results/pmauve/result.png"
+        "results/pmauve_seq/result.png"
     input:
         og_strain = os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna",
         new_seqs = expand("data/fixed_ori/fixed_ori{i}.fasta", i = ["1", "2", "3", "4"])
     log: "logs/03a-pmauve.log"
     conda: "envs/plot_region_env.yml"
     script: "code/03a-pgvmauve.py"
+
 
 ##Prokka annotations
 rule prokka_annot:

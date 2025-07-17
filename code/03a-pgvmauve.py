@@ -39,12 +39,14 @@ sys.stdout = open(snakemake.log[0], 'a')
 infiles = snakemake.input['og_strain'] + ' '
 for infile in snakemake.input['new_seqs']:
     infiles += f'{infile} '
+
+outdir = os.path.dirname(snakemake.output[0])
     
 # =============================================================================
 # Running progressive Mauve
 # =============================================================================
         
 os.system(f'pgv-pmauve --seq_files {infiles}\
-            -o results/pmauve --tick_style bar >> {snakemake.log[0]}')
+            -o {outdir} --tick_style bar >> {snakemake.log[0]}')
 
 
