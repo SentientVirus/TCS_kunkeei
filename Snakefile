@@ -53,7 +53,7 @@ rule DeepTMHMM:
     input:
         proteins = os.path.expanduser("~") + "/Akunkeei_files/faa/H3B1-04J_protein.faa"
     params: outdir = "results/DeepTMHMM"
-    conda: "envs/python_env.yml" #OBS! Install and activate the environment
+    conda: "envs/python_env.yml"
     log: "logs/03-run_DeepTMHMM.log"
     script:
         "code/03-run_DeepTMHMM.py"
@@ -91,7 +91,7 @@ rule volcano:
         plots = expand("plots/{comparison}.png", comparison = comparisons_DE)
     input:
         infiles = expand("files/loci/{comparison}.tsv", comparison = comparisons_DE)
-    conda: "envs/renv.yml" #OBS! The environment has to be installed and activated
+    conda: "envs/renv.yml"
     log: "logs/05-volcano_plot.log"
     script:
         "code/05-volcano_proteomics.R"

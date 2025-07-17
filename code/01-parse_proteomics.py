@@ -51,16 +51,16 @@ sys.stdout = open(snakemake.log[0], 'a')
 # 1. Define paths to inputs and other variables
 # =============================================================================
 
-outdir = snakemake.params.outdir #os.path.expanduser('~') + '/proteomics/files/parsed' #Output directory
+outdir = snakemake.params.outdir #Output directory
 
 if not os.path.exists(outdir): #If the output directory does not exist
     os.makedirs(outdir) #Create it
 
-exp1 = snakemake.input.exp1 #os.path.expanduser('~') + '/proteomics/files/MS-24-030_MaxQuant_results.xlsx' #File with the results of the first MS dataset
+exp1 = snakemake.input.exp1 #File with the results of the first MS dataset
 
-exp2 = snakemake.input.exp2 #os.path.expanduser('~') + '/proteomics/files/MS-24-038_MaxQuant_results.xlsx' #File with the results of the second MS dataset
+exp2 = snakemake.input.exp2 #File with the results of the second MS dataset
 
-annot = snakemake.input.gbk #os.path.expanduser('~') + '/Akunkeei_files/gbff/H3B1-04J_genomic.gbff'
+annot = snakemake.input.gbk #Reference GenBank file
 
 exp1_dict = {1: 'mucSD_stat01', 2: 'mucSD_stat02', 3: 'mucSD_stat03', #Sample annotations of the first MS dataset
              4: 'inhS_stat04', 5: 'inhS_stat05', 6: 'inhS_stat06'}
@@ -115,8 +115,9 @@ cds_dict['CAI2649694.1'] = 'GS'
 cds_dict['CAI2649852.1'] = 'BrS'
 cds_dict['CAI2649985.1'] = 'BrS'
 cds_dict['CAI2554085.1'] = 'adhesin_1020'
-cds_dict['CAI2550733.1'] = 'adhesin_520'
+cds_dict['CAI2550733.1'] = 'gtf2_520'
 cds_dict['CAI2550731.1'] = 'adhesin_510'
+cds_dict['CAI2659529.1'] = 'adhesin_13900'
 cds_dict['CAI2663438.1'] = 'adhesin_14310'
 cds_dict['CAI2671120.1'] = 'parA'
 cds_dict['CAI2671199.1'] = 'repC'

@@ -75,11 +75,11 @@ for (file in input_files){
   titles <- c(titles, basefile)
   comparison <- c(comparison, basefile)
   if (cond1_1 == "muc" & cond2_1 == "inh"){
-    shapes <- c(21, 23)
+    shapes <- c(23, 21)
     conds <- c("Muc", "Inh")
   }
   else if (cond1_1 == "inh" & cond2_1 == "muc"){
-    shapes <- c(23, 21)
+    shapes <- c(21, 23)
     conds <- c("Inh", "Muc")
   }
   else if (cond1_2 == "F" & cond2_2 == "S"){

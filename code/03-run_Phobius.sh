@@ -1,6 +1,10 @@
 #!/bin/bash
-infile=$1 #~/Akunkeei_files/faa/H3B1-04J_protein.faa #Input file with all protein sequences in strain H3B1-04J in FASTA format
-outfile=$2 #~/proteomics/results/Phobius/H3B1-04J_phobius.txt #Path to output file
+##############################
+###       RUN Phobius      ###
+###    (python_env.yml)    ###
+##############################
+infile=$1 #Input file with all protein sequences in strain H3B1-04J in FASTA format
+outfile=$2 #Path to output file
 logfile=$3 #Path to log file
 
 mkdir -p $(dirname $outfile) #Create output directory if it doesn't exist
