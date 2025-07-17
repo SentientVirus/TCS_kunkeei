@@ -99,7 +99,7 @@ flog.info("Create and format labels")
 vollabels <- res$gene_name # Get gene names
 # Label genes of interest manually
 vollabels["AKUH3B104J_00510" == rownames(res)] <- "adhesin_510"  #expression("adhesin"["510"])
-vollabels["AKUH3B104J_00520" == rownames(res)] <- "adhesin_520"  #expression("adhesin"["PNAG"])
+vollabels["AKUH3B104J_00520" == rownames(res)] <- "gtf2_520"  #expression("adhesin"["PNAG"])
 vollabels["AKUH3B104J_01020" == rownames(res)] <- "adhesin_1020"  #expression("adhesin"["1020"])
 vollabels["AKUH3B104J_14310" == rownames(res)] <-  "adhesin_14310" #expression("adhesin"["14310"])
 vollabels["AKUH3B104J_PKUN00040" == rownames(res)] <- "kukA"
@@ -163,9 +163,9 @@ volcanoplot <- ggplot(data = res, aes(x = log2FoldChange, y = yval, col = keyval
        size = expression("Log"[2]*italic("Fold Change")), # Legend title
        x = expression("Log"[2]*italic("Fold Change")), # Title of main axes
        y = expression("-Log"[10]*italic("p"["adj"])), color = FALSE) +
-  coord_cartesian(ylim = c(0, 10*round(ymax)), xlim = c(-(round(xmax) + 1), round(xmax) + 1)) + # Set axis limits
+  coord_cartesian(ylim = c(0, round(ymax)), xlim = c(-(round(xmax) + 1), round(xmax) + 1)) + # Set axis limits
   scale_x_continuous(breaks = seq(-(round(xmax) + round(xmax) + 1), 8, 1)) + # Customize ticks in the x axis
-  scale_y_continuous(breaks = seq(0, 10*round(ymax), 25)) + # Customize ticks in y axis
+  scale_y_continuous(breaks = seq(0, round(ymax), 25)) + # Customize ticks in y axis
   ggtitle(title, subtitle = subtitle) + # Plot title
   theme(plot.title = element_text(hjust = 0.5), # Center title
        plot.subtitle = element_text(hjust = 0.5)) # Center subtitle
