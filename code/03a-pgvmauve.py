@@ -36,11 +36,11 @@ sys.stdout = open(snakemake.log[0], 'a')
 # Defining input files
 # =============================================================================
 
-infiles = snakemake.input['og_strain'] + ' '
-for infile in snakemake.input['new_seqs']:
-    infiles += f'{infile} '
+infiles = snakemake.input['og_strain'] + ' ' #Retrieve path to the original assembly
+for infile in snakemake.input['new_seqs']: #Loop through paths to new assemblies
+    infiles += f'{infile} ' #Add them to the string
 
-outdir = os.path.dirname(snakemake.output[0])
+outdir = os.path.dirname(snakemake.output[0]) #Get output directory
     
 # =============================================================================
 # Running progressive Mauve

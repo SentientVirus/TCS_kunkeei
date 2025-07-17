@@ -35,17 +35,17 @@ sys.stdout = open(snakemake.log[0], 'a')
 # Defining inputs
 # =============================================================================
 
-files = snakemake.input.fnas
-subject = snakemake.input.og_strain
-outpath = snakemake.params.outpath
-threads = snakemake.threads
+files = snakemake.input.fnas #Path to input fna files
+subject = snakemake.input.og_strain #Path to original fna assembly
+outpath = snakemake.params.outpath #Path to outputs
+threads = snakemake.threads #Number of threads to be used
 
 # =============================================================================
 # Running Blast       
 # =============================================================================
 
-for i in range(len(files)):
+for i in range(len(files)): #Loop through input files
     S = f'blastn -query {files[i]} -out {outpath}/{files[i][:-4].split("/")[2]}.tab \
-        -subject {subject} -outfmt 6'
-    os.system(S)
+        -subject {subject} -outfmt 6' #Define BLAST command to run
+    os.system(S) #Run the command
     

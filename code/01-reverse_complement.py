@@ -37,19 +37,19 @@ sys.stdout = open(snakemake.log[0], 'a')
 # Define inputs and outputs
 # =============================================================================
 
-filename = snakemake.input
-outfile = snakemake.output
-record_list = []
+filename = snakemake.input #Input assembly
+outfile = snakemake.output #Output assembly with reversed contig
+record_list = [] #List of records
 
 # =============================================================================
 # Reverse strand and save to file
 # =============================================================================
 
-with open(filename) as reverse_stranded:
-    records = SeqIO.parse(filename, 'fasta')
-    for record in records:
-        record.seq = record.seq.reverse_complement()
-        record_list.append(record)
+with open(filename) as reverse_stranded: #Open input file
+    records = SeqIO.parse(filename, 'fasta') #Read records in file as fasta
+    for record in records: #Loop through records in file
+        record.seq = record.seq.reverse_complement() #Convert the sequences to their reverse complement
+        record_list.append(record) #Append modified records to list
 
-with open(outfile, 'w') as output:
-    SeqIO.write(record_list, output, 'fasta')
+with open(outfile, 'w') as output: #Open output file in write mode
+    SeqIO.write(record_list, output, 'fasta') #Write modified records to file

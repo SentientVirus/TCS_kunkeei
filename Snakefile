@@ -209,6 +209,7 @@ rule run_bwa:
         index=os.path.expanduser("~") + "/snpseq00064/index/H3B1-04J.fna",
         reads=input_list
     log: "logs/01c-reads2bam.log"
+    conda: "envs/samtools_env.yml"
     threads: 48
     shell:
         """

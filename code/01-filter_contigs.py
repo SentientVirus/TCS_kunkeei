@@ -3,8 +3,8 @@
 """
 Created on Mon Apr  3 11:26:50 2023
 
-Script to reverse the strand of the genome of isolate 10, which has the
-reverse strand as forward strand in the raw assembly.
+Script to filter out contigs with low coverage, which are unlikely to be true
+genomic elements.
 
 @author: Marina Mota-Merlo
 """
@@ -40,57 +40,29 @@ sys.stdout = open(snakemake.log[0], 'a')
 # Define inputs and outputs
 # =============================================================================
 
-# indir = '../assemblies'
-infiles = snakemake.input.stats #[f'{file[0]}/{file[2][2]}' for file in os.walk(indir) if file[0].startswith(f'{indir}/') and len(file[0]) == len(indir) + 3] # if file.endswith('assembly.fasta')
-assemblies =  snakemake.input.assembly #[f'{file[0]}/{file[2][1]}' for file in os.walk(indir) if file[0].startswith(f'{indir}/') and len(file[0]) == len(indir) + 3]
-outfiles = snakemake.output #[f'{file[0]}/{file[2][1].replace(".fasta", "_filtered.fasta")}' for file in os.walk(indir) if file[0].startswith(f'{indir}/') and len(file[0]) == len(indir) + 3]
-
-print(infiles)
+infiles = snakemake.input.stats #Files with assembly statistics
+assemblies =  snakemake.input.assembly #Flye assemblies
+outfiles = snakemake.output #Output assembly files without the low-coverage contigs
 
 # =============================================================================
-# Reverse strand and save to file
+# Filter out contigs and save to file
 # =============================================================================
 
-for i in range(len(infiles)):
-    to_exclude = []
-    with open(infiles[i]) as handle:
-        print('Filename: ', infiles[i])
-        df = pd.read_csv(handle, sep = '\t')
-        for index, contig in df.iterrows():
-            contig_name = contig['#seq_name']
-            print('Contig name: ', contig_name)
-            if contig['cov.'] < 30:
-                to_exclude.append(contig_name)
-        print('Contigs to exclude: ', to_exclude)
+for i in range(len(infiles)): #Loop through input files
+    to_exclude = [] #Create an empty list to add contigs to filter out
+    with open(infiles[i]) as handle: #Open input file
+        print('Filename: ', infiles[i]) #Print filename
+        df = pd.read_csv(handle, sep = '\t') #Read file as dataframe
+        for index, contig in df.iterrows(): #Loop through rows in the dataframe
+            contig_name = contig['#seq_name'] #Retrieve contig name
+            print('Contig name: ', contig_name) #Print contig name
+            if contig['cov.'] < 30: #If the coverage of the contig is below 30
+                to_exclude.append(contig_name) #Append it to the list of contigs to exclude
+        print('Contigs to exclude: ', to_exclude) #Print the list
         
-    with open(assemblies[i]) as assembly:
-        records = SeqIO.parse(assembly, 'fasta')
-        to_write = []
-        for record in records:
-            if record.id not in to_exclude:
-                to_write.append(record)
+    with open(assemblies[i]) as assembly: #Open the corresponding assembly
+        records = SeqIO.parse(assembly, 'fasta') #Read the fasta records in the file
+        to_write = [record for record in records if record.id not in to_exclude] #Create a list of records to keep
                 
-    with open(outfiles[i], 'w') as outfile:
-        SeqIO.write(to_write, outfile, 'fasta')
-                
-    # records = SeqIO.parse(file, 'fasta')
-    # for record in records:
-    #     print('Filename: ', file)
-    #     print('Contig name: ', record.id)
-    #     print('GC content: ', GC(record.seq))
-    #     print('Contig length: ', len(record.seq))
-    #     AT_ratio = str(record.seq).count('A')/str(record.seq).count('T')
-    #     GC_ratio = str(record.seq).count('G')/str(record.seq).count('C')
-    #     print('Nucleotide proportions (A/T & G/C): ', f'{AT_ratio:2f} ', f'{GC_ratio:2f}')
-    #     if not (0.75 <= AT_ratio <= 1/0.75 and 0.75 <= GC_ratio <= 1/0.75):
-    #         to_exclude.append(record.id)
-    # print('Contigs to exclude: ', to_exclude)
-
-#with open(filename) as reverse_stranded:
-#    records = SeqIO.parse(filename, 'fasta')
-#    for record in records:
-#        record.seq = record.seq.reverse_complement()
-#        record_list.append(record)
-
-#with open(outfile, 'w') as output:
-#    SeqIO.write(record_list, output, 'fasta')
+    with open(outfiles[i], 'w') as outfile: #Open output file
+        SeqIO.write(to_write, outfile, 'fasta') #Write records to file
