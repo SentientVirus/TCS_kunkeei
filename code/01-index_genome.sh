@@ -1,5 +1,4 @@
 #!/bin/bash
-
 ############################################
 ###  Script to index genome with hisat2  ###
 ###        (Samtools environment)        ###

@@ -6,6 +6,7 @@ sink(con, append = TRUE)
 #=============================================================================#
 # 0. Install packages if needed                                               #
 #=============================================================================#
+
 list.of.packages <- c("BiocManager")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages, repos='http://cran.us.r-project.org');
@@ -19,6 +20,7 @@ for (package in new.packages){
 #=============================================================================#
 # 0. Load required libraries                                                  #
 #=============================================================================#
+
 library("ggplot2")
 library("ggrepel")
 library(futile.logger)
@@ -26,6 +28,7 @@ library(futile.logger)
 #=============================================================================#
 # 0. Logging                                                                  #
 #=============================================================================#
+
 # Create a logger that will be saved to a file
 flog.logger("saturation", TRACE, appender=appender.file(snakemake@log[[1]]))
 
@@ -34,17 +37,17 @@ flog.info("R script to generate volcano plots")
 #=============================================================================#
 # 1. Load dataframe with DESeq2 output + annotations                          #
 #=============================================================================#
+
 # Define inputs
 flog.info("Definining input variables")
-input_files <- snakemake@input[["annotated_expr"]]
-output_files <- snakemake@output[["volcano"]]
+input_files <- snakemake@input[["annotated_expr"]] #Annotated DESeq2 results
+output_files <- snakemake@output[["volcano"]] #Volcano plot files
 
 # Define vectors with formatting
 titles <- rep(c("Mucoid vs Inhibitor", " + Sucrose vs - Sucrose"), each = 2) # Plot titles
 subtitles <- c("+ sucrose", "- sucrose", "Mucoid", "Inhibitor") # Plot subtitles
 all_shapes <- rep(data.frame(c(21, 23), c(25, 24)), each = 2) # Desired point shape for the plot
 comparison <- rep(data.frame(c("Inh", "Muc"), c("-", "+")), each = 2) # Comparisons to be plotted
-#shape_names <- rep(c("Morphology", "Sucrose"), each = 2)
 scale_val <- c(0, 3) # Variable to scale points
 
 # Loop through i to get res and plot
@@ -68,6 +71,7 @@ subtitle <- subtitles[i]
 #=============================================================================#
 # 2. Volcano plot with ggplot and standard plotting                           #
 #=============================================================================#
+
 # Set the x and y variables 
 flog.info("Calculate x and y") 
 yax <- -log10(res$padj)
@@ -97,15 +101,18 @@ sign_shape <- as.factor(sign_shape)
 flog.info("Create and format labels") 
 # Variable used to annotate genes in the plots
 vollabels <- res$gene_name # Get gene names
+
 # Label genes of interest manually
-vollabels["AKUH3B104J_00510" == rownames(res)] <- "adhesin_510"  #expression("adhesin"["510"])
-vollabels["AKUH3B104J_00520" == rownames(res)] <- "gtf2_520"  #expression("adhesin"["PNAG"])
-vollabels["AKUH3B104J_01020" == rownames(res)] <- "adhesin_1020"  #expression("adhesin"["1020"])
-vollabels["AKUH3B104J_14310" == rownames(res)] <-  "adhesin_14310" #expression("adhesin"["14310"])
+vollabels["AKUH3B104J_00510" == rownames(res)] <- "adhesin_510"  
+vollabels["AKUH3B104J_00520" == rownames(res)] <- "gtf2_520"  
+vollabels["AKUH3B104J_01020" == rownames(res)] <- "adhesin_1020"  
+vollabels["AKUH3B104J_14310" == rownames(res)] <-  "adhesin_14310"
 vollabels["AKUH3B104J_PKUN00040" == rownames(res)] <- "kukA"
+
 # Add labels only in genes that are not hypothetical and have x > 3 and y > 80
 vollabels[(abs(xax) < 3) & (yax < 80)] <- ""
 vollabels[vollabels == "-"] <- ""
+
 # Make labels bold and italic
 italic_labels <- vollabels
 italic_labels[!italic_labels == ""] <- paste0("bolditalic('", vollabels[!vollabels == ""],"')")
@@ -159,7 +166,7 @@ volcanoplot <- ggplot(data = res, aes(x = log2FoldChange, y = yval, col = keyval
   guides(fill = guide_legend(order = 1, override.aes = list(size = 3, shape = 21, color = "darkorchid")), # Increase the size of legend points, change shape to add border color
        size = guide_legend(nrow = 3, ncol = 2, bycol = TRUE, order = 2,
        override.aes = list(shape = rep(shapes, each = 3), color = "darkorchid"))) + # Make size legend include shape information
-  labs(fill = "Differential expression", #shape = shape_label, # Set legend labels
+  labs(fill = "Differential expression", # Set legend labels
        size = expression("Log"[2]*italic("Fold Change")), # Legend title
        x = expression("Log"[2]*italic("Fold Change")), # Title of main axes
        y = expression("-Log"[10]*italic("p"["adj"])), color = FALSE) +

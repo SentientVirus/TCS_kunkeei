@@ -7,9 +7,7 @@
 # Read inputs from Snakemake
 outdir1=$1
 outdir2=$2
-
 gff_file=$3
-
 log=$4
 
 samples=${@:5}
@@ -33,7 +31,7 @@ echo $outdir1/$(basename -- ${sample::-4}).featureCounts
 featureCounts -p -T 12 -M -C -s 2 -Q 10 -t gene -g locus_tag -a $gff_file \
 -o $outdir1/$(basename -- ${sample::-4}).featureCounts $sample 2>> $log 3>> $log 
 
-#Counts for the forward strand
+# Counts for the forward strand
 featureCounts -p -T 12 -M -C -s 1 -Q 10 -t gene -g locus_tag -a $gff_file \
 -o $outdir2/$(basename -- ${sample::-4}).featureCounts $sample 2>> $log 3>> $log
 
