@@ -78,8 +78,8 @@ for key in list(genes_domains.keys()):
         tag_00510.append(key)
     elif genes_domains[key][0] == ['PF13632']: #Gtf2
         tag_00520.append(key)
-    elif is_sublist(sorted(['PF00746', 'PF17966', 'PF17965']), sorted(genes_domains[key][0])): #LPXTG + mucin-binding
-        if 'PLPX' in key or int(key.replace('RS', '').split('_')[1]) < 1200 and key != 'K2W83_RS00655':
+    elif is_sublist(sorted(['PF17966', 'PF17965']), sorted(genes_domains[key][0])) or key == 'AKUH3B104X_PLPX00300': #LPXTG + mucin-binding
+        if ('PLPX' in key or int(key.replace('RS', '').split('_')[1]) < 1200 or 'MUB' in key) and key != 'K2W83_RS00655':
             tag_01020.append(key)
             adh_dict[strain][0] += f'{key}, '
         else:
