@@ -117,7 +117,7 @@ projdir = os.path.expanduser('~') + '/adhesins'
 outpath = f'{projdir}/blast_tabs'
 folder_path = os.path.expanduser('~') + '/Akunkeei_files/fna'
 folder_path2 = os.path.expanduser('~') + '/Akunkeei_files/gbff'
-outfig = f'{projdir}/plots/pyGenomeViz/adhesin1_region.svg'
+outfig = f'{projdir}/plots/pyGenomeViz/adhesin_region.svg'
 
 fna_files = [f'{folder_path}/{strain}_genomic.fna' for strain in phylo_order.values()]
 
@@ -260,7 +260,7 @@ for fna in fna_files: #Loop through strain names in the order dictionary
             strand = cds.location.strand #Get strand
             color = '#E3DAC9' #Set color of most CDS
             gene_name  = '' #Initialize gene name
-            if end - protstart > 7000 or cds.qualifiers['locus_tag'][0] in ['AKUH1B104J_01280', 'AKUH1B104J_01290', 'AKUA1805_01370', 'AKUA1805_01380', 'AKUA2101_01370', 'AKUA2101_01380']:
+            if end - protstart > 7000 or cds.qualifiers['locus_tag'][0] in ['AKUH1B104J_01280', 'AKUH1B104J_01290', 'AKUA1805_01370', 'AKUA1805_01380', 'AKUA2101_01370', 'AKUA2101_01380', 'AKUH1B105A_01180']:
                 color = color_dict['large']
             elif 'glycosyl hydrolase' in cds.qualifiers['product'][0]: #Retrieve the set of genes that were manually annotated in the GenBanks
                 color = color_dict['GH']
