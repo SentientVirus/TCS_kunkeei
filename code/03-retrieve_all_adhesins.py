@@ -19,6 +19,7 @@ H3B1-04J from the A. kunkeei genomes.
 
 import os, pandas as pd
 import re
+from Bio import SeqIO
 
 def is_sublist(sublist, main_list):
     sum_list = sum([element in main_list for element in sublist])
@@ -28,9 +29,14 @@ def is_sublist(sublist, main_list):
 
 outfile = os.path.expanduser('~') + '/adhesins/results/adhesin_list.tsv'
 annot_dir = os.path.expanduser('~') + '/adhesins/interproscan/locus_tags'
+faa_dir = os.path.expanduser('~') + '/Akunkeei_files/faa'
+faa_outfile = os.path.expanduser('~') + '/adhesins/sequences/Muc_adhesins.faa'
 
-if not os.path.exists(os.path.dirname(outfile)):
-    os.makedirs(os.path.dirname(outfile))
+prot2loctag = os.path.expanduser('~') + '/adhesins/metadata/prot_id_loctag.tsv'
+
+[os.makedirs(os.path.dirname(out)) for out in [outfile, faa_outfile] if not os.path.exists(os.path.dirname(out))]
+# if not os.path.exists(os.path.dirname(outfile)):
+#     os.makedirs(os.path.dirname(outfile))
 
 interpro_files = [file for file in os.listdir(annot_dir) if file.endswith('.tsv')]
 
@@ -40,6 +46,9 @@ pfam_domains = ['PF06458', 'PF19087', 'PF05737', #MucBP, DUF5776, collagen-bindi
 
 pfam_names = ['MucBP', 'DUF5776', 'collagen-binding', 'Gtf2', 'MucB2', 
               'MucBP_2', 'LPXTG']
+
+with open(prot2loctag) as handle:
+    loctag_dict = {line.split('\t')[1].strip(): line.split('\t')[0] for line in handle}
 
 genes_domains = {}
 
@@ -66,12 +75,15 @@ tag_01250 = []
 tag_14310 = []
 adh_dict = {}
 strains = []
+to_retrieve = {}
 for key in list(genes_domains.keys()):
     strain = key.split('_')[0].replace('AKU', '').replace('AAP', '').replace('K2W83', 'DSMZ').replace('LDX55', 'IBH001').replace('APS55', 'MP2').replace('MUB42', 'HNS-8').replace('VQ058', 'GYUN-333')
     if re.search('H[0-9]', strain):
         strain = strain[:4] + '-' + strain[4:]
+    strain = strain.replace('FHON', 'Fhon').replace('DSMZ', 'DSMZ12361')
     if strain not in strains:
         strains.append(strain)
+        to_retrieve[strain] = []
     if strain not in adh_dict.keys():
         adh_dict[strain] = ['', '']
     if genes_domains[key][0] == ['PF05737']: #Collagen-binding
@@ -85,7 +97,7 @@ for key in list(genes_domains.keys()):
         else:
             tag_adh.append(key)
             adh_dict[strain][1] += f'{key}, '
-            
+        to_retrieve[strain].append(key)
     elif genes_domains[key][0] == ['PF19087']: # and key.split('_')[0] not in ['K2W83', 'LDX55'] and int(key.split('_')[1]) < 1600:
         tag_01250.append(key)
     elif genes_domains[key][0] == ['PF19087']: #and key.split('_')[0] in ['K2W83', 'LDX55'] and int(key.split('_')[1].replace('RS', '')) < 800:
@@ -104,8 +116,24 @@ for strain in strains:
 
     if adh_dict[strain] == ['-', '-']:
         del adh_dict[strain]
+    
+    if to_retrieve[strain] == []:
+        del to_retrieve[strain]
 
 with open(outfile, 'w') as handle:
     handle.write('Strain\tAdhesin_1\tAdhesin_2\n')
     for key in adh_dict.keys():
         handle.write(f'{key}\t{adh_dict[key][0]}\t{adh_dict[key][1]}\n')
+        
+with open(faa_outfile, 'w') as faa_out:
+    for genome in to_retrieve.keys():
+        faa = f'{faa_dir}/{genome}_protein.faa'
+        if genome == 'HNS-8':
+            faa = faa.replace('/faa', '/new_genomes/faa')
+        for record in SeqIO.parse(faa, 'fasta'):
+            if loctag_dict[record.id] in to_retrieve[genome]:
+                record.id = loctag_dict[record.id]
+                record.description = ''
+                SeqIO.write(record, faa_out, 'fasta')
+            
+        
