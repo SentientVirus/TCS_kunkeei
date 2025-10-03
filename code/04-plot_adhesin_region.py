@@ -18,6 +18,7 @@ from pygenomeviz.parser import Genbank as gbk_read
 from Bio import GenBank as gbk
 import os
 import pandas as pd
+import numpy as np
 
 # =============================================================================
 # Color dictionary for strain names
@@ -62,19 +63,18 @@ leaf_color = {'A0901': '#D55E00', 'A1001': '#771853', 'A1002': '#D55E00',
 # =============================================================================
 # Locus tags
 # =============================================================================
-adh1 = ['K2W83_RS00570', 'AAPFHON13_01040', 'AKUFHON2_01050', 
-        'AKUG0102_01050', 'AKUH1B104J_01050', 'AKUH1B105A_00960', 
-        'AKUH3B101A_01040', 'AKUH3B102A_01040', 'AKUH3B104J_01020',
-        'AKUH3B107A_01040', 'AKUH3B109M_01040', 'AKUH3B111M_01040', 
-        'AKUH3B202X_01030', 'AKUH3B203J_01060', 'AKUH3B204J_01040', 
-        'AKUH3B205J_01040', 'AKUH3B208X_01050', 'AKUH4B202J_00960', 
-        'AKUH4B204J_01060', 'AKUH4B412M_01120', 'AKUH4B501J_01120',
-        'AKUH4B502X_01050', 'AKUH4B507X_01040', 'AKUH4B508X_01040',
-        'MUB42_02665']
+adh1 = ['K2W83_RS00570', 'AKUFHON2_01050', 'AKUG0102_01050', 
+        'AKUH1B104J_01050', 'AKUH1B105A_00960', 'AKUH3B101A_01040', 
+        'AKUH3B102A_01040', 'AKUH3B104J_01020', 'AKUH3B107A_01040',
+        'AKUH3B109M_01040', 'AKUH3B111M_01040', 'AKUH3B202X_01030', 
+        'AKUH3B203J_01060', 'AKUH3B204J_01040', 'AKUH3B205J_01040',
+        'AKUH3B208X_01050', 'AKUH4B202J_00960', 'AKUH4B204J_01060', 
+        'AKUH4B412M_01120', 'AKUH4B501J_01120', 'AKUH4B502X_01050', 
+        'AKUH4B507X_01040', 'AKUH4B508X_01040', 'MUB42_02665']
 #Strains that have both adhesins + representatives
 #Use the "product" section of the GeneBank, check that it contains NrdI
 
-adh2 = ['AKUA1805_01330', 'AKUA2101_01330', 'K2W83_RS00655',
+adh2 = ['AAPFHON13_01040', 'AKUA1805_01330', 'AKUA2101_01330', 'K2W83_RS00655',
         'AKUH3B101A_01250', 'AKUH3B102A_01250', 'AKUH3B107A_01250',
         'AKUH3B109M_01240', 'AKUH3B111M_01230', 'AKUH3B202X_01200',
         'AKUH3B202X_01250', 'AKUH3B203J_01270', 'AKUH3B203M_01290', 
@@ -126,6 +126,22 @@ fna_files[-2] = fna_files[-2].replace('/fna', '/new_genomes/fna')
 if not os.path.exists(os.path.dirname(outfig)):
     os.makedirs(os.path.dirname(outfig))
 
+def hex_to_RGB(hex_str):
+    """ #FFFFFF -> [255,255,255]"""
+    #Pass 16 to the integer function for change of base
+    return [int(hex_str[i:i+2], 16) for i in range(1,6,2)]
+
+def get_color_gradient(c1, c2, n): #Taken from https://www.kaggle.com/code/brendanartley/matplotlib-color-gradients
+    """
+    Given two hex colors, returns a color gradient
+    with n colors.
+    """
+    assert n > 1
+    c1_rgb = np.array(hex_to_RGB(c1))/255
+    c2_rgb = np.array(hex_to_RGB(c2))/255
+    mix_pcts = [x/(n-1) for x in range(n)]
+    rgb_colors = [((1-mix)*c1_rgb + (mix*c2_rgb)) for mix in mix_pcts]
+    return ["#" + "".join([format(int(round(val*255)), "02x") for val in item]) for item in rgb_colors]
 
 def get_tabs(fnas, outpath):
     if not os.path.exists(outpath):
@@ -274,6 +290,8 @@ for fna in fna_files: #Loop through strain names in the order dictionary
                 color = color_dict['adh1']
             elif cds.qualifiers['locus_tag'][0] in adh2:
                 color = color_dict['adh2']
+                if cds.qualifiers['locus_tag'][0] == 'AKUH3B202X_01250':
+                    color = '#8DCC70'
             elif 'restriction' in cds.qualifiers['product'][0] or 'nuclease' in cds.qualifiers['product'][0]:
                 color = color_dict['RE']
             if strain == 'Fhon13' and 'product' in cds.qualifiers.keys():
@@ -392,8 +410,9 @@ handles = [
     ]
 
 handles += [
-    Line2D([], [], marker=">", color=color_dict['adh1'], label="Adhesin 1", ms=20, ls="none"),
-    Line2D([], [], marker=">", color=color_dict['adh2'], label="Adhesin 2", ms=20, ls="none"),
+    Line2D([], [], marker=">", color=color_dict['adh1'], label="Adhesin, group 1", ms=20, ls="none"),
+    Line2D([], [], marker=">", color='#8DCC70', label="Adhesin, ambiguous", ms=20, ls="none"),
+    Line2D([], [], marker=">", color=color_dict['adh2'], label="Adhesin, group 2", ms=20, ls="none"),
     Line2D([], [], marker=">", color=color_dict['large'], label="SH3b-containing surface protein", ms=20, ls="none"),
     Line2D([], [], marker=">", color=color_dict['TF'], label="Transcription factor", ms=20, ls="none"),
     Line2D([], [], marker=">", color=color_dict['SK'], label="Sensory kinase", ms=20, ls="none"),

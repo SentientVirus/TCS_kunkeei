@@ -1,3 +1,8 @@
-logs/*
-results/*
-interproscan/*
+# Ignore everything, except for...
+*
+
+# These files
+!.gitignore
+!README
+!LICENSE
+!code/*

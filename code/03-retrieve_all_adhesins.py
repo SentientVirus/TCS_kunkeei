@@ -31,8 +31,17 @@ outfile = os.path.expanduser('~') + '/adhesins/results/adhesin_list.tsv'
 annot_dir = os.path.expanduser('~') + '/adhesins/interproscan/locus_tags'
 faa_dir = os.path.expanduser('~') + '/Akunkeei_files/faa'
 faa_outfile = os.path.expanduser('~') + '/adhesins/sequences/Muc_adhesins.faa'
-
+faa_repset = os.path.expanduser('~') + '/adhesins/sequences/Muc_adhesins_repset.faa'
 prot2loctag = os.path.expanduser('~') + '/adhesins/metadata/prot_id_loctag.tsv'
+
+repr_strains = ['DSMZ12361', 'IBH001', 'GYUN-333', 'HNS-8', 'A0901', 
+                'A1001', 'A1003', 'A1202', 'A1401', 'A1404', 'A1805', 
+                'Fhon2', 'G0102', 'G0403', 'H1B1-04J', 'H1B1-05A', 
+                'H1B3-02M', 'H3B1-11M', 'H3B1-04J', 'H3B1-04X', 'H3B1-03M', #The last one is an extra strain, added because of the plasmid gene
+                'H3B2-02X', 'H3B2-03J', 'H3B2-03M', 'H3B2-06M', 'H3B2-09X', 
+                'H4B1-11J', 'H4B2-02J', 'H4B2-04J', 'H4B2-06J', 'H4B4-02J', 
+                'H4B4-05J', 'H4B4-06M', 'H4B4-12M', 'H4B5-01J', 'H4B5-03X', 
+                'H4B5-04J', 'H4B5-05J', 'MP2', 'Fhon13']
 
 [os.makedirs(os.path.dirname(out)) for out in [outfile, faa_outfile] if not os.path.exists(os.path.dirname(out))]
 # if not os.path.exists(os.path.dirname(outfile)):
@@ -91,7 +100,7 @@ for key in list(genes_domains.keys()):
     elif genes_domains[key][0] == ['PF13632']: #Gtf2
         tag_00520.append(key)
     elif is_sublist(sorted(['PF17966', 'PF17965']), sorted(genes_domains[key][0])) or key == 'AKUH3B104X_PLPX00300': #LPXTG + mucin-binding
-        if ('PLPX' in key or int(key.replace('RS', '').split('_')[1]) < 1200 or 'MUB' in key) and key != 'K2W83_RS00655':
+        if ('PLPX' in key or int(key.replace('RS', '').split('_')[1]) < 1200 or 'MUB' in key) and key not in ['K2W83_RS00655', 'AAPFHON13_01040']:
             tag_01020.append(key)
             adh_dict[strain][0] += f'{key}, '
         else:
@@ -104,7 +113,7 @@ for key in list(genes_domains.keys()):
         tag_01250.append(key)
     elif sorted(genes_domains[key][0]) == sorted(['PF17966', 'PF00746']): #MubB2 + LPXTG
         tag_14310.append(key)
-
+    
 for strain in strains:
     adh_dict[strain][0] = adh_dict[strain][0][:-2]
     adh_dict[strain][1] = adh_dict[strain][1][:-2]
@@ -119,21 +128,27 @@ for strain in strains:
     
     if to_retrieve[strain] == []:
         del to_retrieve[strain]
+        
 
 with open(outfile, 'w') as handle:
-    handle.write('Strain\tAdhesin_1\tAdhesin_2\n')
+    handle.write('Strain\tAdhesin_locus1\tAdhesin_locus2\n')
     for key in adh_dict.keys():
         handle.write(f'{key}\t{adh_dict[key][0]}\t{adh_dict[key][1]}\n')
         
-with open(faa_outfile, 'w') as faa_out:
+with open(faa_outfile, 'w') as faa_out, open(faa_repset, 'w') as faa_rep:
     for genome in to_retrieve.keys():
         faa = f'{faa_dir}/{genome}_protein.faa'
+        check = False
         if genome == 'HNS-8':
             faa = faa.replace('/faa', '/new_genomes/faa')
+        if genome in repr_strains:
+            check = True
         for record in SeqIO.parse(faa, 'fasta'):
             if loctag_dict[record.id] in to_retrieve[genome]:
                 record.id = loctag_dict[record.id]
                 record.description = ''
                 SeqIO.write(record, faa_out, 'fasta')
+                if check:
+                    SeqIO.write(record, faa_rep, 'fasta')
             
         
