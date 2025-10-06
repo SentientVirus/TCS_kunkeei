@@ -17,9 +17,7 @@ import networkx as nx
 import os, re
 import pandas as pd
 import subprocess
-import multiprocessing 
-import time 
-from functools import partial
+import time
 from Bio import SeqIO
 from Bio.Emboss.Applications import NeedleCommandline
 
@@ -36,18 +34,18 @@ def trim_align(file, log, thr = 1): #Change this to trim the existing MAFFT alig
     return outfile
 
 def needle_align_code(query_seq, target_seq):
-    needle_cline = NeedleCommandline(asequence="asis:" + query_seq,
-                                      bsequence="asis:" + target_seq,
+    needle_cline = NeedleCommandline(asequence='asis:' + query_seq,
+                                      bsequence='asis:' + target_seq,
                                       sprotein=True,
-                                      aformat="simple",
+                                      aformat='simple',
                                       gapopen=10,
                                       gapextend=0.5,
                                       outfile='stdout'
                                       )
     out_data, err = needle_cline()
-    out_split = out_data.split("\n")
-    p = re.compile("\((.*)\)")
-    return p.search(out_split[25]).group(1).replace("%", "")
+    out_split = out_data.split('\n')
+    p = re.compile('\((.*)\)')
+    return p.search(out_split[25]).group(1).replace('%', '')
 
 def create_out_tab(out_file: str):
     with open(out_file, 'w') as out:
@@ -79,6 +77,39 @@ def simplify_id(loctag: str):
     new_id = loctag.replace('K2W83_RS', 'DSMZ_').replace('MUB42', 'HNS-8').replace('AKU', '').replace('AAP', '')
     return new_id
              
+def get_length_dict(faa_file):
+    len_dict = {}
+    with open(faa_file) as faa:
+        for record in SeqIO.parse(faa, 'fasta'):
+            len_dict[record.id] = len(record.seq)
+    return len_dict
+
+def perc_ident(aln_file, len_dict, adh_dict, outfile):
+    
+    outpath = os.path.dirname(outfile)
+    if not os.path.exists(outpath):
+        os.makedirs(outpath)
+        
+    per_ident = {}
+    with open(aln_file) as aln:
+        aln_read = list(SeqIO.parse(aln, 'fasta'))
+        for i in range(0, len(aln_read)-1):
+            record1 = aln_read[i]
+            for j in range(1, len(aln_read)):
+                record2 = aln_read[j]
+                id_count = 0
+                min_len = min(len_dict[record1.id], len_dict[record2.id])
+                for k in range(0, len(record1.seq)):
+                    if not (record1.seq[k] == '-' and record2.seq[k] == '-') and record1.seq[k] == record2.seq[k]:
+                        id_count += 1
+                        
+                per_ident[(record1.id, record2.id)] = (id_count/min_len)*100
+                
+    with open(outfile, 'w') as out_handle:
+        out_handle.write('locus1\tlocus2\tsubtypes\t%id\n')
+        [out_handle.write(f'{simplify_id(locid[0])}\t{simplify_id(locid[1])}\t{adh_dict[locid[0]]}/{adh_dict[locid[1]]}\t{per_ident[(locid[0], locid[1])]}\n') for locid in per_ident.keys()]
+    return per_ident
+
 def process_input(infile: str, out_file: str, adh_dict: str, pos_dict: dict):
     outpath = os.path.dirname(out_file)
     if not os.path.exists(outpath):
@@ -103,6 +134,7 @@ outdir = f'{workdir}/plots/network' #Output directory
 adh_file = f'{workdir}/results/adhesin_list.tsv'
 log = f'{workdir}/logs/05-network.log'
 id_dir = f'{workdir}/results/identity' #File with % of identity
+in_faa = f'{workdir}/sequences/Muc_adhesins.faa'
 
 paths = [outdir, id_dir]
 
@@ -124,19 +156,21 @@ for suffix in ['', '_repset']:
     with open(id_file, 'w') as out:
         out.write('')
 
-    # =============================================================================
-    # 3. Run functions to create file with EMBOSS Needle pairwise % of identity
-    # =============================================================================
+# =============================================================================
+# 3. Run functions to create file with EMBOSS Needle pairwise % of identity
+# =============================================================================
 
     pos_dict = {}
     aln_out = trim_align(aln_file, log = log)
+    # id_dict = perc_ident(aln_file, get_length_dict(in_faa), adh_dict, id_file)
     process_input(aln_out, id_file, adh_dict, pos_dict)
 
-    # =============================================================================
-    # 4. Add colors according to gene category
-    # =============================================================================
+# =============================================================================
+# 4. Add colors according to gene category
+# =============================================================================
 
-    color_dict = {'PLPX': '#C6C468', 'CHR1': '#BBE36A', 'CHR2': '#5FB477', 'CHRU': '#8DCC70'} #Dictionary to color nodes by gene type
+    color_dict = {'PLPX': '#C6C468', 'CHR1': '#BBE36A', 'CHR2': '#5FB477', 
+                  'CHRU': '#8DCC70'} #Dictionary to color nodes by gene type
 
     color_edge_dict = {'PLPX': '#BEBD8E', 'CHR1': '#BED294', 'CHR2': '#85B193',  
                        'CHRU': '#A4C496'} #Dictionary to color edges by gene type
@@ -163,9 +197,9 @@ for suffix in ['', '_repset']:
 
     edge_colors = ['#d1d1d1' if tag_dict[edge[0]] != tag_dict[edge[1]] else color_edge_dict[tag_dict[edge[0]]] for edge in list(G.edges())] #Get edge colors (grey if the genes belong to different subtypes)
 
-    # =============================================================================
-    # 3.Plot everything as a network (using the code above)
-    # =============================================================================
+# =============================================================================
+# 5. Plot everything as a network (using the code above)
+# =============================================================================
 
     fig, ax = plt.subplots() #Create plot
     ax.margins(0.1) #Set plot margins
@@ -201,13 +235,13 @@ for suffix in ['', '_repset']:
     # 4. Here I save the network to files
     # =============================================================================
 
-    fig.savefig(network_out, format='svg', dpi=800, pad_inches = 0) #Save network to SVG
-    fig.savefig(network_out.replace('.svg', '.png'), format='png', dpi=800, 
+    fig.savefig(network_out, format = 'svg', dpi = 800, pad_inches = 0) #Save network to SVG
+    fig.savefig(network_out.replace('.svg', '.png'), format = 'png', dpi = 800, 
                 pad_inches = 0) #Save network to PNG
-    fig.savefig(network_out.replace('.svg', '.tiff'), format='tiff', dpi=800, 
-                pad_inches = 0) #Save netwoek to TIFF
-    fig.savefig(network_out.replace('.svg', '.pdf'), format='pdf', dpi=800, 
-                pad_inches = 0) #Save netwoek to PDF
+    fig.savefig(network_out.replace('.svg', '.tiff'), format = 'tiff', dpi = 800, 
+                pad_inches = 0) #Save network to TIFF
+    fig.savefig(network_out.replace('.svg', '.pdf'), format = 'pdf', dpi = 800, 
+                pad_inches = 0) #Save network to PDF
 
     end_time = time.time() - start_time
     print(f'This script took {end_time/60:2f} minutes.')

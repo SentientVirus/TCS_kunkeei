@@ -4,4 +4,4 @@ mkdir -p $(dirname -- $outbase)
 echo $infile
 echo $outbase
 
-cd-hit -i $infile -o $outbase -c 0.9 -aL 0.2 -aS 0.9 -g 1
+cd-hit -i $infile -o $outbase -c 0.8 -aL 0.2 -aS 0.9 -g 1
