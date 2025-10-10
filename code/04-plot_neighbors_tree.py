@@ -63,7 +63,7 @@ outdir = f'{workdir}/plots/trees' #Path where outputs will be saved
 if not os.path.exists(outdir): #Create output directory if it does not exist
    os.makedirs(outdir)
    
-genes = ['sasA', 'efpA']
+genes = ['sasA', 'efpA', 'tetR', 'ipdC']
 suffixes = ['', '_repset']
 treefiles = [f'{workdir}/trees/{gene}{suffix}.mafft.faa.treefile' for gene in genes for suffix in suffixes]
    
