@@ -1,20 +1,21 @@
-infile=~/adhesins/sequences/Muc_adhesins.faa
-infile2=~/adhesins/sequences/Muc_adhesins_repset.faa
-infiles=($infile $infile2)
+indir=~/adhesins/sequences/adhesins
+outdir=~/adhesins/alignments/adhesins
 logfile=~/adhesins/logs/04-align_sequences.log
-treedir=~/adhesins/trees
+treedir=~/adhesins/trees/adhesins
 threads=8
 
 mkdir -p $(dirname -- $logfile)
+mkdir -p $outdir
 mkdir -p $treedir
 
 > $logfile
 
-for file in ${infiles[@]};
+for file in $indir/*.faa;
 do
-outfile=$(echo $file | cut -d'.' -f 1).mafft.$(echo $file | cut -d'.' -f 2)
+outfile=$(basename -- $file)
+outfile=$outdir/$(echo $outfile | cut -d'.' -f 1).mafft.$(echo $file | cut -d'.' -f 2)
 
-echo 'Input: '$infile
+echo 'Input: '$file
 echo 'Output: '$outfile
 echo 'Log: '$logfile
 

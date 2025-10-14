@@ -59,66 +59,72 @@ leaf_color = {'A0901': '#D55E00', 'A1001': '#771853', 'A1002': '#D55E00',
               'DSMZ': '#0072B2', 'HNS-8': 'black', 'FHON13': '#79443B'}
 
 workdir = os.path.expanduser('~') + '/adhesins' #Working directory
-treefile1 = f'{workdir}/trees/Muc_adhesins.mafft.faa.treefile' #Path to the tree file for all adhesins
-treefile2 = f'{workdir}/trees/Muc_adhesins_repset.mafft.faa.treefile' #Path to the tree file for representative sequences
-outdir = f'{workdir}/plots/trees' #Path where outputs will be saved
+outdir = f'{workdir}/plots/trees/adhesins' #Path where outputs will be saved
 
 if not os.path.exists(outdir): #Create output directory if it does not exist
    os.makedirs(outdir)
    
-# =============================================================================
-# 2. Loop through tree files and generate output plot
-# =============================================================================
+prot_types = ['MucBP+LPXTG', 'MubB2+LPXTG', 'Gtf2', 'collagen-binding', 'SH3b']
 
-for treefile in [treefile1, treefile2]:
-    outfile = f'{outdir}/{os.path.basename(treefile).split(".")[0]}_support_tree.png' #Set the name of the output
+for prot_type in prot_types:
+    treefile1 = f'{workdir}/trees/adhesins/{prot_type}.mafft.faa.treefile' #Path to the tree file for all adhesins
+    treefile2 = f'{workdir}/trees/adhesins/{prot_type}_repset.mafft.faa.treefile' #Path to the tree file for representative sequences
+       
+    # =============================================================================
+    # 2. Loop through tree files and generate output plot
+    # =============================================================================
     
-    t = Tree(treefile, format = 0) #Load the tree file into a tree object
-    
-    midpoint = t.get_midpoint_outgroup() #Retrieve midpoint
-    t.set_outgroup(midpoint) #Use it to root the tree
-    
-    ts = TreeStyle() #Create tree style object
-    ts.show_branch_length = False #Hide branch lengths
-    ts.show_branch_support = False #Hide branch supports to add formatted text
-    ts.show_leaf_name = False #Hide leaf names to add formatted tex
-    ts.scale = 1000 #Set the scale of the tree
-    ts.scale_length = 0.2 #Set the length of the legend scale bar
-    
-    ns = NodeStyle() #Create node style
-    ns['size'] = 0 #Hide nodes
-    ns['vt_line_width'] = 5 #Set width of vertical lines
-    ns['hz_line_width'] = 5 #Set width of horizontal lines
-    ns['hz_line_type'] = 0 #Horizontal lines will be solid lines
-    
-    for n in t.traverse(): #Loop through nodes in the tree
-       n.set_style(ns) #Apply the style to each node
-       if n not in t.get_leaves() and n.support >= 50: #If the node is not a leaf and support bigger or equal than 50%
-           if n.support >= 95: #If the node support is bigger or equal than 95%
-               color = 'black' #Color the support in black
-           else: color = 'dimgrey' #Otherwise, color the support in grey
-           support_face = TextFace(int(n.support), fgcolor = color, #Create text for support values and set its color
-                                   ftype = 'Arial', fsize = 30) #Sent font type and size
-           n.add_face(support_face, column = 0, position = 'branch-top') #Add the text to the node
-                    
-    for leaf in t.get_leaves(): #Loop through the leaves in the tree
-        nleaf = leaf.name #Retrieve the leaf name
-        if 'LDX55' in nleaf: #If the leaf name contains this string
-            nleaf = nleaf.replace('LDX55', 'IBH001') #Change the string to IBH001
-        elif 'APS55' in nleaf: #Same for MP2
-            nleaf = nleaf.replace('APS55_RS', 'MP2_')
-        elif 'K2W83' in leaf.name: #Same for DSMZ
-            nleaf = nleaf.replace('K2W83_RS', 'DSMZ_')
-        elif 'MUB42' in leaf.name:
-            nleaf = nleaf.replace('MUB42', 'HNS-8')
-        else: nleaf = nleaf[3:]
-            
-        color = leaf_color.get(nleaf.split('_')[0], None) #Retrieve the color getting the strain name from the locus tag
-        name_face = TextFace(nleaf, fgcolor = color, ftype = 'Arial', 
-                             fsize = 40) #Create a text face with the locus tag, colored by phylogroup 
-        leaf.add_face(name_face, column = 0, position = 'branch-right') #Add the locus tag to the leaf
+    for treefile in [treefile1, treefile2]:
+        outfile = f'{outdir}/{os.path.basename(treefile).split(".")[0]}_support_tree.png' #Set the name of the output
         
-    t.ladderize(1) #Change the arrangement of the nodes in the tree so that the root is at the bottom
-    t.render(outfile, tree_style = ts) #Save the output plot to PNG
-    t.render(outfile.replace('png', 'tiff'), tree_style = ts) #Save the plot to TIFF
-    t.render(outfile.replace('png', 'svg'), tree_style = ts) #Save the plot to SVG
+        t = Tree(treefile, format = 0) #Load the tree file into a tree object
+        
+        midpoint = t.get_midpoint_outgroup() #Retrieve midpoint
+        t.set_outgroup(midpoint) #Use it to root the tree
+        
+        ts = TreeStyle() #Create tree style object
+        ts.show_branch_length = False #Hide branch lengths
+        ts.show_branch_support = False #Hide branch supports to add formatted text
+        ts.show_leaf_name = False #Hide leaf names to add formatted tex
+        ts.scale = 1000 #Set the scale of the tree
+        ts.scale_length = 0.2 #Set the length of the legend scale bar
+        
+        ns = NodeStyle() #Create node style
+        ns['size'] = 0 #Hide nodes
+        ns['vt_line_width'] = 5 #Set width of vertical lines
+        ns['hz_line_width'] = 5 #Set width of horizontal lines
+        ns['hz_line_type'] = 0 #Horizontal lines will be solid lines
+        
+        for n in t.traverse(): #Loop through nodes in the tree
+           n.set_style(ns) #Apply the style to each node
+           if n not in t.get_leaves() and n.support >= 50: #If the node is not a leaf and support bigger or equal than 50%
+               if n.support >= 95: #If the node support is bigger or equal than 95%
+                   color = 'black' #Color the support in black
+               else: color = 'dimgrey' #Otherwise, color the support in grey
+               support_face = TextFace(int(n.support), fgcolor = color, #Create text for support values and set its color
+                                       ftype = 'Arial', fsize = 30) #Sent font type and size
+               n.add_face(support_face, column = 0, position = 'branch-top') #Add the text to the node
+                        
+        for leaf in t.get_leaves(): #Loop through the leaves in the tree
+            nleaf = leaf.name #Retrieve the leaf name
+            if 'LDX55' in nleaf: #If the leaf name contains this string
+                nleaf = nleaf.replace('LDX55', 'IBH001') #Change the string to IBH001
+            elif 'APS55' in nleaf: #Same for MP2
+                nleaf = nleaf.replace('APS55_RS', 'MP2_')
+            elif 'K2W83' in leaf.name: #Same for DSMZ
+                nleaf = nleaf.replace('K2W83_RS', 'DSMZ_')
+            elif 'VQ058' in leaf.name: #And for GYUN-333
+                nleaf = nleaf.replace('VQ058_RS', 'GYUN-333_')
+            elif 'MUB42' in leaf.name:
+                nleaf = nleaf.replace('MUB42', 'HNS-8')
+            else: nleaf = nleaf[3:]
+                
+            color = leaf_color.get(nleaf.split('_')[0], None) #Retrieve the color getting the strain name from the locus tag
+            name_face = TextFace(nleaf, fgcolor = color, ftype = 'Arial', 
+                                 fsize = 40) #Create a text face with the locus tag, colored by phylogroup 
+            leaf.add_face(name_face, column = 0, position = 'branch-right') #Add the locus tag to the leaf
+            
+        t.ladderize(1) #Change the arrangement of the nodes in the tree so that the root is at the bottom
+        t.render(outfile, tree_style = ts) #Save the output plot to PNG
+        t.render(outfile.replace('png', 'tiff'), tree_style = ts) #Save the plot to TIFF
+        t.render(outfile.replace('png', 'svg'), tree_style = ts) #Save the plot to SVG
