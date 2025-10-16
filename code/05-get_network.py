@@ -250,7 +250,7 @@ paths = [outdir, id_dir, adh_path]
 [os.makedirs(path) for path in paths if not os.path.exists(path)]
 
 ident = 80 #Threshold percentage of identity
-threads = 48
+threads = 24
 colors = ['green', 'blue', 'red', 'gray', 'orange']
 adh_types = ['MucBP+LPXTG', 'MubB2+LPXTG', 'Gtf2', 'collagen-binding', 'SH3b']
 

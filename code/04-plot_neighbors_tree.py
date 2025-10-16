@@ -59,13 +59,14 @@ leaf_color = {'A0901': '#D55E00', 'A1001': '#771853', 'A1002': '#D55E00',
               'DSMZ': '#0072B2', 'HNS-8': 'black', 'FHON13': '#79443B'}
 
 workdir = os.path.expanduser('~') + '/adhesins' #Working directory
-outdir = f'{workdir}/plots/trees' #Path where outputs will be saved
+outdir = f'{workdir}/plots/trees/MucBP_neighbors' #Path where outputs will be saved
+
 if not os.path.exists(outdir): #Create output directory if it does not exist
    os.makedirs(outdir)
    
 genes = ['sasA', 'efpA', 'tetR', 'ipdC']
 suffixes = ['', '_repset']
-treefiles = [f'{workdir}/trees/{gene}{suffix}.mafft.faa.treefile' for gene in genes for suffix in suffixes]
+treefiles = [f'{workdir}/trees/MucBP_neighbors/{gene}{suffix}.mafft.faa.treefile' for gene in genes for suffix in suffixes]
    
 # =============================================================================
 # 2. Loop through tree files and generate output plot

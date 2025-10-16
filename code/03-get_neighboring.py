@@ -24,7 +24,7 @@ workdir = os.path.expanduser('~') + '/adhesins'
 outseqs = f'{workdir}/sequences/MucBP_neighbors'
 outdir = outseqs.replace('sequences', 'alignments')
 log = f'{workdir}/logs/03-get_neighboring_trees.log'
-tree_dir = f'{workdir}/trees'
+tree_dir = f'{workdir}/trees/MucBP_neighbors'
 threads = 8
 
 repr_strains = ['DSMZ12361', 'IBH001', 'GYUN-333', 'HNS-8', 'A0901', 
@@ -71,7 +71,7 @@ tetR_tags = ['K2W83_RS00575', 'AKUFHON2_01060', #'AAPFHON13_00970',
               'MUB42_02670']
         
 
-[os.makedirs(out_dir) for out_dir in [outseqs, outdir] if not os.path.exists(out_dir)]
+[os.makedirs(out_dir) for out_dir in [outseqs, outdir, tree_dir] if not os.path.exists(out_dir)]
 
 sasA_loctags = ['']
 suffixes = ['', '_repset']

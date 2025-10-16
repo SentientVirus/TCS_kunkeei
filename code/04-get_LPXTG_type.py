@@ -16,7 +16,9 @@ workdir = os.path.expanduser('~') + '/adhesins'
 indir = f'{workdir}/sequences/adhesins'
 outdir = f'{workdir}/results/adhesin_lists'
 
-infiles = [f'{indir}/{file}' for file in os.listdir(indir) if 'LPXTG' in file and file.endswith('.faa')]
+adhesins = ['MucBP+LPXTG', 'MubB2+LPXTG']
+
+infiles = [f'{indir}/{adhesin}.faa' for adhesin in adhesins]
 
 for infile in infiles:
     type_dict = {}
@@ -25,10 +27,6 @@ for infile in infiles:
     with open(infile) as handle:
         for record in SeqIO.parse(handle, 'fasta'):
             LPXTG_motif = re.findall(r'LP(.{1,1})TG', str(record.seq))
-            # for motif in LPXTG_motif:
-            #     if motif is not None:
-            #         motif_seq = motif.group(0) #Retrieve motif sequence
-            #         print(motif_seq)
             if len(LPXTG_motif) == 1:
                 motif = LPXTG_motif[0]
             elif len(LPXTG_motif) == 0:
