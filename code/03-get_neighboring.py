@@ -21,7 +21,8 @@ start_time = time.time()
 
 inpath = os.path.expanduser('~') + '/Akunkeei_files/gbff'
 workdir = os.path.expanduser('~') + '/adhesins'
-outseqs = f'{workdir}/sequences'
+outseqs = f'{workdir}/sequences/MucBP_neighbors'
+outdir = outseqs.replace('sequences', 'alignments')
 log = f'{workdir}/logs/03-get_neighboring_trees.log'
 tree_dir = f'{workdir}/trees'
 threads = 8
@@ -70,6 +71,8 @@ tetR_tags = ['K2W83_RS00575', 'AKUFHON2_01060', #'AAPFHON13_00970',
               'MUB42_02670']
         
 
+[os.makedirs(out_dir) for out_dir in [outseqs, outdir] if not os.path.exists(out_dir)]
+
 sasA_loctags = ['']
 suffixes = ['', '_repset']
 [open(f'{outseqs}/{gene}{suffix}.faa', 'w') for gene in genes for suffix in suffixes]
@@ -114,7 +117,7 @@ for file in infiles:
                                 
                             
 for file in [f'{outseqs}/{gene}{suffix}.faa' for gene in genes for suffix in suffixes]:
-    outfile = file.replace('.faa', '.mafft.faa')
+    outfile = file.replace('.faa', '.mafft.faa').replace('sequences', 'alignments')
     subprocess.run(f'mafft-linsi --thread {threads} {file} > {outfile} 2>> {log};',
                     shell = True)
     subprocess.run(f'iqtree -nt AUTO -ntmax {threads} -redo -s {outfile} -st AA -msub nuclear -bb 1000 -bnni >> {log}', 

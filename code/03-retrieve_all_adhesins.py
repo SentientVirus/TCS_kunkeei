@@ -193,8 +193,12 @@ for adhesin in adhesins:
                 if not (adh1_string == '-' and adh2_string == '-'): 
                     handle.write(f'{strain}\t{adh1_string}\t{adh2_string}\n')
             elif adhesin == 'MubB2+LPXTG':
+                rev = False
+                if strain == 'MP2':
+                    rev = True
                 adhs = [adh for adh in adh_dict[strain] if adh.ref_locus == 'AKUH3B104J_14310']
-                adhs.sort(key=lambda x: x.locus_tag)
+                adhs.sort(key=lambda x: x.locus_tag, reverse = rev)
+
                 if len(adhs) == 2:
                     handle.write(f'{strain}\t{adhs[0].locus_tag}\t{adhs[1].locus_tag}\t-\n')
                 elif len(adhs) > 0 and strain in exclude:
