@@ -133,6 +133,17 @@ def process_input(infile: str, out_file: str, adh_dict: str, pos_dict: dict):
                 pos_dict[(id1, id2)] = perc_ident
                 with open(out_file, 'a') as out:
                     out.write(f'{id1}\t{id2}\t{adh_name}\t{perc_ident}\n')
+    return pos_dict
+                    
+color_dict = {'PLPX': '#C6C468', 'CHR1': '#BBE36A', 'CHR2': '#5FB477', 
+              'CHRU': '#8DCC70', 'SH3b': '#037971', 'Gtf2': '#5BC0EB', 
+              'collagen-binding': '#3A1772', 'MUB1': '#DF2935', 
+              'MUB2': '#FF9D3B', 'MUB3': '#FDCA40'} #Dictionary to color nodes by gene type
+
+color_edge_dict = {'PLPX': '#BEBD8E', 'CHR1': '#BED294', 'CHR2': '#85B193',  
+                   'CHRU': '#A4C496', 'SH3b': '#51A9A3', 'Gtf2': '#9DCBDF', 
+                   'collagen-binding': '#6F46B0', 'MUB1': '#D27E84', 
+                   'MUB2': '#E7BA8D', 'MUB3': '#E6CF8E'} #Dictionary to color edges by gene type
 
 # =============================================================================
 # 2. Define the paths to input and output files
@@ -171,24 +182,12 @@ for i in range(len(adh_types)):
     # 3. Run functions to create file with EMBOSS Needle pairwise % of identity
     # =============================================================================
     
-        pos_dict = {}
         aln_out = trim_align(aln_file, log = log)
-        # id_dict = perc_ident(aln_file, get_length_dict(in_faa), adh_dict, id_file)
-        process_input(aln_out, id_file, adh_dict, pos_dict)
+        pos_dict = process_input(aln_out, id_file, adh_dict, pos_dict = {})
     
     # =============================================================================
     # 4. Add colors according to gene category
     # =============================================================================
-    
-        color_dict = {'PLPX': '#C6C468', 'CHR1': '#BBE36A', 'CHR2': '#5FB477', 
-                      'CHRU': '#8DCC70', 'SH3b': '#037971', 'Gtf2': '#5BC0EB', 
-                      'collagen-binding': '#3A1772', 'MUB1': '#DF2935', 
-                      'MUB2': '#FF9D3B', 'MUB3': '#FDCA40'} #Dictionary to color nodes by gene type
-    
-        color_edge_dict = {'PLPX': '#BEBD8E', 'CHR1': '#BED294', 'CHR2': '#85B193',  
-                           'CHRU': '#A4C496', 'SH3b': '#51A9A3', 'Gtf2': '#9DCBDF', 
-                           'collagen-binding': '#6F46B0', 'MUB1': '#D27E84', 
-                           'MUB2': '#E7BA8D', 'MUB3': '#E6CF8E'} #Dictionary to color edges by gene type
     
         with open(id_file) as reader: #Open input file
             df = pd.read_csv(reader, sep = '\t') #Load file contents as a dataframe
