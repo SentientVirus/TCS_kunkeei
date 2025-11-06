@@ -17,4 +17,3 @@ cat $index_file > $outfile;
 
 # Index genome
 bwa index $outfile
-hisat2-build $outfile ${outfile::-4};

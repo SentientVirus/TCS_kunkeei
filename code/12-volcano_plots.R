@@ -104,8 +104,24 @@ vollabels <- res$gene_name # Get gene names
 
 # Label genes of interest manually
 vollabels["AKUH3B104J_00510" == rownames(res)] <- "adhesin_510"  
-vollabels["AKUH3B104J_00520" == rownames(res)] <- "gtf2_520"  
-vollabels["AKUH3B104J_01020" == rownames(res)] <- "adhesin_1020"  
+vollabels["AKUH3B104J_00520" == rownames(res)] <- "GT2_520"  
+vollabels["AKUH3B104J_01020" == rownames(res)] <- "adhesin_1020"
+vollabels["AKUH3B104J_12990" == rownames(res)] <- "GS"
+vollabels["AKUH3B104J_13000" == rownames(res)] <- "BrS_13000"
+vollabels["AKUH3B104J_13010" == rownames(res)] <- "BrS_13010"
+vollabels["AKUH3B104J_13020" == rownames(res)] <- "GS-BrS"
+vollabels["AKUH3B104J_13060" == rownames(res)] <- "wzx"
+vollabels["AKUH3B104J_13070" == rownames(res)] <- "MFS_13070"
+vollabels["AKUH3B104J_13080" == rownames(res)] <- "wzy"
+vollabels["AKUH3B104J_13090" == rownames(res)] <- "GT14_13090"
+vollabels["AKUH3B104J_13100" == rownames(res)] <- "GT14_13100"
+vollabels["AKUH3B104J_13110" == rownames(res)] <- "GT2_13110"
+vollabels["AKUH3B104J_13120" == rownames(res)] <- "GT1_13120"
+vollabels["AKUH3B104J_13130" == rownames(res)] <- "epsE"
+vollabels["AKUH3B104J_13140" == rownames(res)] <- "epsD"
+vollabels["AKUH3B104J_13150" == rownames(res)] <- "epsC"
+vollabels["AKUH3B104J_13160" == rownames(res)] <- "epsB"
+vollabels["AKUH3B104J_13170" == rownames(res)] <- "epsA"
 vollabels["AKUH3B104J_14310" == rownames(res)] <-  "adhesin_14310"
 vollabels["AKUH3B104J_PKUN00040" == rownames(res)] <- "kukA"
 
@@ -155,7 +171,7 @@ volcanoplot <- ggplot(data = res, aes(x = log2FoldChange, y = yval, col = keyval
   geom_vline(xintercept = c(-0.5, 0.5), col = "gray", linetype = "dashed") + # Add dashed line to show log2FC < 0.5
   geom_hline(yintercept = -log10(1e-5), col = "gray", linetype = "dashed") + # Add dashed line for p-value > 1e-5
   geom_point(aes(size = size_vector, shape = sign_shape, fill = keyvals.col), alpha = 0.6, stroke = 0.5, color = "darkorchid") + # Line the size, shape, color (fill + border) and stroke of the points
-  geom_label_repel(max.overlaps = Inf, show_guide = FALSE, color = "black", 
+  geom_label_repel(max.overlaps = Inf, color = "black", #show_guide = FALSE,  
         size = 3, box.padding = 0.4, fontface = "bold.italic") + # Add label boxes
   scale_shape_manual(values = shapes[order(shapes)], guide = "none") + # Set point shapes
   theme_light() + # Set point size and overall graph appearance

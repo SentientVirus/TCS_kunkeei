@@ -10,8 +10,7 @@ sink(con, append = TRUE)
 list.of.packages <- c("BiocManager")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages, repos='http://cran.us.r-project.org');
-
-to_install <- c("DESeq2", "ggplot2", "stringr", "apeglm", "pheatmap", "ggrepel", "ape")
+to_install <- c("DESeq2", "GenomeInfoDbData", "ggplot2", "stringr", "apeglm", "pheatmap", "ggrepel", "ape")
 new.packages <- to_install[!(to_install %in% installed.packages()[,"Package"])]
 for (package in new.packages){
   BiocManager::install(package);
@@ -98,10 +97,18 @@ for (value2 in c(new_annot$OX335197$product, new_annot$OX335198$product)){ #Loop
 }
 
 # Annotations to replace manually
-to_replace <- c("H3B104J_00510", "H3B104J_00520", "H3B104J_01020", 
-                "H3B104J_13020", "H3B104J_14310", "H3B104J_PKUN00040")
-replacement <- c("adhesin_510", "adhesin_520", "adhesin_1020", "GS2_BRS",
-                 "adhesin_14310", "kukA")
+to_replace <- c("H3B104J_00510", "H3B104J_00520", "H3B104J_01020",
+                "H3B104J_12990", "H3B104J_13000", "H3B104J_13010",
+                "H3B104J_13020", "H3B104J_13060", "H3B104J_13070",
+                "H3B104J_13080", "H3B104J_13090", "H3B104J_13100",
+                "H3B104J_13110", "H3B104J_13120", "H3B104J_13130",
+                "H3B104J_13140", "H3B104J_13150", "H3B104J_13160",
+                "H3B104J_13170", "H3B104J_14310", "H3B104J_PKUN00040")
+replacement <- c("adhesin_510", "GT2_520", "adhesin_1020", "GS", "BrS_13000",
+                 "BrS_13010", "GS-BrS", "wzx", "MFS_13070", "wzy", 
+                 "GT14_13090", "GT14_13100", "GT2_13110", "GT1_13120", "epsE", 
+                 "epsD", "epsC", "epsB", "epsA", "adhesin_14310", 
+                 "kukA")
 
 #=============================================================================#
 # 3. Read counts and create metadata                                          #
@@ -242,11 +249,11 @@ get_annot <- function(res_df, loci, annotation, descriptions, prefix = ""){ #Def
 vsd_info <- get_annot(vsd_htmp, loctags, annots, products, "AKU")
 
 flog.info("Add annotations to heatmap")
-#Change the row names of the genes that are not hypothetical proteins to their annotations
-rownames(vsd_htmp) <- ifelse(!vsd_info[, 1] == "-", vsd_info[, 1], rownames(vsd_htmp))
-
 # Replace the locus tags to the manual annotations
 rownames(vsd_htmp)[which(rownames(vsd_htmp) %in% to_replace)] <- replacement
+
+#Change the row names of the genes that are not hypothetical proteins to their annotations
+rownames(vsd_htmp) <- ifelse(!vsd_info[, 1] == "-", vsd_info[, 1], rownames(vsd_htmp))
 
 flog.info("Save global heatmap")
 png(file = heatplot, width = 600, height = 400); #Create PNG file
@@ -365,10 +372,9 @@ rownames(vsd_subset) <- str_sub(rownames(vsd_subset), 4, -1) #Remove "AKU" from 
 
 # Get annotations for each locus tag
 vsd_info <- get_annot(vsd_subset, loctags, annots, products, "AKU") #Retrieve annotations and product descriptions
-rownames(vsd_subset) <- ifelse(!vsd_info[, 1] == "-", vsd_info[, 1], rownames(vsd_subset)) #Change the label of the genes from the locus tag to the annotations when the protein is not hypothetical
-
 # Replace locus tag for manual annotations
 rownames(vsd_subset)[which(rownames(vsd_subset) %in% to_replace)] <- replacement
+rownames(vsd_subset) <- ifelse(!vsd_info[, 1] == "-", vsd_info[, 1], rownames(vsd_subset)) #Change the label of the genes from the locus tag to the annotations when the protein is not hypothetical
 
 # Save heatmap to files
 png(file = snakemake@output[["heatmap"]][2*i+1], width = 600, height = 400) 
