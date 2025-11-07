@@ -1,13 +1,8 @@
-#files/*
-#results/*
-#logs/*
-#plots/*
-#metadata/*
-#reports/*
-#*/old*
-#notes/*
-#.*
 *
 !code/*
 !*/
 code/.*
+!README.md
+!Snakefile
+!config.yml
+.*
