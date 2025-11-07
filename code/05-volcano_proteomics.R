@@ -212,7 +212,7 @@ volcanoplot <- ggplot(data = res, aes(x = xax, y = yval, col = keyvals.col, labe
   geom_vline(xintercept = c(-0.5, 0.5), col = "gray", linetype = "dashed") + # Add dashed line to show log2FC < 0.5
   geom_hline(yintercept = 1, col = "gray", linetype = "dashed") + # Add dashed line for p-value > 1
   geom_point(aes(size = size_vector, shape = sign_shape, fill = keyvals.col), alpha = 0.6, stroke = 0.5, color = "darkorchid") + # Apply the size, shape, color (fill + border) and stroke of the points
-  geom_label_repel(box.padding = 0.4, min.segment.length = 0, max.overlaps = Inf, show_guide = FALSE, color = "black", alpha = 0.7,
+  geom_label_repel(box.padding = 0.4, min.segment.length = 0, max.overlaps = Inf, show.legend = FALSE, color = "black", alpha = 0.7,
         size = 3, fontface = "bold", seed = 1, nudge_x = -0.4, nudge_y = 0.2) + # Add label boxes
   scale_shape_manual(values = shapes[order(shapes)], guide = "none") + # Set point shapes
   theme_light() + # Set point size and overall graph appearance

@@ -1,0 +1,16 @@
+name: default
+channels:
+- conda-forge
+- https://conda.anaconda.org/predector
+- https://conda.anaconda.org/bioconda
+- nodefaults
+dependencies:
+- python >=3.13.9,<3.14
+- pandas >=2.3.3,<3
+- spyder >=6.1.0,<7
+- predector::phobius >=1.1,<2
+- snakemake >=9.13.5,<10
+- conda-forge::biopython >=1.86,<2
+- conda-forge::openpyxl >=3.1.5,<4
+- bioconda::pybiolib >=1.2.1293,<2
+

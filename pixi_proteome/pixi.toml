@@ -1,0 +1,29 @@
+[workspace]
+authors = ["Marina <marina.motamerlo@icm.uu.se>"]
+channels = ["conda-forge", "https://conda.anaconda.org/predector", "https://conda.anaconda.org/bioconda"]
+name = "pixi_proteome"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+python = ">=3.13.9,<3.14"
+pandas = ">=2.3.3,<3"
+spyder = ">=6.1.0,<7"
+phobius = { version = ">=1.1,<2", channel = "predector" }
+snakemake = ">=9.13.5,<10"
+biopython = { version = ">=1.86,<2", channel = "conda-forge" }
+openpyxl = { version = ">=3.1.5,<4", channel = "conda-forge" }
+pybiolib = { version = ">=1.2.1293,<2", channel = "bioconda" }
+
+[feature.renv.dependencies]
+r-base = { channel = "conda-forge" }
+r-ape = { channel = "conda-forge" }
+r-biocmanager = { channel = "conda-forge" }
+bioconductor-deseq2 = { channel = "bioconda" }
+bioconductor-apeglm = { channel = "bioconda" }
+r-stringr = { channel = "conda-forge" }
+
+[environments]
+renv = ["renv"]

@@ -24,7 +24,7 @@ rule parse_MS:
         exp2 = "files/MS-24-038_MaxQuant_results.xlsx",
         gbk = os.path.expanduser("~") + "/Akunkeei_files/gbff/H3B1-04J_genomic.gbff"
     params: outdir = "files/parsed"
-    conda: "envs/python_env.yml"
+    conda: "pixi_proteome/default.yml"
     log: "logs/01-parse_MS.log"
     script:
         "code/01-parse_proteomics.py"
@@ -39,7 +39,7 @@ rule add_SignalP:
         gbk = os.path.expanduser("~") + "/Akunkeei_files/gbff/H3B1-04J_genomic.gbff",
         signalP = "results/SignalP/prediction_results.txt" #Generated from the web server
     params: outdir = "files/loci"
-    conda: "envs/python_env.yml"
+    conda: "pixi_proteome/default.yml"
     log: "logs/02-add_SignalP.log"
     script:
         "code/02-add_SP_loctags.py"
@@ -53,7 +53,7 @@ rule DeepTMHMM:
     input:
         proteins = os.path.expanduser("~") + "/Akunkeei_files/faa/H3B1-04J_protein.faa"
     params: outdir = "results/DeepTMHMM"
-    conda: "envs/python_env.yml"
+    conda: "pixi_proteome/default.yml"
     log: "logs/03-run_DeepTMHMM.log"
     script:
         "code/03-run_DeepTMHMM.py"
@@ -64,7 +64,7 @@ rule Phobius:
         "results/Phobius/H3B1-04J_phobius.txt"
     input:
         os.path.expanduser("~") + "/Akunkeei_files/faa/H3B1-04J_protein.faa"
-    conda: "envs/python_env.yml"
+    conda: "pixi_proteome/default.yml"
     log: "logs/03-run_Phobius.log"
     shell:
         "bash code/03-run_Phobius.sh {input} {output} {log}"
@@ -79,7 +79,7 @@ rule combine_TMHMM:
         Phobius = "results/Phobius/H3B1-04J_phobius.txt",
         DeepTMHMM = "results/DeepTMHMM/TMRs.gff3",
         sample_in = expand("files/loci/{comparison}.tsv", comparison = comparisons)
-    conda: "envs/python_env.yml"
+    conda: "pixi_proteome/default.yml"
     log: "logs/04-combine_TMH_predictions.log"
     script:
         "code/04-combine_TMH_predictions.py"
@@ -91,7 +91,7 @@ rule volcano:
         plots = expand("plots/{comparison}.png", comparison = comparisons_DE)
     input:
         infiles = expand("files/loci/{comparison}.tsv", comparison = comparisons_DE)
-    conda: "envs/renv.yml"
+    conda: "pixi_proteome/renv.yml"
     log: "logs/05-volcano_plot.log"
     script:
         "code/05-volcano_proteomics.R"

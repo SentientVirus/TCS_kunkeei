@@ -1,5 +1,6 @@
 *
 !code/*
+!pixi_proteome/*
 !*/
 code/.*
 !README.md
