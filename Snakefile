@@ -14,6 +14,7 @@ rule all:
         phase_finder = "results/PhaseFinder/H3B1-04J_genomic.tab",
         pgvmauve = "results/pmauve/Flye/result.png",
         pgmauve_NGI = "results/pmauve/NGI/result.png",
+        pgamuve_combined = "results/pmauve/combined/result.png",
         bam = expand("results/bam/{no}.bam", no = ["01", "02", "09", "10"])
 
 ##First step, running Flye to get the genomes with plasmids
@@ -126,7 +127,7 @@ rule pgv_mauve_seq:
         "results/pmauve/NGI/result.png"
     input:
         og_strain = os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna",
-        new_seqs = expand("data/fixed_ori/fixed_ori{i}.fasta", i = ["1", "2", "3", "4"])
+        new_seqs = expand("assemblies/NGI/fixed_ori/{i}.fasta", i = ["01", "02", "09", "10"])
     log: "logs/04b-pmauve.log"
     conda: "pixi_genome/genome_analysis.yml"
     script: "code/04-pgvmauve.py"
@@ -167,67 +168,67 @@ rule combine_assemblies:
 ##Prokka annotations
 rule prokka_annot:
     output:
-        expand("results/annotations/sample{i}.{ext}", i = ["1", "2", "3", "4"], ext = ["err", "gbk", "gff", "faa", "fna", "ffn", "fsa", "log", "sqn", "tbl", "tsv", "txt"])
+        expand("results/annotations/prokka/{i}.{ext}", i = ["01", "02", "09", "10"], ext = ["err", "gbk", "gff", "faa", "fna", "ffn", "fsa", "log", "sqn", "tbl", "tsv", "txt"])
     input:
         protein_list = os.path.expanduser("~") + "/Akunkeei_files/faa/H3B1-04J_protein.faa",
-        assemblies = expand("data/fixed_ori/fixed_ori{i}.fasta", i = ["1", "2", "3", "4"])
-    log: "logs/03-prokka.log"
-    conda: "envs/genome_analysis_env.yml"
+        assemblies = expand("assemblies/combined/{i}.fasta", i = ["01", "02", "09", "10"])
+    log: "logs/07-prokka.log"
+    conda: "pixi_genome/genome_analysis.yml"
     threads: 8
     shell:
         """
         > {log}
-        bash code/03-prokka.sh {threads} {input.protein_list} {input.assemblies} >> {log} 2>> {log};
+        bash code/07-prokka.sh {threads} {input.protein_list} {input.assemblies} >> {log} 2>> {log};
         """
 
 ##All vs all Blast
 rule all_blast:
     output:
-        expand("results/blast/sample{i}.tab", i = ["1", "2", "3", "4"])
+        expand("results/blast/{i}.tab", i = ["01", "02", "09", "10"])
     input:
-        fnas = expand("results/annotations/sample{i}.ffn", i = ["1", "2", "3", "4"]),
+        fnas = expand("results/annotations/prokka/{i}.ffn", i = ["01", "02", "09", "10"]),
         og_strain = os.path.expanduser("~") + "/Akunkeei_files/cds/H3B1-04J_cds_from_genomic.fna"
     params:
         outpath = "results/blast"
     threads: 16
-    log: "logs/04-blast_prokka.log"
-    conda: "envs/plot_region_env.yml"
-    script: "code/04-blast_prokka.py"
+    log: "logs/08-blast_prokka.log"
+    conda: "pixi_genome/genome_analysis.yml"
+    script: "code/08-blast_prokka.py"
 
 ##Retrieve genes that are different in the re-sequenced genomes than in the reference
 rule get_differences:
     output: "results/blast/differences.tab"
-    input: expand("results/blast/sample{i}.tab", i = ["1", "2", "3", "4"])
+    input: expand("results/blast/{i}.tab", i = ["01", "02", "09", "10"])
     threads: 1
-    log: "logs/05-get_differences.log"
-    conda: "envs/plot_region_env.yml"
-    script: "code/05-parse_blast.py"
+    log: "logs/09-get_differences.log"
+    conda: "pixi_genome/genome_analysis.yml"
+    script: "code/09-parse_blast.py"
 
 
 ##Change FASTA line length from 60 nts to 80 nts
 rule reformat_fna:
     output:
-        expand("data/fixed_ori/sample{i}_genomic.fna", i = ["1", "2", "3", "4"])
+        expand("assemblies/combined/{i}_80nts.fasta", i = ["01", "02", "09", "10"])
     input:
-        expand("data/fixed_ori/fixed_ori{i}.fasta", i = ["1", "2", "3", "4"])
-    log: "logs/03b-reformat_fna.log"
-    conda: "envs/plot_region_env.yml"
-    script: "code/03b-reformat_fna.py"
+        expand("assemblies/combined/{i}.fasta", i = ["01", "02", "09", "10"])
+    log: "logs/07c-reformat_fna.log"
+    conda: "pixi_genome/default.yml"
+    script: "code/07c-reformat_fna.py"
 
 ##Check for inversions
 rule Phase_Finder:
     output:
-        per_sample=expand("results/PhaseFinder/sample{i}_genomic.tab", i = ["1", "2", "3", "4"]),
+        per_sample=expand("results/PhaseFinder/sample{i}_genomic.tab", i = ["01", "02", "09", "10"]),
         general="results/PhaseFinder/H3B1-04J_genomic.tab"
     input:
-        expand("data/fixed_ori/sample{i}_genomic.fna", i = ["1", "2", "3", "4"]),
+        expand("assemblies/combined/{i}_80nts.fasta", i = ["01", "02", "09", "10"]),
         os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna"
-    log: "logs/04b-Phase_finder.log"
-    conda: "envs/samtools_env.yml"
+    log: "logs/08c-Phase_finder.log"
+#    conda: "envs/samtools_env.yml"
     shell:
         """
         > {log}
-        bash code/04b-PhaseFinder.sh {output.general} {input} >> {log} 2>> {log}
+        bash code/08c-PhaseFinder.sh {output.general} {input} >> {log} 2>> {log}
         """
 
 #rule synteny:
