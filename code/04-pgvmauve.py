@@ -46,7 +46,6 @@ outdir = os.path.dirname(snakemake.output[0]) #Get output directory
 # Running progressive Mauve
 # =============================================================================
         
-os.system(f'pgv-pmauve --seq_files {infiles}\
-            -o {outdir} --tick_style bar >> {snakemake.log[0]}')
+os.system(f'pgv-pmauve {infiles} -o {outdir} >> {snakemake.log[0]} 2>> {snakemake.log[0]}')
 
 

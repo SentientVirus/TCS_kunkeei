@@ -12,128 +12,157 @@ rule all:
     input:
         blast = "results/blast/differences.tab",
         phase_finder = "results/PhaseFinder/H3B1-04J_genomic.tab",
-        pgvmauve = "results/pmauve/result.png",
-        bamview = expand("bam_files/{no}.bam", no = ["01", "02", "09", "10"])
+        pgvmauve = "results/pmauve/Flye/result.png",
+        pgmauve_NGI = "results/pmauve/NGI/result.png",
+        bam = expand("results/bam/{no}.bam", no = ["01", "02", "09", "10"])
 
 ##First step, running Flye to get the genomes with plasmids
 rule run_Flye:
     output:
-        assembly = expand("assemblies/{isolate}/assembly.fasta", isolate = ["01", "02", "09", "10"]),
-        stats = expand("assemblies/{isolate}/assembly_info.txt", isolate = ["01", "02", "09", "10"])
+        assembly = expand("assemblies/Flye/{isolate}/assembly.fasta", isolate = ["01", "02", "09", "10"]),
+        stats = expand("assemblies/Flye/{isolate}/assembly_info.txt", isolate = ["01", "02", "09", "10"])
     input:
         input_list
     threads: 24
-    log: "logs/00-run_Flye.log"
-    conda: "envs/assembly_env.yml"
+    log: "logs/01a-run_Flye.log"
+    conda: "pixi_assembly/default.yml"
     shell:
-        "bash code/00-Flye_assembly.sh {input} {output.assembly} {threads} > {log} 2> {log}"
+        "bash code/01a-Flye_assembly.sh {input} {output.assembly} {threads} > {log} 2> {log}"
 
 ##Second step, filter out contigs with low coverage
 rule filter_contigs:
     output:
-        expand("assemblies/{isolate}/assembly_filtered.fasta", isolate = ["01", "02", "09", "10"])
+        expand("assemblies/Flye/{isolate}/assembly_filtered.fasta", isolate = ["01", "02", "09", "10"])
     input:
-        assembly = expand("assemblies/{isolate}/assembly.fasta", isolate = ["01", "02", "09", "10"]),
-        stats = expand("assemblies/{isolate}/assembly_info.txt", isolate = ["01", "02", "09", "10"])
+        assembly = expand("assemblies/Flye/{isolate}/assembly.fasta", isolate = ["01", "02", "09", "10"]),
+        stats = expand("assemblies/Flye/{isolate}/assembly_info.txt", isolate = ["01", "02", "09", "10"])
     threads: 2
-    log: "logs/01-filter_contigs.log"
-    conda: "envs/biopython_env.yml"
+    log: "logs/02a-filter_contigs.log"
+    conda: "pixi_genome/default.yml"
     script:
-        "code/01-filter_contigs.py"
+        "code/02a-filter_contigs.py"
 
 ##Set the oriC at the right position
 rule fix_ori:
     output:
-        expand("assemblies/fixed_ori/{isolate}.fasta", isolate = ["01", "02", "09", "10"])
+        expand("assemblies/Flye/fixed_ori/{isolate}.fasta", isolate = ["01", "02", "09", "10"])
     input:
-        expand("assemblies/{isolate}/assembly_filtered.fasta", isolate = ["01", "02", "09", "10"])
-    log: "logs/02-circularize.log"
-    conda: "envs/genome_analysis_env.yml"
+        assemblies = expand("assemblies/Flye/{isolate}/assembly_filtered.fasta", isolate = ["01", "02", "09", "10"]),
+        start_genes = "circlator/start_genes.fna"
+    log: "logs/03a-circularize.log"
+    conda: "pixi_genome/genome_analysis.yml"
     shell:
         """
         mkdir -p $(basename -- {output[0]})
         > {log}
-        bash code/02-circularize.sh {input} {output} {log}
+        bash code/03-circularize.sh {input.assemblies} {output} {input.start_genes} {log}
         """
 
 ##Run progressive Mauve to compare with reference
 rule pgv_mauve:
     output:
-        "results/pmauve/result.png"
+        "results/pmauve/Flye/result.png"
     input:
         og_strain = os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna",
-        new_seqs = expand("assemblies/fixed_ori/{isolate}.fasta", isolate = ["01", "02", "09", "10"])
-    log: "logs/03a-pmauve.log"
-    conda: "envs/plot_region_env.yml"
-    script: "code/03a-pgvmauve.py"
-
-
-##Run progressive Mauve to compare with reference
-rule pgv_mauve_test:
-    output:
-        "results/pmauve_test/result.png"
-    input:
-        og_strain = os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna",
-        new_seqs = expand("assembly_tests/fixed_ori{isolate}.fasta", isolate = ["01", "02", "09", "10"])
-    log: "logs/03a-pmauve.log"
-    conda: "envs/plot_region_env.yml"
-    script: "code/03a-pgvmauve.py"
+        new_seqs = expand("assemblies/Flye/fixed_ori/{isolate}.fasta", isolate = ["01", "02", "09", "10"])
+    log: "logs/04a-pmauve.log"
+    conda: "pixi_genome/genome_analysis.yml"
+    script: "code/04-pgvmauve.py"
 
 
 ##Assembly from the sequencing facility
 ##First step, save all files to 001-004.fasta
 rule simplify_paths:
     output:
-        expand("data/00{i}.fna", i = ["1", "2", "3", "4"])
+        expand("assemblies/NGI/00{i}.fasta", i = ["1", "2", "3", "4"])
     input:
         expand("analysis/ps_405_00{i}/ps_405_00{i}.polished_assembly.fasta", i = ["1", "2", "3", "4"])
-    log: "logs/00-simplify_paths.log"
+    log: "logs/01b-simplify_paths.log"
     shell:
         """
+        > {log}
+        outdir=$(dirname -- {output[0]})
+        echo "Create directory "$outdir >> {log}
         for file in {input};
         do
-        output=data/$(echo $file | cut -d'/' -f 2 | cut -d'_' -f 3).fna
-        cp $file $output 2>> {log}
+        echo "Path to input "$file >> {log}
+        output=$outdir/$(echo $file | cut -d'/' -f 2 | cut -d'_' -f 3).fasta
+        cp $file $output
+        echo "Created output "$output >> {log}
         done
         """
 
 ##Reverse fourth file, which is the complementary strand
 rule reverse_file:
     output:
-        "data/rev004.fna"
+        "assemblies/NGI/rev004.fasta"
     input:
-        "data/004.fna"
-    log: "logs/01-reverse_complement.log"
-    conda: "envs/biopython_env.yml"
+        "assemblies/NGI/004.fasta"
+    log: "logs/02b-reverse_complement.log"
+    conda: "pixi_genome/default.yml"
     script:
-        "code/01-reverse_complement.py"
+        "code/02b-reverse_complement.py"
+
 
 ##Set the oriC at the right position
 rule fix_ori_seq:
     output:
-        expand("data/fixed_ori/fixed_ori{i}.fasta", i = ["1", "2", "3", "4"])
+        expand("assemblies/NGI/fixed_ori/{i}.fasta", i = ["01", "02", "09", "10"])
     input:
-        expand("data/{i}.fasta", i = ["001", "002", "003", "rev004"])
-    log: "logs/02-circularize.log"
-    conda: "envs/genome_analysis_env.yml"
+        assemblies = expand("assemblies/NGI/{i}.fasta", i = ["001", "002", "003", "rev004"]),
+        start_genes = "circlator/start_genes.fna"
+    log: "logs/03b-circularize.log"
+    conda: "pixi_genome/genome_analysis.yml"
     shell:
         """
         mkdir -p $(basename -- {output[0]})
         > {log}
-        bash code/02-circularize.sh {input} {output} {log}
+        bash code/03-circularize.sh {input.assemblies} {output} {input.start_genes} {log}
         """
 
 ##Run progressive Mauve to compare with reference
 rule pgv_mauve_seq:
     output:
-        "results/pmauve_seq/result.png"
+        "results/pmauve/NGI/result.png"
     input:
         og_strain = os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna",
         new_seqs = expand("data/fixed_ori/fixed_ori{i}.fasta", i = ["1", "2", "3", "4"])
-    log: "logs/03a-pmauve.log"
-    conda: "envs/plot_region_env.yml"
-    script: "code/03a-pgvmauve.py"
+    log: "logs/04b-pmauve.log"
+    conda: "pixi_genome/genome_analysis.yml"
+    script: "code/04-pgvmauve.py"
 
+
+##Based on the progressiveMauve results, align the reads back to the original assembly to check if there are any true differences
+rule pacbio2ref:
+    output:
+        index="index/H3B1-04J.fna",
+        bamfiles=expand("results/bam/{no}.bam", no = ["01", "02", "09", "10"]),
+        bam_index=expand("results/bam/{no}.bam.bai", no = ["01", "02", "09", "10"])
+    input:
+        ref=os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna",
+        reads=input_list
+    log: "logs/05-reads2bam.log"
+    conda: "pixi_genome/genome_analysis.yml"
+    threads: 48
+    shell:
+        """
+        > {log}
+        bash code/05-reads2bam.sh {input.ref} {output.index} {threads} {output.bamfiles} {input.reads} >> {log} 2>> {log}
+        """
+
+##Create combined assemblies
+rule combine_assemblies:
+    output:
+        assemblies = expand("assemblies/combined/{isolate}.fasta", isolate = ["01", "02", "09", "10"]),
+        pgvmauve = "results/pmauve/combined/result.png"
+    input:
+        NGI = expand("assemblies/NGI/fixed_ori/{i}.fasta", i = ["01", "02", "09", "10"]),
+        Flye = expand("assemblies/Flye/fixed_ori/{i}.fasta", i = ["01", "02", "09", "10"]),
+        og_strain = os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna"
+    log: "logs/06-combine_assemblies.log"
+    conda: "pixi_genome/genome_analysis.yml"
+    threads: 1
+    script: "code/06-combine_assemblies.py"
 
 ##Prokka annotations
 rule prokka_annot:
@@ -199,22 +228,6 @@ rule Phase_Finder:
         """
         > {log}
         bash code/04b-PhaseFinder.sh {output.general} {input} >> {log} 2>> {log}
-        """
-
-##Add new rule to align reads to the genome
-rule run_bwa:
-    output:
-        expand("bam_files/{no}.bam", no = ["01", "02", "09", "10"])
-    input:
-        index=os.path.expanduser("~") + "/snpseq00064/index/H3B1-04J.fna",
-        reads=input_list
-    log: "logs/01c-reads2bam.log"
-    conda: "envs/samtools_env.yml"
-    threads: 48
-    shell:
-        """
-        > {log}
-        bash code/01c-reads2bam.sh {input.index} {threads} {output} {input.reads} >> {log} 2>> {log}
         """
 
 #rule synteny:

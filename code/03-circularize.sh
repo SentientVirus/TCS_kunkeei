@@ -9,7 +9,8 @@
 inputs=("${@:1:4}")
 outputs=("${@:5:4}")
 outdir=$(dirname $5)
-log=$9
+start_genes=$9
+log=$10
 > $log #Overwrite log file 
 
 #Save paths to inputs and outputs to log file
@@ -27,5 +28,5 @@ input=${inputs[$i]} >> $log
 output=${outputs[$i]} >> $log
 
 echo "Processing $input, writing $output..." >> $log
-circlator fixstart $input ´${output%.fasta} 2>> $log;
+circlator fixstart --genes_fa $start_genes $input ${output%.fasta} 2>> $log;
 done
