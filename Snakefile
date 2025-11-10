@@ -4,10 +4,6 @@ isol_code = {1: "02", 2: "03", 3: "08", 4: "10"}
 
 input_list = [f"subreads/ps_405_00{key}/demultiplex.bc10{value}_BAK8A_OA--bc10{value}_BAK8A_OA.fastq.gz" for key, value in isol_code.items()]
 
-#rule all:
-#    input:
-#        expand("analysis/ps_405_00{i}/ps_405_00{i}.polished_assembly.fasta", i = ["1", "2", "3", "4"])
-
 rule all:
     input:
         blast = "results/blast/differences.tab",
@@ -168,7 +164,7 @@ rule combine_assemblies:
 ##Prokka annotations
 rule prokka_annot:
     output:
-        expand("results/annotations/prokka/{i}.{ext}", i = ["01", "02", "09", "10"], ext = ["err", "gbk", "gff", "faa", "fna", "ffn", "fsa", "log", "sqn", "tbl", "tsv", "txt"])
+        expand("results/annotations/prokka/{i}/{i}.{ext}", i = ["01", "02", "09", "10"], ext = ["err", "gbk", "gff", "faa", "fna", "ffn", "fsa", "log", "sqn", "tbl", "tsv", "txt"])
     input:
         protein_list = os.path.expanduser("~") + "/Akunkeei_files/faa/H3B1-04J_protein.faa",
         assemblies = expand("assemblies/combined/{i}.fasta", i = ["01", "02", "09", "10"])
@@ -178,7 +174,7 @@ rule prokka_annot:
     shell:
         """
         > {log}
-        bash code/07-prokka.sh {threads} {input.protein_list} {input.assemblies} >> {log} 2>> {log};
+        bash code/07-prokka.sh {threads} {input.protein_list} {input.assemblies} {output[0]} >> {log} 2>> {log};
         """
 
 ##All vs all Blast
@@ -186,7 +182,7 @@ rule all_blast:
     output:
         expand("results/blast/{i}.tab", i = ["01", "02", "09", "10"])
     input:
-        fnas = expand("results/annotations/prokka/{i}.ffn", i = ["01", "02", "09", "10"]),
+        fnas = expand("results/annotations/prokka/{i}/{i}.ffn", i = ["01", "02", "09", "10"]),
         og_strain = os.path.expanduser("~") + "/Akunkeei_files/cds/H3B1-04J_cds_from_genomic.fna"
     params:
         outpath = "results/blast"

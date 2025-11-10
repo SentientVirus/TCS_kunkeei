@@ -45,7 +45,8 @@ threads = snakemake.threads #Number of threads to be used
 # =============================================================================
 
 for i in range(len(files)): #Loop through input files
-    S = f'blastn -query {files[i]} -out {outpath}/{files[i][:-4].split("/")[2]}.tab \
+    print(f'{outpath}/{files[i][:-4].split("/")[2]}.tab')
+    S = f'blastn -query {files[i]} -out {outpath}/{files[i][:-4].split("/")[3]}.tab \
         -subject {subject} -outfmt 6' #Define BLAST command to run
     os.system(S) #Run the command
     
