@@ -3,6 +3,7 @@
 #reports
 #subreads
 *
+!pixi*/*
 !code/*
 !envs/*
 !*/

@@ -244,13 +244,13 @@ rule reformat_fna:
 ##Check for inversions
 rule Phase_Finder:
     output:
-        per_sample=expand("results/PhaseFinder/sample{i}_genomic.tab", i = ["01", "02", "09", "10"]),
+        per_sample=expand("results/PhaseFinder/{i}_80nts.tab", i = ["01", "02", "09", "10"]),
         general="results/PhaseFinder/H3B1-04J_genomic.tab"
     input:
         expand("assemblies/combined/{i}_80nts.fasta", i = ["01", "02", "09", "10"]),
         os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna"
     log: "logs/08c-Phase_finder.log"
-#    conda: "envs/samtools_env.yml"
+    conda: "pixi_phase_finder/default.yml"
     shell:
         """
         > {log}

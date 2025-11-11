@@ -1,0 +1,19 @@
+name: annotations
+channels:
+- conda-forge
+- https://conda.anaconda.org/bioconda
+- nodefaults
+dependencies:
+- conda-forge::ete4
+- bioconda::gffutils
+- bioconda::pronto
+- conda-forge::requests
+- biopython >=1.86,<2
+- spyder >=6.1.0,<7
+- pandas >=2.3.3,<3
+- python >=3.11.9,<3.14
+- bioconda::snakemake >=9.13.6,<10
+- pip
+- pip:
+  - emapper2gbk>=0.3.2, <0.4
+

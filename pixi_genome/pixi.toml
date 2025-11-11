@@ -1,0 +1,46 @@
+[workspace]
+authors = ["Marina <marina.motamerlo@icm.uu.se>"]
+channels = ["conda-forge", "https://conda.anaconda.org/bioconda"]
+name = "pixi_genome"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+biopython = ">=1.86,<2"
+spyder = ">=6.1.0,<7"
+pandas = ">=2.3.3,<3"
+python = ">=3.11.9,<3.14"
+snakemake = { version = ">=9.13.6,<10", channel = "bioconda" }
+
+[feature.genome-analysis.dependencies]
+samtools = { channel = "bioconda" }
+bwa = { channel = "bioconda" }
+prokka = { channel = "bioconda" }
+blast = ">=2.16.0,<3"
+circlator = ">=1.5.5,<2"
+setuptools = { version = ">=80.9.0,<81", channel = "conda-forge" }
+progressivemauve = { version = ">=snapshot_2015_2_13,<1a", channel = "bioconda" }
+pygenomeviz = { version = ">=1.6.1,<2", channel = "conda-forge" }
+
+[feature.annotations.dependencies]
+ete4 = { channel = "conda-forge" }
+gffutils = { channel = "bioconda" }
+pronto = { channel = "bioconda" }
+requests = { channel = "conda-forge" }
+
+[feature.annotations.pypi-dependencies]
+emapper2gbk = ">=0.3.2, <0.4"
+
+[feature.phase-finder.dependencies]
+python = "3.8.*"
+samtools = { channel = "bioconda" }
+bowtie = { channel = "bioconda" }
+bedops = { channel = "bioconda" }
+bedtools = { channel = "bioconda" }
+
+[environments]
+genome-analysis = ["genome-analysis"]
+annotations = ["annotations"]
+phase-finder = ["phase-finder"]
