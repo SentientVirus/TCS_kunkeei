@@ -1,4 +1,10 @@
 #!/bin/bash
+
+###############################################
+### Script to generate assemblies with Flye ###
+###        (assembly.yml environment)       ###
+###############################################
+
 infiles=${@:1:4} #Input files
 threads=$9 #No. of threads
 echo "Inputs: "$infiles #Print input files

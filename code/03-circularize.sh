@@ -2,7 +2,7 @@
 
 #############################################
 ###  Script to run Circlator to set oriC  ###
-###     (Genome analysis environment)     ###
+###   (genome_analysis.yml environment)   ###
 #############################################
 
 # Read variables from Snakemake

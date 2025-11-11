@@ -3,7 +3,7 @@
 ########################################
 ###  Script to run BWA to align the  ###
 ###     reads back to the genome     ###
-###      (Samtools environment)      ###
+###       (genome_analysis.yml)      ###
 ########################################
 
 #Define input variables

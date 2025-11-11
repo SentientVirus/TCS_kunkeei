@@ -11,7 +11,8 @@ rule all:
         pgvmauve = "results/pmauve/Flye/result.png",
         pgmauve_NGI = "results/pmauve/NGI/result.png",
         pgamuve_combined = "results/pmauve/combined/result.png",
-        bam = expand("results/bam/{no}.bam", no = ["01", "02", "09", "10"])
+        bam = expand("results/bam/{no}.bam", no = ["01", "02", "09", "10"]),
+        gbk = expand("results/annotations/emapper2gbk/{isolate}.gbk", isolate = ["reference", "01", "02", "09", "10"])
 
 ##First step, running Flye to get the genomes with plasmids
 rule run_Flye:
@@ -175,6 +176,35 @@ rule prokka_annot:
         """
         > {log}
         bash code/07-prokka.sh {threads} {input.protein_list} {input.assemblies} {output[0]} >> {log} 2>> {log};
+        """
+
+##Modification of the reference GFF
+rule modify_gff:
+    output:
+        "results/annotations/prokka/reference/reference.gff"
+    input:
+        os.path.expanduser("~") + "/Akunkeei_files/gff/H3B1-04J_genomic.gff"
+    log: "logs/08-modify_gff.log"
+    conda: "pixi_genome/default.yml"
+    threads: 1
+    script: "code/08-modify_gff.py"
+
+##Generation of the GenBank with improved annotation
+rule emapper2gbk:
+    output:
+        expand("results/annotations/emapper2gbk/{isolate}.gbk", isolate = ["reference", "01", "02", "09", "10"])
+    input:
+        fna = [os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna"] + expand("assemblies/combined/{isolate}.fasta", isolate = ["01", "02", "09", "10"]),
+        faa = [os.path.expanduser("~") + "/Akunkeei_files/faa/H3B1-04J_protein.faa"] + expand("results/annotations/prokka/{isolate}/{isolate}.faa", isolate = ["01", "02", "09", "10"]),
+        gff = expand("results/annotations/prokka/{isolate}/{isolate}.gff", isolate = ["reference", "01", "02", "09", "10"]),
+        annot = expand("results/annotations/eggnog-mapper/{isolate}/out.emapper.annotations", isolate = ["reference", "01", "02", "09", "10"])
+    log: "logs/09-emapper2gbk.log"
+    threads: 4
+    conda: "pixi_genome/annotations.yml"
+    shell:
+        """
+        > {log}
+        bash code/09-emapper2gbk.sh {input.fna} {input.faa} {input.gff} {input.annot} {output} {threads} 2> {log} > {log}
         """
 
 ##All vs all Blast

@@ -2,7 +2,7 @@
 
 ########################################
 ###  Script to annotate new genomes  ###
-###  (Genome analysis environment)   ###
+###      (genome_analysis.yml)       ###
 ########################################
 
 # Read variables from Snakemake
