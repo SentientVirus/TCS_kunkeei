@@ -12,7 +12,8 @@ rule all:
         pgmauve_NGI = "results/pmauve/NGI/result.png",
         pgamuve_combined = "results/pmauve/combined/result.png",
         bam = expand("results/bam/{no}.bam", no = ["01", "02", "09", "10"]),
-        gbk = expand("results/annotations/emapper2gbk/{isolate}.gbk", isolate = ["reference", "01", "02", "09", "10"])
+        gbk = expand("results/annotations/emapper2gbk/{isolate}.gbk", isolate = ["reference", "01", "02", "09", "10"]),
+        ref_annot = "results/annotations/emapper2gbk/reference_loctag.gbk"
 
 ##First step, running Flye to get the genomes with plasmids
 rule run_Flye:
