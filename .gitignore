@@ -1,7 +1,3 @@
-#*data/
-#analysis
-#reports
-#subreads
 *
 !pixi*/*
 !code/*
@@ -13,17 +9,3 @@
 /.snakemake/*
 .*
 PhaseFinder
-#blast_searches/*
-#notes
-#old
-#results
-#bam_files
-#PhaseFinder
-#*.bam
-#*.fasta
-#*.faa
-#*.fna
-#.DS_Store
-#code/excluded
-#logs
-#dag.pdf
