@@ -207,6 +207,19 @@ rule emapper2gbk:
         bash code/09-emapper2gbk.sh {input.fna} {input.faa} {input.gff} {input.annot} {output} {threads} 2> {log} > {log}
         """
 
+##Add locus tags to the reference GenBank
+rule update_ref_gbk:
+    output:
+        "results/annotations/emapper2gbk/reference_loctag.gbk"
+    input:
+        NCBI = os.path.expanduser("~") + "/Akunkeei_files/gbff/H3B1-04J_genomic.gbff",
+        emapper = "results/annotations/emapper2gbk/reference.gbk"
+    threads: 1
+    log: "logs/10-add_loctag_gbk.log"
+    conda: "pixi_genome/default.yml"
+    script: "code/10-add_loctags_gbk.py"
+
+
 ##All vs all Blast
 rule all_blast:
     output:
