@@ -69,8 +69,8 @@ with open(infile) as gbk: #Open input GenBank from eggNOG-mapper
             prot_id = line.replace('/locus_tag=', '').strip() #Retrieve the protein ID from the line (CAI...)
             pid = prot_id.replace('"', '') #Remove extra quotation marks from the string
             line = line.replace(pid, id2loctag[pid]) #Replace the protein ID with the locus tag
-        elif 'product' in line: #If the description of the gene is in the line
-            line += ' '*21 + f'/protein_id={prot_id}\n' #Add another line under it with the protein ID
+        elif 'translation' in line: #If the translation of the gene is in the line
+            line = ' '*21 + f'/protein_id={prot_id}\n'+ line #Add another line over it with the protein ID
         lines += line #Add it to the string created at the start
 
 print('Done!')        
