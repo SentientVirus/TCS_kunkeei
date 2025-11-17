@@ -13,6 +13,7 @@ pandas = ">=2.3.3,<3"
 samtools = { version = ">=1.22.1,<2", channel = "bioconda" }
 snakemake = ">=9.13.5,<10"
 biopython = ">=1.86,<2"
+spyder = ">=6.1.0,<7"
 
 [feature.renv.dependencies]
 r-base = ">=4.4.3,<4.5"

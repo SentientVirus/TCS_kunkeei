@@ -9,4 +9,5 @@ dependencies:
 - bioconda::samtools >=1.22.1,<2
 - snakemake >=9.13.5,<10
 - biopython >=1.86,<2
+- spyder >=6.1.0,<7
 
