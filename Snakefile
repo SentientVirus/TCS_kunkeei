@@ -44,7 +44,7 @@ def input_strand(lst, strand = 1, path = "", extension = ""):
 rule all:
     input:
         multiqc = "results/multiqc/multiqc_report.html",
-        DE = expand("results/DE/{comparison}{ext}_annotated.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"]),
+        improved_annot = expand("results/DE/{comparison}{ext}_improved_annot.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"]),
         coverage = add_path_extension(all_input, "results/coverage", "perbase.cov"),
         picard = add_path_extension(all_input, "results/picard", "pdf", "_insert_size_histogram"),
         saturation = expand("plots/saturation{extra}_k0.ps", extra = ["_collapsed", ""]),
@@ -243,6 +243,19 @@ rule differential_expression:
     script:
         "code/11-dif_expression.R"
 
+##Rule to add improved annotations to the results
+rule add_improved_annotations:
+    output:
+        improved_annot = expand("results/DE/{comparison}{ext}_improved_annot.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"])    
+    input:
+        ref_gbk = os.path.expanduser("~") + "/mucoid_project/ugc00027/results/annotations/emapper2gbk/reference_loctag.gbk",
+        DE_annot = expand("results/DE/{comparison}{ext}_annotated.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"])
+    conda: "pixi_transcript/default.yml"
+    log: "logs/12-modify_annot.log"
+    script:
+        "code/12-modify_annot.py"
+
+
 ##Rule to generate volcano plots
 rule volcano_plots:
     output:
@@ -250,6 +263,6 @@ rule volcano_plots:
     input:
         annotated_expr = expand("results/DE/{comparison}_annotated.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"])
     conda: "pixi_transcript/renv.yml"
-    log: "logs/12-volcano_plots.log"
-    script: "code/12-volcano_plots.R"
+    log: "logs/13-volcano_plots.log"
+    script: "code/13-volcano_plots.R"
 
