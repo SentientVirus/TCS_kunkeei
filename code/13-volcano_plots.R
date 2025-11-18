@@ -102,29 +102,6 @@ flog.info("Create and format labels")
 # Variable used to annotate genes in the plots
 vollabels <- res$gene_name # Get gene names
 
-# Label genes of interest manually
-vollabels["AKUH3B104J_00510" == rownames(res)] <- "adhesin_510"  
-vollabels["AKUH3B104J_00520" == rownames(res)] <- "GT2_520"  
-vollabels["AKUH3B104J_01020" == rownames(res)] <- "adhesin_1020"
-vollabels["AKUH3B104J_12990" == rownames(res)] <- "GS"
-vollabels["AKUH3B104J_13000" == rownames(res)] <- "BrS_13000"
-vollabels["AKUH3B104J_13010" == rownames(res)] <- "BrS_13010"
-vollabels["AKUH3B104J_13020" == rownames(res)] <- "GS-BrS"
-vollabels["AKUH3B104J_13060" == rownames(res)] <- "wzx"
-vollabels["AKUH3B104J_13070" == rownames(res)] <- "MFS_13070"
-vollabels["AKUH3B104J_13080" == rownames(res)] <- "wzy"
-vollabels["AKUH3B104J_13090" == rownames(res)] <- "GT14_13090"
-vollabels["AKUH3B104J_13100" == rownames(res)] <- "GT14_13100"
-vollabels["AKUH3B104J_13110" == rownames(res)] <- "GT2_13110"
-vollabels["AKUH3B104J_13120" == rownames(res)] <- "GT1_13120"
-vollabels["AKUH3B104J_13130" == rownames(res)] <- "epsE"
-vollabels["AKUH3B104J_13140" == rownames(res)] <- "epsD"
-vollabels["AKUH3B104J_13150" == rownames(res)] <- "epsC"
-vollabels["AKUH3B104J_13160" == rownames(res)] <- "epsB"
-vollabels["AKUH3B104J_13170" == rownames(res)] <- "epsA"
-vollabels["AKUH3B104J_14310" == rownames(res)] <-  "adhesin_14310"
-vollabels["AKUH3B104J_PKUN00040" == rownames(res)] <- "kukA"
-
 # Add labels only in genes that are not hypothetical and have x > 3 and y > 80
 vollabels[(abs(xax) < 3) & (yax < 80)] <- ""
 vollabels[vollabels == "-"] <- ""
