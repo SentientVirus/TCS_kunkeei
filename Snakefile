@@ -15,6 +15,13 @@ comparisons_DE = ["inhF_log_vs_inhS_log", "inhF_stat_vs_inhS_stat", "inhS_log_vs
                "inhF_stat_vs_mucF_stat", "inhS_stat_vs_mucSD_stat", "mucFD_stat_vs_mucSD_stat",
                "mucF_stat_vs_mucSD_stat"]
 
+
+##Rule to generate the DAG
+rule all:
+    input:
+        "results/TMH_predictions/TMH.tab",
+        plots = expand("plots/{comparison}.png", comparison = comparisons_DE)
+
 ##Rule to index the reference genome of strain H3B1-04J
 rule parse_MS:
     output:
