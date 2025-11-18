@@ -95,7 +95,8 @@ replace_dict = {'AKUH3B104J_00510': 'adhesin_510', 'AKUH3B104J_00520': 'GT2_520'
                 'AKUH3B104J_13120': 'GT1_13120', 'AKUH3B104J_13130': 'epsE', 
                 'AKUH3B104J_13140': 'epsD', 'AKUH3B104J_13150': 'epsC', 
                 'AKUH3B104J_13160': 'epsB', 'AKUH3B104J_13170': 'epsA',
-                'AKUH3B104J_14310': 'adhesin_14310', 'AKUH3B104J_PKUN00040': 'kukA'}
+                'AKUH3B104J_14310': 'adhesin_14310', 
+                'AKUH3B104J_PKUN00040': 'kukA', 'AKUH3B104J_PKUN00110': 'nisB'}
 
 # =============================================================================
 # 4. Update the annotations

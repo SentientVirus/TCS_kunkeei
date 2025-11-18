@@ -48,7 +48,7 @@ rule all:
         coverage = add_path_extension(all_input, "results/coverage", "perbase.cov"),
         picard = add_path_extension(all_input, "results/picard", "pdf", "_insert_size_histogram"),
         saturation = expand("plots/saturation{extra}_k0.ps", extra = ["_collapsed", ""]),
-        volcano = expand("plots/{comparison}_volcano.{ext}", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["png", "ps"])
+        volcano = expand("plots/{comparison}_volcano.{ext}", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["png", "pdf"])
 
 ##Rule to index the reference genome of strain H3B1-04J
 rule index_genome:
@@ -259,9 +259,9 @@ rule add_improved_annotations:
 ##Rule to generate volcano plots
 rule volcano_plots:
     output:
-        volcano = expand("plots/{comparison}_volcano.{ext}", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["png", "ps"])
+        volcano = expand("plots/{comparison}_volcano.{ext}", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["png", "pdf"])
     input:
-        annotated_expr = expand("results/DE/{comparison}_annotated.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"])
+        annotated_expr = expand("results/DE/{comparison}_improved_annot.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"])
     conda: "pixi_transcript/renv.yml"
     log: "logs/13-volcano_plots.log"
     script: "code/13-volcano_plots.R"
