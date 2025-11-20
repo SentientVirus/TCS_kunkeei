@@ -47,6 +47,7 @@ sys.excepthook = handle_exception
 
 sys.stdout = open(snakemake.log[0], 'a')
 
+
 # =============================================================================
 # 1. Define paths to inputs and other variables
 # =============================================================================

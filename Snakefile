@@ -22,14 +22,14 @@ rule all:
         "results/TMH_predictions/TMH.tab",
         plots = expand("plots/{comparison}.png", comparison = comparisons_DE)
 
-##Rule to index the reference genome of strain H3B1-04J
+##Rule to parse the MS results
 rule parse_MS:
     output:
         expand("files/parsed/{comparison}.tsv", comparison = comparisons)
     input:
         exp1 = "files/MS-24-030_MaxQuant_results.xlsx",
         exp2 = "files/MS-24-038_MaxQuant_results.xlsx",
-        gbk = os.path.expanduser("~") + "/Akunkeei_files/gbff/H3B1-04J_genomic.gbff"
+        gbk = os.path.expanduser("~") + "/mucoid_project/ugc00027/results/annotations/emapper2gbk/reference_loctag.gbk"
     params: outdir = "files/parsed"
     conda: "pixi_proteome/default.yml"
     log: "logs/01-parse_MS.log"
