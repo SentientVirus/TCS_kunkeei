@@ -1,6 +1,6 @@
 faa=~/Akunkeei_files/faa
-outpath=~/adhesins/interproscan
-logpath=~/adhesins/logs/01-interproscan
+outpath=~/mucoid_project/adhesins/interproscan
+logpath=~/mucoid_project/adhesins/logs/01-interproscan
 
 mkdir -p $outpath
 mkdir -p $logpath

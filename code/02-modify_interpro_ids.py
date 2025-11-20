@@ -27,11 +27,11 @@ import time
 start_time = time.time() 
 count = 0
 
-workdir = os.path.expanduser('~') + '/adhesins/interproscan'
-outpath = os.path.expanduser('~') + '/adhesins/interproscan/locus_tags'
+workdir = os.path.expanduser('~') + '/mucoid_project/adhesins/interproscan'
+outpath = f'{workdir}/locus_tags'
 path = os.path.expanduser('~') + '/Akunkeei_files/gbff'
 new_strain_path = path.replace('gbff', 'new_genomes/gbff')
-prot_loctag_out = os.path.expanduser('~') + '/adhesins/metadata/prot_id_loctag.tsv'
+prot_loctag_out = os.path.expanduser('~') + '/mucoid_project/adhesins/metadata/prot_id_loctag.tsv'
 infiles = [f'{path}/{file}' for file in os.listdir(path) if not os.path.isdir(f'{path}/{file}')] + [f'{new_strain_path}/{file}' for file in os.listdir(new_strain_path)]
 no_cores = 36
 prot2loctag = {}

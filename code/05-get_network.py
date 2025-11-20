@@ -238,7 +238,7 @@ color_edge_dict = {'PLPX': '#BEBD8E', 'CHR1': '#BED294', 'CHR2': '#85B193',
 # 2. Define the paths to input and output files
 # =============================================================================
 
-workdir = os.path.expanduser('~') + '/adhesins' #Working directory
+workdir = os.path.expanduser('~') + '/mucoid_project/adhesins' #Working directory
 outdir = f'{workdir}/plots/network' #Output directory
 log = f'{workdir}/logs/05-network.log'
 id_dir = f'{workdir}/results/identity' #File with % of identity

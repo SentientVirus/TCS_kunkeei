@@ -12,7 +12,7 @@ import os
 import re
 from Bio import SeqIO
 
-workdir = os.path.expanduser('~') + '/adhesins'
+workdir = os.path.expanduser('~') + '/mucoid_project/adhesins'
 indir = f'{workdir}/sequences/adhesins'
 outdir = f'{workdir}/results/adhesin_lists'
 

@@ -113,7 +113,7 @@ color_dict = {'adh1': '#BBE36A', 'adh2': '#5FB477', 'TF': '#5603AD',
               'FK': '#E0777D', 'large': '#037971'}
 
 
-projdir = os.path.expanduser('~') + '/adhesins'
+projdir = os.path.expanduser('~') + '/mucoid_project/adhesins'
 outpath = f'{projdir}/blast_tabs'
 folder_path = os.path.expanduser('~') + '/Akunkeei_files/fna'
 folder_path2 = os.path.expanduser('~') + '/Akunkeei_files/gbff'

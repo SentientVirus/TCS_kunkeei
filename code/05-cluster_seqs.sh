@@ -1,5 +1,5 @@
-infile=~/adhesins/sequences/Muc_adhesins.faa
-outbase=~/adhesins/results/clustering/Muc_adhesins
+infile=~/mucoid_project/adhesins/sequences/Muc_adhesins.faa
+outbase=~/mucoid_project/adhesins/results/clustering/Muc_adhesins
 mkdir -p $(dirname -- $outbase)
 echo $infile
 echo $outbase

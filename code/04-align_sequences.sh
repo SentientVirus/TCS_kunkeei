@@ -1,7 +1,7 @@
-indir=~/adhesins/sequences/adhesins
-outdir=~/adhesins/alignments/adhesins
-logfile=~/adhesins/logs/04-align_sequences.log
-treedir=~/adhesins/trees/adhesins
+indir=~/mucoid_project/adhesins/sequences/adhesins
+outdir=~/mucoid_project/adhesins/alignments/adhesins
+logfile=~/mucoid_project/adhesins/logs/04-align_sequences.log
+treedir=~/mucoid_project/adhesins/trees/adhesins
 threads=8
 
 mkdir -p $(dirname -- $logfile)

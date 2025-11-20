@@ -103,7 +103,7 @@ PLPX_acc = ['OX335171.1', 'OX335123.1', 'OX335241.1', 'OX335188.1',
 
 indir = os.path.expanduser('~') + '/Akunkeei_files/gbff'
 indir2 = indir.replace('/gbff', '/new_genomes/gbff')
-outfile = os.path.expanduser('~') + '/adhesins/sequences/intergenic/MucBP_intergenic.fna'
+outfile = os.path.expanduser('~') + '/mucoid_project/adhesins/sequences/intergenic/MucBP_intergenic.fna'
 out_dir = os.path.dirname(outfile)
 
 if not os.path.exists(out_dir):
@@ -157,12 +157,12 @@ with open(outfile, 'w') as intergenic:
         with open(fna) as handle:
             for record in SeqIO.parse(handle, 'fasta'):
                 if not plasmid:
-                    fna_seq = record.seq[pos_dict[strain][0]-30:pos_dict[strain][1]+30]
+                    fna_seq = record.seq[pos_dict[strain][0]:pos_dict[strain][1]]
                     new_record = SeqRecord(fna_seq, id = f'{strain}_chromosome', description = '')
                     intergenic.write(as_fasta(new_record))
                     break
                 elif 'plasmid: 2' in record.description:
-                    fna_seq = record.seq[pos_dict[strain][1]-30:pos_dict[strain][0]+30].reverse_complement()
+                    fna_seq = record.seq[pos_dict[strain][1]:pos_dict[strain][0]].reverse_complement()
                     new_record = SeqRecord(fna_seq, id = f'{strain}_PLPX', description = '')
                     intergenic.write(as_fasta(new_record))
                     break

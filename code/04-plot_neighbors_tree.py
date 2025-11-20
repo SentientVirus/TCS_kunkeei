@@ -58,7 +58,7 @@ leaf_color = {'A0901': '#D55E00', 'A1001': '#771853', 'A1002': '#D55E00',
               'H4B508X': '#0072B2', 'MP2': '#33B18F', 'IBH001': '#D55E00', 
               'DSMZ': '#0072B2', 'HNS-8': 'black', 'FHON13': '#79443B'}
 
-workdir = os.path.expanduser('~') + '/adhesins' #Working directory
+workdir = os.path.expanduser('~') + '/mucoid_project/adhesins' #Working directory
 outdir = f'{workdir}/plots/trees/MucBP_neighbors' #Path where outputs will be saved
 
 if not os.path.exists(outdir): #Create output directory if it does not exist

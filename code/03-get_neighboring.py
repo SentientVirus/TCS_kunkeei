@@ -20,7 +20,7 @@ from Bio.Seq import Seq
 start_time = time.time()
 
 inpath = os.path.expanduser('~') + '/Akunkeei_files/gbff'
-workdir = os.path.expanduser('~') + '/adhesins'
+workdir = os.path.expanduser('~') + '/mucoid_project/adhesins'
 outseqs = f'{workdir}/sequences/MucBP_neighbors'
 outdir = outseqs.replace('sequences', 'alignments')
 log = f'{workdir}/logs/03-get_neighboring_trees.log'
@@ -68,7 +68,14 @@ tetR_tags = ['K2W83_RS00575', 'AKUFHON2_01060', #'AAPFHON13_00970',
               'AKUH4B204J_01070', 'AKUH4B205J_01050', 'AKUH4B211M_01090',
               'AKUH4B412M_01130', 'AKUH4B501J_01130', 'AKUH4B502X_01060',
               'AKUH4B507J_01060', 'AKUH4B507X_01050', 'AKUH4B508X_01050',
-              'MUB42_02670']
+              'MUB42_02670',
+              'K2W83_RS00660', 'AKUA1805_01340', 'AKUA2101_01340',
+              'AAPFHON13_01050', 'AKUH3B101A_01260', 'AKUH3B102A_01260',
+              'AKUH3B107A_01260', 'AKUH3B109M_01250', 'AKUH3B111M_01240',
+              'AKUH3B202X_01210', 'AKUH3B203J_01280', 'AKUH3B203M_01300',
+              'AKUH3B204J_01260', 'AKUH3B205J_01260', 'AKUH3B208X_01270',
+              'AKUH4B502X_01270', 'AKUH4B504J_01260', 'AKUH4B507X_01260',
+              'AKUH4B508X_01250']
         
 
 [os.makedirs(out_dir) for out_dir in [outseqs, outdir, tree_dir] if not os.path.exists(out_dir)]

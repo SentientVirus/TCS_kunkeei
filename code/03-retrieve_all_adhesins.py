@@ -84,7 +84,7 @@ class adhesin:
         elif self.pfams == ['PF19087', 'PF19087'] and 'LDX55' not in self.locus_tag and (self.locus_tag.split('_')[1].startswith('01') or self.locus_tag.split('_')[1].startswith('RS006') or self.locus_tag in ['MUB42_02735', 'APS55_RS07870']):
             self.type = 'SH3b' #OK
             self.ref_locus = 'AKUH3B104J_01250'
-        elif is_sublist(sorted(['PF00746', 'PF19258']), sorted(self.pfams)):
+        elif is_sublist(sorted(['PF00746', 'PF19258']), sorted(self.pfams)) or self.locus_tag == 'AKUH3B104J_14300':
             self.type = 'MubB2+LPXTG' #OK for now, but should be divided into subtypes
             self.ref_locus = 'AKUH3B104J_14310'
         elif is_sublist(sorted(['PF17966', 'PF17965']), self.pfams) or self.locus_tag == 'AKUH3B104X_PLPX00300':
@@ -99,7 +99,7 @@ class adhesin:
 
 adhesins = ['MucBP+LPXTG', 'MubB2+LPXTG', 'Gtf2', 'collagen-binding', 'SH3b']
     
-workdir = os.path.expanduser('~') + '/adhesins'
+workdir = os.path.expanduser('~') + '/mucoid_project/adhesins'
 annot_dir = f'{workdir}/interproscan/locus_tags'
 faa_dir = os.path.expanduser('~') + '/Akunkeei_files/faa'
 prot2loctag = f'{workdir}/metadata/prot_id_loctag.tsv'
