@@ -39,14 +39,14 @@ sys.stdout = open(snakemake.log[0], 'a')
 # 1. Define functions to be used in the script
 # =============================================================================
 
-def parse_gbk(gbk: str):
+def parse_gbk(ref_gbk: str):
     """
     Function that takes the path to a GenBank file and parses its contents to
     create a dictionary that maps gene names to locus tags.
 
     Parameters
     ----------
-    gbk : str
+    ref_gbk : str
         Path to the input GenBank file.
 
     Returns
