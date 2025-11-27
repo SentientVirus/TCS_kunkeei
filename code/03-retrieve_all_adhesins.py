@@ -81,9 +81,17 @@ class adhesin:
         elif self.pfams == ['PF13632']:
             self.type = 'Gtf2' #OK
             self.ref_locus = 'AKUH3B104J_00520'
-        elif self.pfams == ['PF19087', 'PF19087'] and 'LDX55' not in self.locus_tag and (self.locus_tag.split('_')[1].startswith('01') or self.locus_tag.split('_')[1].startswith('RS006') or self.locus_tag in ['MUB42_02735', 'APS55_RS07870']):
+        elif 'PF07564' in self.pfams or 'PF03382' in self.pfams: #and 'LDX55' not in self.locus_tag and (self.locus_tag.split('_')[1].startswith('01') or self.locus_tag.split('_')[1].startswith('RS006') or self.locus_tag in ['MUB42_02735', 'APS55_RS07870']):
             self.type = 'SH3b' #OK
-            self.ref_locus = 'AKUH3B104J_01250'
+            loctag_no = self.locus_tag.split('_')[1]
+            loctag_no = int(re.sub('[^0-9]', '', loctag_no))
+            if 'PF00746' in self.pfams:
+                self.ref_locus = 'AKUH3B203M_02100'
+            elif is_sublist(['PF03382', 'PF19087'], self.pfams) and loctag_no < 3000:
+                self.ref_locus = 'AKUH3B202X_01220'
+            elif loctag_no < 10000:
+                self.ref_locus = 'AKUH3B104J_01250'
+            else: self.ref_locus = 'None'
         elif is_sublist(sorted(['PF00746', 'PF19258']), sorted(self.pfams)) or self.locus_tag == 'AKUH3B104J_14300':
             self.type = 'MubB2+LPXTG' #OK for now, but should be divided into subtypes
             self.ref_locus = 'AKUH3B104J_14310'
@@ -108,7 +116,7 @@ seqdir = f'{workdir}/sequences/adhesins'
 
 pfam_domains = ['PF06458', 'PF19087', 'PF05737', 'PF19258', #MucBP, DUF5776, collagen-binding, signal peptide
                 'PF13632', 'PF17966', 'PF17965',  #gtf2, MucB2, MucBP_2
-                'PF00746'] #LPXTG   'PF19258', 'TIGR03715' KxYKxGKxW SP
+                'PF00746', 'PF07564', 'PF03382']  #LPXTG, EBH (DUF1542), DUF285
 
 pfam_names = ['MucBP', 'DUF5776', 'collagen-binding', 'Gtf2', 'MucB2', 
               'MucBP_2', 'LPXTG']
@@ -167,10 +175,13 @@ for adhesin in adhesins:
             handle.write('Strain\tAdhesin_locus1\tAdhesin_locus2\n')
         elif adhesin == 'MubB2+LPXTG':
             handle.write('Strain\tAdhesin_locus1\tAdhesin_locus2\tAdhesin_locus3\n')
+        elif adhesin == 'SH3b':
+            handle.write('Strain\tSH3b_locus1\tLPXTG\tSH3b_locus2\tSH3b_locus3\n')
         else:
             handle.write('Strain\tAdhesin_locus\n')
         for strain in sorted(strains):
             adh_type = [adh for adh in adh_dict[strain] if adh.type == adhesin]
+            adh_type.sort(key=lambda x: x.locus_tag, reverse = False)
             to_retrieve[strain] = [adh.locus_tag for adh in adh_type]
             if adhesin == 'MucBP+LPXTG':
                 adh1 = [adh for adh in adh_type if adh.ref_locus == 'AKUH3B104J_01020']
@@ -207,6 +218,41 @@ for adhesin in adhesins:
                     handle.write(f'{strain}\t-\t-\t{adhs[0].locus_tag}\n')
                 elif len(adhs) > 0:
                     handle.write(f'{strain}\t-\t{adhs[0].locus_tag}\t-\n')
+            elif adhesin == 'SH3b':
+                adh1 = [adh for adh in adh_type if adh.ref_locus == 'AKUH3B104J_01250']
+                adh2 = [adh for adh in adh_type if adh.ref_locus == 'AKUH3B202X_01220']
+                adh3 = [adh for adh in adh_type if adh.ref_locus == 'None']
+                LPXTG = [adh for adh in adh_type if adh.ref_locus == 'AKUH3B203M_02100']
+                if len(adh1) == 0:
+                    adh1_string = '-'
+                else:
+                    adh1_string = ''
+                    for adh in adh1:
+                        adh1_string += adh.locus_tag + ', '
+                    adh1_string = adh1_string[:-2]
+                if len(adh2) == 0:
+                    adh2_string = '-'
+                else:
+                    adh2_string = ''
+                    for adh in adh2:
+                        adh2_string += adh.locus_tag + ', '
+                    adh2_string = adh2_string[:-2]
+                if len(adh3) == 0:
+                    adh3_string = '-'
+                else:
+                    adh3_string = ''
+                    for adh in adh3:
+                        adh3_string += adh.locus_tag + ', '
+                    adh3_string = adh3_string[:-2]
+                if len(LPXTG) == 0:
+                    LPXTG_string = '-'
+                else:
+                    LPXTG_string = ''
+                    for adh in LPXTG:
+                        LPXTG_string += adh.locus_tag + ', '
+                    LPXTG_string = LPXTG_string[:-2]
+                    
+                handle.write(f'{strain}\t{adh1_string}\t{LPXTG_string}\t{adh2_string}\t{adh3_string}\n')
             else:
                 [handle.write(f'{strain}\t{adh.locus_tag}\n') for adh in adh_type]
                 
