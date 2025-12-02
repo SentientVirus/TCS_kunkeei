@@ -63,35 +63,59 @@ leaf_color = {'A0901': '#D55E00', 'A1001': '#771853', 'A1002': '#D55E00',
 # =============================================================================
 # Locus tags
 # =============================================================================
-adh1 = ['K2W83_RS00570', 'AKUFHON2_01050', 'AKUG0102_01050', 
-        'AKUH1B104J_01050', 'AKUH1B105A_00960', 'AKUH3B101A_01040', 
-        'AKUH3B102A_01040', 'AKUH3B104J_01020', 'AKUH3B107A_01040',
-        'AKUH3B109M_01040', 'AKUH3B111M_01040', 'AKUH3B202X_01030', 
-        'AKUH3B203J_01060', 'AKUH3B204J_01040', 'AKUH3B205J_01040',
-        'AKUH3B208X_01050', 'AKUH4B202J_00960', 'AKUH4B204J_01060', 
-        'AKUH4B412M_01120', 'AKUH4B501J_01120', 'AKUH4B502X_01050', 
-        'AKUH4B507X_01040', 'AKUH4B508X_01040', 'MUB42_02665']
-#Strains that have both adhesins + representatives
-#Use the "product" section of the GeneBank, check that it contains NrdI
+SH3b_3a = ['AKUH2B105J_13760', 'AKUH3B101X_13750', 'AKUH3B103X_13740', 
+           'AKUH3B202M_13770', 'AKUH3B206M_13750', 'AKUH4B101A_13740',
+           'AKUH4B103J_13740', 'AKUH4B104A_14480', 'AKUH4B111J_14480', 
+           'AKUH4B114J_13740', 'AKUH4B116J_13700', 'AKUH4B203M_13800', 
+           'AKUH4B210M_14480', 'AKUH4B303J_13930', 'AKUH4B403J_13700', 
+           'AKUH4B404J_13700', 'AKUH4B406M_14400', 'AKUH4B411M_13730'] #SH3b x 1, DUF285 x 5, DUF1542 x 3-7
+SH3b_unk = ['AKUH2B105J_13770', 'AKUH2B105J_13780']
+SH3b_3b = ['AKUH3B102X_14160', 'AKUH4B102A_14450', 'AKUH4B102A_14460', 
+           'AKUH4B405J_14170', 'AKUH4B410M_14160'] #SH3b x 1, DUF285 x 4, DUF1542 x 4-6
+SH3b_3c = ['AKUH2B105J_13790', 'AKUH3B101X_13760', 'AKUH3B103X_13750',
+           'AKUH3B202M_13780', 'AKUH3B206M_13760', 'AKUH4B114J_13750',
+           'AKUH4B210M_14490'] #SH3b x 1, DUF285 x 5
+SH3b_3d = ['AKUH2B105J_13800', 'AKUH3B101X_13770', 'AKUH3B102X_14170', 
+           'AKUH3B103X_13760', 'AKUH3B202M_13790', 'AKUH3B206M_13770',
+           'AKUH4B101A_13750', 'AKUH4B102A_14470', 'AKUH4B103J_13750',
+           'AKUH4B104A_14490', 'AKUH4B111J_14490', 'AKUH4B114J_13760',
+           'AKUH4B116J_13710', 'AKUH4B203M_13810', 'AKUH4B210M_14500',
+           'AKUH4B303J_13940', 'AKUH4B403J_13710', 'AKUH4B404J_13710',
+           'AKUH4B405J_14180', 'AKUH4B406M_14410', 'AKUH4B406M_14420', 
+           'AKUH4B406M_14430', 'AKUH4B406M_14440', 'AKUH4B406M_14450',
+           'AKUH4B410M_14170', 'AKUH4B411M_13740', 'AAPFHON13_13160'] #SH3b x 1, DUF285 x 2 (3 in Fhon13), DUF1542 x 11-15, MucB2 x 1
 
-adh2 = ['AAPFHON13_01040', 'AKUA1805_01330', 'AKUA2101_01330', 'K2W83_RS00655',
-        'AKUH3B101A_01250', 'AKUH3B102A_01250', 'AKUH3B107A_01250',
-        'AKUH3B109M_01240', 'AKUH3B111M_01230', 'AKUH3B202X_01200',
-        'AKUH3B202X_01250', 'AKUH3B203J_01270', 'AKUH3B203M_01290', 
-        'AKUH3B204J_01250', 'AKUH3B205J_01250', 'AKUH3B208X_01260', 
-        'AKUH4B502X_01260', 'AKUH4B504J_01250', 'AKUH4B507X_01250', 
-        'AKUH4B508X_01250'] #All strains with the adhesin
+
+PTL_prev = ['AKUH2B105J_13750', 'AKUH3B101X_13700', 'AKUH3B102X_14150',
+       'AKUH3B103X_13730', 'AKUH3B202M_13760', 'AKUH3B206M_13740',
+       'AKUH4B101A_13730', 'AKUH4B102A_14440', 'AKUH4B103J_13730',
+       'AKUH4B104A_14470', 'AKUH4B111J_14470', 'AKUH4B114J_13730',
+       'AKUH4B116J_13690', 'AKUH4B203M_13790', 'AKUH4B210M_14470',
+       'AKUH4B303J_13920', 'AKUH4B403J_13690', 'AKUH4B404J_13690',
+       'AKUH4B405J_14160', 'AKUH4B406M_14390', 'AKUH4B410M_14150',
+       'AKUH4B411M_13720']
+
+PTL = ['AKUH2B105J_13740', 'AKUH3B101X_13690', 'AKUH3B102X_14140',
+       'AKUH3B103X_13720', 'AKUH3B202M_13750', 'AKUH3B206M_13730',
+       'AKUH4B101A_13720', 'AKUH4B102A_14430', 'AKUH4B103J_13720',
+       'AKUH4B104A_14460', 'AKUH4B111J_14460', 'AKUH4B114J_13720',
+       'AKUH4B116J_13680', 'AKUH4B203M_13780', 'AKUH4B210M_14460',
+       'AKUH4B303J_13910', 'AKUH4B403J_13680', 'AKUH4B404J_13680',
+       'AKUH4B405J_14150', 'AKUH4B406M_14380', 'AKUH4B410M_14140',
+       'AKUH4B411M_13710']
+
 
 # =============================================================================
 # In this section, we run Blast between pairs of strains following the 
 # phylogeny.
 # =============================================================================
 
-phylo_order = {1: 'G0102', 2: 'H1B1-04J', 3: 'H4B4-12M', 4: 'H4B5-01J', 
-               5: 'H3B1-11M', 6: 'H3B2-03J', 7: 'H3B2-02X', 8: 'H4B2-04J', 
-               9: 'Fhon2', 10: 'H3B1-04J', 11: 'DSMZ12361', 12: 'H1B1-05A', 
-               13: 'H4B2-02J', 14: 'H4B5-04J', 15: 'A1805', 16: 'A1401', 
-               17: 'H3B2-03M', 18: 'HNS-8', 19: 'Fhon13'}
+phylo_order = {1: 'H4B1-03J', 2: 'H4B4-04J', 3: 'H4B1-11J', 4: 'H4B4-11M', 
+               5: 'H4B1-04A', 6: 'H4B2-03M', 7: 'H4B4-03J', 8: 'H4B1-16J', 
+               9: 'H4B1-01A', 10: 'H4B3-03J', 11: 'H4B4-06M', 12: 'H3B2-03M', 
+               13: 'H3B2-02M', 14: 'H4B1-14J', 15: 'H3B1-03X', 16: 'H3B1-01X', 
+               17: 'H3B2-06M', 18: 'H2B1-05J', 19: 'H4B2-10M', 20: 'H4B1-02A',
+               21: 'H4B4-05J', 22: 'H4B4-10M', 23: 'H3B1-02X', 24: 'Fhon13'}
 
 # phylo_order = {1: 'G0102', 2: 'H1B1-04J', 3: 'H4B4-12M', 4: 'H4B5-01J', 
 #                5: 'H3B1-02A', 6: 'H3B1-07A', 7: 'H4B5-08X', 8: 'H3B2-04J', 
@@ -108,20 +132,20 @@ phylo_order = {1: 'G0102', 2: 'H1B1-04J', 3: 'H4B4-12M', 4: 'H4B5-01J',
 #                 17: 'A2101', 18: 'H3B2-03M'}
 
 
-color_dict = {'adh1': '#BBE36A', 'adh2': '#5FB477', 'TF': '#5603AD', 
-              'SK': '#B973FF', 'RE': '#FF802B',
-              'FK': '#E0777D', 'large': '#037971'}
+color_dict = {'SH3b_3a': '#E5E059', 'SH3b_3b': '#F2B544', 'TF': '#5603AD', 
+              'SK': '#B973FF', 'RE': '#FF802B', 'SH3b_3c': '#92140C', 
+              'SH3b_3d': '#0F7173', 'SH3b_unk': '#6DD3CE'}
 
 
 projdir = os.path.expanduser('~') + '/mucoid_project/adhesins'
 outpath = f'{projdir}/blast_tabs'
 folder_path = os.path.expanduser('~') + '/Akunkeei_files/fna'
 folder_path2 = os.path.expanduser('~') + '/Akunkeei_files/gbff'
-outfig = f'{projdir}/plots/pyGenomeViz/adhesin_region.svg'
+outfig = f'{projdir}/plots/pyGenomeViz/SH3b_region3.svg'
 
 fna_files = [f'{folder_path}/{strain}_genomic.fna' for strain in phylo_order.values()]
 
-fna_files[-2] = fna_files[-2].replace('/fna', '/new_genomes/fna')
+# fna_files[-2] = fna_files[-2].replace('/fna', '/new_genomes/fna')
 
 if not os.path.exists(os.path.dirname(outfig)):
     os.makedirs(os.path.dirname(outfig))
@@ -149,9 +173,9 @@ def get_tabs(fnas, outpath):
     for i in range(1, len(fnas)):
         strain1_file = fnas[i-1]
         strain2_file = fnas[i]
-        outfile = f'{outpath}/{i}_adh1.tab'
+        outfile = f'{outpath}/{i}_SH3b3.tab'
         if i < 10:
-            outfile = outfile.replace(f'{i}_adh', f'0{i}_adh')
+            outfile = outfile.replace(f'{i}_SH3b3', f'0{i}_SH3b3')
         cline_input = cline_blast(cmd = 'blastn', query = strain2_file, 
                                   subject = strain1_file, remote = False, 
                                   out = outfile, outfmt = 7)
@@ -205,10 +229,12 @@ def get_info(fnas, folder_path2, length = 0):
                 for feature in record.features:  #Loop through features (mostly CDS) in the record
                     # gene_name = [qual for qual in feature.qualifiers if 'gene' in qual.key] #Get the four-letter gene name
                     product = [qual for qual in feature.qualifiers if 'product' in qual.key]
-                    if len(product) > 0 and 'NrdI' in product[0].value:
-                        start = int(feature.location.split('..')[0].replace('complement(', '')) #Set start location to the beginning of nrdI
+                    if len(product) > 0 and ('Aminopeptidase N' in product[0].value or 'Lysyl' in product[0].value): #or (strain == 'Fhon13' and 'AAPFHON13_13140' in feature.qualifiers[0]):
+                        start = int(feature.location.split('..')[0].replace('complement(', '')) - 10000 #Set start location to the beginning of srtA
                     # if len(gene_name) > 0: #If there is at least one qualifier
                     #     gene = gene_name[0] #Set the gene name to the first qualifier (gene name or locus tag)
+                   # elif (strain == 'Fhon13' and 'AAPFHON13_13140' in feature.qualifiers[0]):
+                    #    start = 100000
 
                 # else: #If the strain is annotated differently
                 #     for feature in record.features: #Loop through genes in the strain
@@ -276,22 +302,28 @@ for fna in fna_files: #Loop through strain names in the order dictionary
             strand = cds.location.strand #Get strand
             color = '#E3DAC9' #Set color of most CDS
             gene_name  = '' #Initialize gene name
-            if end - protstart > 7000 or cds.qualifiers['locus_tag'][0] in ['AKUH1B104J_01280', 'AKUH1B104J_01290', 'AKUA1805_01370', 'AKUA1805_01380', 'AKUA2101_01370', 'AKUA2101_01380', 'AKUH1B105A_01180']:
-                color = color_dict['large']
-            elif 'glycosyl hydrolase' in cds.qualifiers['product'][0]: #Retrieve the set of genes that were manually annotated in the GenBanks
-                color = color_dict['GH']
-            elif 'fructokinase' in cds.qualifiers['product'][0].lower() or '6-phosphate' in cds.qualifiers['product'][0] or 'ROK' in cds.qualifiers['product'][0]:
-                color = color_dict['FK']
-            elif 'kinase' in cds.qualifiers['product'][0].lower():
+            if cds.qualifiers['locus_tag'][0] in SH3b_3a:
+                color = color_dict['SH3b_3a']
+            elif cds.qualifiers['locus_tag'][0] in SH3b_3b:
+                color = color_dict['SH3b_3b']
+            elif cds.qualifiers['locus_tag'][0] in SH3b_3c:
+                color = color_dict['SH3b_3c']
+            elif cds.qualifiers['locus_tag'][0] in SH3b_3d:
+                color = color_dict['SH3b_3d']
+            elif cds.qualifiers['locus_tag'][0] in SH3b_unk:
+                color = color_dict['SH3b_unk']
+            # elif 'fructokinase' in cds.qualifiers['product'][0].lower() or '6-phosphate' in cds.qualifiers['product'][0] or 'ROK' in cds.qualifiers['product'][0]:
+            #     color = color_dict['FK']
+            elif 'Sensory kinase' in cds.qualifiers['product'][0].lower():
                 color = color_dict['SK']
             elif 'transcription factor' in cds.qualifiers['product'][0] or 'regulator' in cds.qualifiers['product'][0] or 'sensory' in cds.qualifiers['product'][0].lower():
                 color = color_dict['TF']
-            elif cds.qualifiers['locus_tag'][0] in adh1:
-                color = color_dict['adh1']
-            elif cds.qualifiers['locus_tag'][0] in adh2:
-                color = color_dict['adh2']
-                if cds.qualifiers['locus_tag'][0] == 'AKUH3B202X_01250':
-                    color = '#8DCC70'
+            # elif cds.qualifiers['locus_tag'][0] in adh1:
+            #     color = color_dict['adh1']
+            # elif cds.qualifiers['locus_tag'][0] in adh2:
+            #     color = color_dict['adh2']
+            #     if cds.qualifiers['locus_tag'][0] == 'AKUH3B202X_01250':
+            #         color = '#8DCC70'
             elif 'restriction' in cds.qualifiers['product'][0] or 'nuclease' in cds.qualifiers['product'][0]:
                 color = color_dict['RE']
             if strain == 'Fhon13' and 'product' in cds.qualifiers.keys():
@@ -330,9 +362,9 @@ for fna in fna_files: #Loop through strain names in the order dictionary
 # # =============================================================================
 for i in range(1, len(phylo_order.keys())): #Loop through strains in the order in which they will be plotted
     if i < 10:
-        tab = f'{outpath}/0{i}_adh1.tab'
+        tab = f'{outpath}/0{i}_SH3b3.tab'
     else:
-        tab = f'{outpath}/{i}_adh1.tab'
+        tab = f'{outpath}/{i}_SH3b3.tab'
     with open(tab) as tabfile: #Open Blast comparison file for each strain
         k = 0 #Initialize parameter to retrieve column names
         for line in tabfile: #Loop through lines in tab file
@@ -410,13 +442,13 @@ handles = [
     ]
 
 handles += [
-    Line2D([], [], marker=">", color=color_dict['adh1'], label="Adhesin, group 1", ms=20, ls="none"),
-    Line2D([], [], marker=">", color='#8DCC70', label="Adhesin, ambiguous", ms=20, ls="none"),
-    Line2D([], [], marker=">", color=color_dict['adh2'], label="Adhesin, group 2", ms=20, ls="none"),
-    Line2D([], [], marker=">", color=color_dict['large'], label="SH3b-containing surface protein", ms=20, ls="none"),
+    Line2D([], [], marker=">", color=color_dict['SH3b_3a'], label="SH3b 3a", ms=20, ls="none"),
+    Line2D([], [], marker=">", color=color_dict['SH3b_3b'], label="SH3b 3b", ms=20, ls="none"),
+    Line2D([], [], marker=">", color=color_dict['SH3b_3c'], label="SH3b 3c", ms=20, ls="none"),
+    Line2D([], [], marker=">", color=color_dict['SH3b_3d'], label="SH3b 3d", ms=20, ls="none"),
+    Line2D([], [], marker=">", color=color_dict['SH3b_unk'], label="SH3b unknown", ms=20, ls="none"),
     Line2D([], [], marker=">", color=color_dict['TF'], label="Transcription factor", ms=20, ls="none"),
     Line2D([], [], marker=">", color=color_dict['SK'], label="Sensory kinase", ms=20, ls="none"),
-    Line2D([], [], marker=">", color=color_dict['FK'], label="Genes for sugar metabolism", ms=20, ls="none"),
     Line2D([], [], marker=">", color=color_dict['RE'], label="Restriction endonuclease", ms=20, ls="none"),
     Line2D([], [], marker=">", color='black', label="Transposase", ms=20, ls="none"),
     Line2D([], [], marker="", color='#771853', label="", ms=20, ls="none"),
