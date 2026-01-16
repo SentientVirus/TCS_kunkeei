@@ -33,6 +33,10 @@ fastqc = { version = ">=0.12.1,<0.13", channel = "bioconda" }
 multiqc = { version = ">=1.32,<2", channel = "bioconda" }
 subread = { version = ">=2.1.1,<3", channel = "bioconda" }
 
+[feature.gbk2gff.pypi-dependencies]
+genbank-to = "*"
+
 [environments]
 renv = ["renv"]
 rnaseq = ["rnaseq"]
+gbk2gff = ["gbk2gff"]

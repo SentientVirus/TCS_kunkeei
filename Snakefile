@@ -113,6 +113,19 @@ rule align2fna:
     shell:
         "bash code/03-read_alignment.sh {params.outdir} {input.genome} {log} {input.R1}"
 
+##Rule to create a gff from the new GenBank
+rule gbk2gff:
+    output:
+        "results/gff/reference_loctag.gff"
+    input:
+        "../ugc00027/results/annotations/emapper2gbk/reference_loctag.gbk"
+    log: "logs/04-gbk2gff.log"
+    conda: "pixi_transcript/gbk2gff.yml"
+    shell:
+        "genbank_to -g {input} --gff3 {output} 2> {log}"
+#    script: "code/04-gbk2gff.yml"
+
+
 ##Rule to calculate gene counts using the read alignment and the annotation of the reference strain
 rule count_genes:
     output:
@@ -122,12 +135,12 @@ rule count_genes:
         summary_forward = add_path_extension(all_input, "featureCounts_forward/nofilter", "featureCounts.summary")
     input:
         bam = add_path_extension(all_input, "results/bam", "bam"),
-        gff = os.path.expanduser("~") + "/Akunkeei_files/gff/H3B1-04J_genomic.gff"
+        gff = "results/gff/reference_loctag.gff" #"/Akunkeei_files/gff/H3B1-04J_genomic.gff"
     params: out1 = "featureCounts_reverse/nofilter", out2 = "featureCounts_forward/nofilter"
-    log: "logs/04-read_counts.log"
+    log: "logs/05-read_counts.log"
     conda: "pixi_transcript/rnaseq.yml"
     shell:
-        "bash code/04-read_counts.sh {params.out1} {params.out2} {input.gff} {log} {input.bam}"
+        "bash code/05-read_counts.sh {params.out1} {params.out2} {input.gff} {log} {input.bam}"
 
 ##Rule to calculate RNA read coverage along the genome
 rule calculate_coverage:
@@ -137,9 +150,9 @@ rule calculate_coverage:
         add_path_extension(all_input, "results/bam", "bam")
     params: "results/coverage"
     conda: "pixi_transcript/rnaseq.yml"
-    log: "logs/05-coverage.log"
+    log: "logs/06-coverage.log"
     shell:
-        "bash code/05-coverage.sh {params} {input} 1>&2 2> {log}"
+        "bash code/06-coverage.sh {params} {input} 1>&2 2> {log}"
 
 ##Rule to calculate several metrics related to the alignment
 rule picard_tools:
@@ -187,7 +200,7 @@ rule filter_counts:
         summary = add_path_extension(summary_input, "results/summary", "tsv", "_count_distribution")
     input:
         counts = add_path_extension(all_input, "featureCounts_reverse/nofilter", "featureCounts"),
-        gbff = os.path.expanduser("~") + "/Akunkeei_files/gbff/H3B1-04J_genomic.gbff" 
+        gbk = "../ugc00027/results/annotations/emapper2gbk/reference_loctag.gbk"  #"/Akunkeei_files/gbff/H3B1-04J_genomic.gbff" 
     conda: "pixi_transcript/default.yml"
     params: workdir = os.getcwd()
     log: "logs/08-prefilter_counts.log"
