@@ -113,18 +113,41 @@ rule align2fna:
     shell:
         "bash code/03-read_alignment.sh {params.outdir} {input.genome} {log} {input.R1}"
 
+##Rule to calculate RNA read coverage along the genome
+rule calculate_coverage:
+    output:
+        add_path_extension(all_input, "results/coverage", "perbase.cov")
+    input:
+        add_path_extension(all_input, "results/bam", "bam")
+    params: "results/coverage"
+    conda: "pixi_transcript/rnaseq.yml"
+    log: "logs/04-coverage.log"
+    shell:
+        "bash code/04-coverage.sh {params} {input} 1>&2 2> {log}"
+
+##Rule to calculate several metrics related to the alignment
+rule picard_tools:
+    output:
+        pdf = add_path_extension(all_input, "results/picard", "pdf", "_insert_size_histogram"),
+        txt = add_path_extension(all_input, "results/picard", "txt", "_insert_size_metrics")
+    input:
+        add_path_extension(all_input, "results/bam", "bam")
+    params: "results/picard"
+    conda: "pixi_transcript/rnaseq.yml"
+    log: "logs/04-picard.log"
+    shell:
+        "bash code/04-picard.sh {params} {input} 1>&2 2> {log}"
+
 ##Rule to create a gff from the new GenBank
 rule gbk2gff:
     output:
         "results/gff/reference_loctag.gff"
     input:
         "../ugc00027/results/annotations/emapper2gbk/reference_loctag.gbk"
-    log: "logs/04-gbk2gff.log"
+    log: "logs/05-gbk2gff.log"
     conda: "pixi_transcript/gbk2gff.yml"
     shell:
         "genbank_to -g {input} --gff3 {output} 2> {log}"
-#    script: "code/04-gbk2gff.yml"
-
 
 ##Rule to calculate gene counts using the read alignment and the annotation of the reference strain
 rule count_genes:
@@ -137,35 +160,11 @@ rule count_genes:
         bam = add_path_extension(all_input, "results/bam", "bam"),
         gff = "results/gff/reference_loctag.gff" #"/Akunkeei_files/gff/H3B1-04J_genomic.gff"
     params: out1 = "featureCounts_reverse/nofilter", out2 = "featureCounts_forward/nofilter"
-    log: "logs/05-read_counts.log"
+    log: "logs/06-read_counts.log"
     conda: "pixi_transcript/rnaseq.yml"
     shell:
-        "bash code/05-read_counts.sh {params.out1} {params.out2} {input.gff} {log} {input.bam}"
+        "bash code/06-read_counts.sh {params.out1} {params.out2} {input.gff} {log} {input.bam}"
 
-##Rule to calculate RNA read coverage along the genome
-rule calculate_coverage:
-    output:
-        add_path_extension(all_input, "results/coverage", "perbase.cov")
-    input:
-        add_path_extension(all_input, "results/bam", "bam")
-    params: "results/coverage"
-    conda: "pixi_transcript/rnaseq.yml"
-    log: "logs/06-coverage.log"
-    shell:
-        "bash code/06-coverage.sh {params} {input} 1>&2 2> {log}"
-
-##Rule to calculate several metrics related to the alignment
-rule picard_tools:
-    output:
-        pdf = add_path_extension(all_input, "results/picard", "pdf", "_insert_size_histogram"),
-        txt = add_path_extension(all_input, "results/picard", "txt", "_insert_size_metrics")
-    input:
-        add_path_extension(all_input, "results/bam", "bam")
-    params: "results/picard"
-    conda: "pixi_transcript/rnaseq.yml"
-    log: "logs/06-picard.log"
-    shell:
-        "bash code/06-picard.sh {params} {input} 1>&2 2> {log}"
 
 ##Rule to calculate TPM per sample and per isolate
 #rule get_TPM:
