@@ -47,7 +47,7 @@ workdir = snakemake.params.workdir #Working directory
 count_dir = os.path.dirname(snakemake.input.counts[0]) #Directory with gene counts
 outdir = os.path.dirname(snakemake.output.counts[0]) #Output directory
 metadir = os.path.dirname(snakemake.output.summary[0]) #Directory with metadata
-gbk_file = snakemake.input.gbff #Path to reference GenBank file
+gbk_file = snakemake.input.gbk #Path to reference GenBank file
 
 #Create the two output directories if they don't exist
 if not os.path.exists(outdir):
@@ -102,9 +102,9 @@ for file in os.listdir(count_dir): #Loop through count files
     if file.endswith('featureCounts'): #If the file is part of the featureCounts output
         with open(f'{file_path}') as counts: #Open the file
             df = pd.read_csv(counts, sep = '\t', header = 1, index_col = 0) #Read it as a dataframe
-            total_reads = df.iloc[:, -1:].sum()[0] #Get the total number of counts
+            total_reads = df.iloc[:, -1:].sum().iloc[0] #Get the total number of counts
             for seqtype in ['rRNA', 'tRNA', 'misc_RNA', 'transposon']: #Loop through the types of sequences to exclude
-                type_count[seqtype] = df[df.index.isin(loctags_by_type[seqtype])].iloc[:, -1:].sum()[0] #Get the total number of counts
+                type_count[seqtype] = df[df.index.isin(loctags_by_type[seqtype])].iloc[:, -1:].sum().iloc[0] #Get the total number of counts
             df = df[~df.index.isin(RNA_loctags)] #Get a daframe where the genes to exclude have been filtered out
             
         isolate = f'I{file[17:19]}_{file[20:21]}_{file[24:27].replace("_", "")}' #Get the isolate number

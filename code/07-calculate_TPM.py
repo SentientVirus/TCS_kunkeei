@@ -9,7 +9,7 @@ A script that calculates the number of TPM based on the number of counts
 # =============================================================================
 # 0. Importing packages
 # =============================================================================
-import os
+import os, sys
 import logging, traceback
 import pandas as pd
 
@@ -25,6 +25,9 @@ def handle_exception(exc_type, exc_value, exc_traceback):
     if issubclass(exc_type, KeyboardInterrupt):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
         return
+
+    # Create a logger
+    logger = logging.getLogger()
 
     logger.error(''.join(["Uncaught exception: ",
                           *traceback.format_exception(exc_type, exc_value, exc_traceback)
@@ -63,7 +66,7 @@ for file in sorted(snakemake.input): #Loop through input files
         TPM_up = [] #List to store TPM scaled to the million
   
         for index, row in count_df.iterrows():
-            rg = row[6] #Gene counts
+            rg = row.iloc[6] #Gene counts
             flg = row['Length']/10**3 #Gene length in kilobases
             TPM_calc = rg/flg #Gene counts normalized by gene length
             TPM_up.append(TPM_calc*1000000) #Normalized gene counts per million

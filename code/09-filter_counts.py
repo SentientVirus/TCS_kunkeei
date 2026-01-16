@@ -170,17 +170,22 @@ with open(ref_countfile) as keep: #Open the file with pre-filtered counts
     to_keep = list(keep_row.index) #List of locus tags (index column)
         
 for i in isolate_dict.keys(): # Loop through isolates and conditions
-    isolate_dict[i]['Mean_results'] = (isolate_dict[i][isolate_dict[i].columns[5:]].sum(axis=1))/len(isolate_dict[i].columns[5:]) #Calculate mean counts
+    print(i)
+    print(isolate_dict[i])
+    print(isolate_dict[i].columns[5:])
+    isolate_dict[i]['Mean_results'] = (isolate_dict[i][isolate_dict[i].columns[5:]].sum(axis=1))/(len(isolate_dict[i].columns[5:])-1) #Calculate mean counts
 
     for gene in isolate_dict[i]['Geneid']: #Loop through genes
         if gene not in gene_dict.keys(): #If the gene is not in the gene dictionary
-            gene_dict[gene] = [float(isolate_dict[i]['Mean_results'][isolate_dict[i]['Geneid'] == gene])] #Assign the mean counts to the dictionary
+            gene_dict[gene] = [float(isolate_dict[i]['Mean_results'][isolate_dict[i]['Geneid'] == gene].iloc[0])] #Assign the mean counts to the dictionary
         else:
-            gene_dict[gene].append(float(isolate_dict[i]['Mean_results'][isolate_dict[i]['Geneid'] == gene]))  #Else, append them to a list
+            gene_dict[gene].append(float(isolate_dict[i]['Mean_results'][isolate_dict[i]['Geneid'] == gene].iloc[0]))  #Else, append them to a list
             
         if sum(include_dict[gene])/len(include_dict[gene]) < 0.5: #If a gene doesn't meet the TPM threshold in >50% of the samples
             print(f'Excluded {gene} in {i} due to low TPM')
             isolate_dict[i].drop(isolate_dict[i][isolate_dict[i]['Geneid'] == gene].index, inplace = True) #Exclude it
+    
+    print(isolate_dict[i])
     
     # For each isolate and condition, save the counts of the five replicates to a file
     counts = pd.concat([isolate_dict[i]['Geneid'], isolate_dict[i].iloc[:, 5:-1]], axis = 1) #Create a dataframe concatenating the samples of each isolate and condition
