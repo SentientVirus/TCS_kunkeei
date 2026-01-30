@@ -15,6 +15,30 @@ rule all:
         gbk = expand("results/annotations/emapper2gbk/{isolate}.gbk", isolate = ["reference", "01", "02", "09", "10"]),
         ref_annot = "results/annotations/emapper2gbk/reference_loctag.gbk"
 
+##Function to define Fastplong outputs
+def add_path_extension(lst, path = "", extension = "", extra = ""):
+    new_list = []
+    elements = [os.path.basename(el).split(".fastq")[0] for el in lst]
+    for element in elements:
+        new_element = path + "/" + element + extra + "." + extension
+        new_list.append(new_element)
+    return new_list
+
+##Check step, to run Fastplong on the reads (mainly to get the QC report and re-name them to something more user-friendly, as it shouldn't perform any trimming)
+rule RNA_read_quality_control:
+    output:
+        html = expand("results/QC/fastplong/{isolate}_fastplong.html", isolate = ["01", "02", "09", "10"]), #add_path_extension(input_list, "results/QC/fastplong", "html", "_fastplong"),
+        json = expand("results/QC/fastplong/{isolate}_fastplong.json", isolate = ["01", "02", "09", "10"]), #add_path_extension(input_list, "results/QC/fastplong", "json", "_fastplong"),
+        reads = expand("results/trimming/{isolate}.fastq.gz", isolate = ["01", "02", "09", "10"]) #add_path_extension(input_list, "results/trimming", ".fastq.gz")
+    input:
+        input_list
+    threads: 2
+    conda: "pixi_genome/genome_analysis.yml"
+    log: "logs/00-read_QC.log"
+    script:
+        "code/00-read_QC.py"
+
+
 ##First step, running Flye to get the genomes with plasmids
 rule run_Flye:
     output:

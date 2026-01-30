@@ -23,6 +23,10 @@ circlator = ">=1.5.5,<2"
 setuptools = { version = ">=80.9.0,<81", channel = "conda-forge" }
 progressivemauve = { version = ">=snapshot_2015_2_13,<1a", channel = "bioconda" }
 pygenomeviz = { version = ">=1.6.1,<2", channel = "conda-forge" }
+multiqc = ">=1.33,<2"
+fastplong = ">=0.2.1,<0.3"
+seqkit = { version = ">=2.12.0,<3", channel = "bioconda" }
+fastqc = ">=0.12.1,<0.13"
 
 [feature.annotations.dependencies]
 ete4 = { channel = "conda-forge" }
