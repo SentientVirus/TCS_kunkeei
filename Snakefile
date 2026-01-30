@@ -24,6 +24,18 @@ def add_path_extension(lst, path = "", extension = "", extra = ""):
         new_list.append(new_element)
     return new_list
 
+##Rule to run CCS on the bam file with all the Pacbio subreads
+rule run_CCS:
+    output:
+        "CCS/subreads.ccs.bam"
+    input:
+        "rawdata/ps_4005_ppol1/m54259_221013_102146.subreads.bam"
+    threads: 4
+    conda: "pixi_genome/genome_analysis.yml"
+    log: "logs/00-run_CCS.log"
+    shell:
+        "bash code/00-run_CCS.sh {input} {output} {threads} > {log} 2>> {log}"
+
 ##Check step, to run Fastplong on the reads (mainly to get the QC report and re-name them to something more user-friendly, as it shouldn't perform any trimming)
 rule RNA_read_quality_control:
     output:
