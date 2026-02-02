@@ -69,7 +69,7 @@ for i in range(len(infiles)):
     
     #Run Fastplong
     #1. Trimming with fastplong
-    subprocess.run(f'fastplong -i {infiles[i]} -o {reads[i]} -Q 0 >> {log} 2>&1', shell = True)
+    subprocess.run(f'fastplong -i {infiles[i]} -o {reads[i]} -q 33 -u 20 -l 1000 -5 -3 --cut_front_mean_quality 20 --cut_tail_mean_quality 20 >> {log} 2>&1', shell = True)
     #2. Move other fastplong outputs to the same folder
     subprocess.run(f'mv fastplong.html {outfiles[i]}', shell = True)
     subprocess.run(f'mv fastplong.json {json[i]}', shell = True)

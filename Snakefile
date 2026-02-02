@@ -71,7 +71,7 @@ rule run_Flye:
         assembly = expand("assemblies/Flye/{isolate}/assembly.fasta", isolate = ["01", "02", "09", "10"]),
         stats = expand("assemblies/Flye/{isolate}/assembly_info.txt", isolate = ["01", "02", "09", "10"])
     input:
-        input_list
+        expand("results/trimming/{isolate}.fastq.gz", isolate = ["01", "02", "09", "10"]) #input_list
     threads: 24
     log: "logs/04a-run_Flye.log"
     conda: "pixi_assembly/default.yml"
