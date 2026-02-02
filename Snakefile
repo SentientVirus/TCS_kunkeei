@@ -27,7 +27,7 @@ def add_path_extension(lst, path = "", extension = "", extra = ""):
 ##Rule to run CCS on the bam file with all the Pacbio subreads
 rule run_CCS:
     output:
-        "CCS/subreads.ccs.bam"
+        "CCS/reads.ccs.bam"
     input:
         "rawdata/ps_4005_ppol1/m54259_221013_102146.subreads.bam"
     threads: 4
@@ -36,6 +36,20 @@ rule run_CCS:
     shell:
         "bash code/00-run_CCS.sh {input} {output} {threads} > {log} 2>> {log}"
 
+##Rule to demultiplex reads after running CCS
+rule demux:
+    output:
+        demux = expand("demux/demux.{n}--{n}.bam", n = ["0", "1", "2", "3"]),
+        fastq = expand("demux/{isolate}.fastq", isolate = ["01", "02", "09", "10"])
+    input:
+        bam = "CCS/reads.ccs.bam",
+        barcodes = "rawdata/barcodes.fasta" 
+    threads: 8
+    conda: "pixi_genome/genome_analysis.yml"
+    log: "logs/01-demultiplex.log"
+    shell: 
+        "bash code/01-run_Lima.sh {input.bam} {input.barcodes} {output.demux} {output.fastq} > {log} 2>> {log}"
+
 ##Check step, to run Fastplong on the reads (mainly to get the QC report and re-name them to something more user-friendly, as it shouldn't perform any trimming)
 rule RNA_read_quality_control:
     output:
@@ -43,12 +57,12 @@ rule RNA_read_quality_control:
         json = expand("results/QC/fastplong/{isolate}_fastplong.json", isolate = ["01", "02", "09", "10"]), #add_path_extension(input_list, "results/QC/fastplong", "json", "_fastplong"),
         reads = expand("results/trimming/{isolate}.fastq.gz", isolate = ["01", "02", "09", "10"]) #add_path_extension(input_list, "results/trimming", ".fastq.gz")
     input:
-        input_list
+        expand("demux/{isolate}.fastq", isolate = ["01", "02", "09", "10"])
     threads: 2
     conda: "pixi_genome/genome_analysis.yml"
-    log: "logs/00-read_QC.log"
+    log: "logs/02-read_QC.log"
     script:
-        "code/00-read_QC.py"
+        "code/02-read_QC.py"
 
 
 ##First step, running Flye to get the genomes with plasmids

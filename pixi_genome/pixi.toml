@@ -27,6 +27,8 @@ multiqc = ">=1.33,<2"
 fastplong = ">=0.2.1,<0.3"
 seqkit = { version = ">=2.12.0,<3", channel = "bioconda" }
 fastqc = ">=0.12.1,<0.13"
+pbccs = { version = ">=6.4.0,<7", channel = "bioconda" }
+lima = { version = ">=2.13.0,<3", channel = "bioconda" }
 
 [feature.annotations.dependencies]
 ete4 = { channel = "conda-forge" }

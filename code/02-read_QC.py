@@ -3,7 +3,7 @@
 """
 Created on Mon Jan 26 17:10:10 2026
 
-Script to run FastQC and MultiQC on the Illumina and Nanopore reads.
+Script to run Fastplong on the PacBio reads.
 
 @author: Marina Mota-Merlo
 """
