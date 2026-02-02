@@ -32,9 +32,9 @@ rule run_CCS:
         "rawdata/ps_4005_ppol1/m54259_221013_102146.subreads.bam"
     threads: 4
     conda: "pixi_genome/genome_analysis.yml"
-    log: "logs/00-run_CCS.log"
+    log: "logs/01a-run_CCS.log"
     shell:
-        "bash code/00-run_CCS.sh {input} {output} {threads} > {log} 2>> {log}"
+        "bash code/01a-run_CCS.sh {input} {output} {threads} > {log} 2>> {log}"
 
 ##Rule to demultiplex reads after running CCS
 rule demux:
@@ -46,9 +46,9 @@ rule demux:
         barcodes = "rawdata/barcodes.fasta" 
     threads: 8
     conda: "pixi_genome/genome_analysis.yml"
-    log: "logs/01-demultiplex.log"
+    log: "logs/02a-demultiplex.log"
     shell: 
-        "bash code/01-run_Lima.sh {input.bam} {input.barcodes} {output.demux} {output.fastq} > {log} 2>> {log}"
+        "bash code/02a-run_Lima.sh {input.bam} {input.barcodes} {output.demux} {output.fastq} > {log} 2>> {log}"
 
 ##Check step, to run Fastplong on the reads (mainly to get the QC report and re-name them to something more user-friendly, as it shouldn't perform any trimming)
 rule RNA_read_quality_control:
@@ -60,9 +60,9 @@ rule RNA_read_quality_control:
         expand("demux/{isolate}.fastq", isolate = ["01", "02", "09", "10"])
     threads: 2
     conda: "pixi_genome/genome_analysis.yml"
-    log: "logs/02-read_QC.log"
+    log: "logs/03a-read_QC.log"
     script:
-        "code/02-read_QC.py"
+        "code/03a-read_QC.py"
 
 
 ##First step, running Flye to get the genomes with plasmids
@@ -73,10 +73,10 @@ rule run_Flye:
     input:
         input_list
     threads: 24
-    log: "logs/01a-run_Flye.log"
+    log: "logs/04a-run_Flye.log"
     conda: "pixi_assembly/default.yml"
     shell:
-        "bash code/01a-Flye_assembly.sh {input} {output.assembly} {threads} > {log} 2> {log}"
+        "bash code/04a-Flye_assembly.sh {input} {output.assembly} {threads} > {log} 2> {log}"
 
 ##Second step, filter out contigs with low coverage
 rule filter_contigs:
@@ -86,10 +86,10 @@ rule filter_contigs:
         assembly = expand("assemblies/Flye/{isolate}/assembly.fasta", isolate = ["01", "02", "09", "10"]),
         stats = expand("assemblies/Flye/{isolate}/assembly_info.txt", isolate = ["01", "02", "09", "10"])
     threads: 2
-    log: "logs/02a-filter_contigs.log"
+    log: "logs/05a-filter_contigs.log"
     conda: "pixi_genome/default.yml"
     script:
-        "code/02a-filter_contigs.py"
+        "code/05a-filter_contigs.py"
 
 ##Set the oriC at the right position
 rule fix_ori:
@@ -98,13 +98,13 @@ rule fix_ori:
     input:
         assemblies = expand("assemblies/Flye/{isolate}/assembly_filtered.fasta", isolate = ["01", "02", "09", "10"]),
         start_genes = "circlator/start_genes.fna"
-    log: "logs/03a-circularize.log"
+    log: "logs/06a-circularize.log"
     conda: "pixi_genome/genome_analysis.yml"
     shell:
         """
         mkdir -p $(basename -- {output[0]})
         > {log}
-        bash code/03-circularize.sh {input.assemblies} {output} {input.start_genes} {log}
+        bash code/06-circularize.sh {input.assemblies} {output} {input.start_genes} {log}
         """
 
 ##Run progressive Mauve to compare with reference
@@ -114,9 +114,9 @@ rule pgv_mauve:
     input:
         og_strain = os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna",
         new_seqs = expand("assemblies/Flye/fixed_ori/{isolate}.fasta", isolate = ["01", "02", "09", "10"])
-    log: "logs/04a-pmauve.log"
+    log: "logs/07a-pmauve.log"
     conda: "pixi_genome/genome_analysis.yml"
-    script: "code/04-pgvmauve.py"
+    script: "code/07-pgvmauve.py"
 
 
 ##Assembly from the sequencing facility
@@ -160,13 +160,13 @@ rule fix_ori_seq:
     input:
         assemblies = expand("assemblies/NGI/{i}.fasta", i = ["001", "002", "003", "rev004"]),
         start_genes = "circlator/start_genes.fna"
-    log: "logs/03b-circularize.log"
+    log: "logs/06b-circularize.log"
     conda: "pixi_genome/genome_analysis.yml"
     shell:
         """
         mkdir -p $(basename -- {output[0]})
         > {log}
-        bash code/03-circularize.sh {input.assemblies} {output} {input.start_genes} {log}
+        bash code/06-circularize.sh {input.assemblies} {output} {input.start_genes} {log}
         """
 
 ##Run progressive Mauve to compare with reference
@@ -176,9 +176,9 @@ rule pgv_mauve_seq:
     input:
         og_strain = os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna",
         new_seqs = expand("assemblies/NGI/fixed_ori/{i}.fasta", i = ["01", "02", "09", "10"])
-    log: "logs/04b-pmauve.log"
+    log: "logs/07b-pmauve.log"
     conda: "pixi_genome/genome_analysis.yml"
-    script: "code/04-pgvmauve.py"
+    script: "code/07-pgvmauve.py"
 
 
 ##Based on the progressiveMauve results, align the reads back to the original assembly to check if there are any true differences
@@ -190,13 +190,13 @@ rule pacbio2ref:
     input:
         ref=os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna",
         reads=input_list
-    log: "logs/05-reads2bam.log"
+    log: "logs/08-reads2bam.log"
     conda: "pixi_genome/genome_analysis.yml"
     threads: 48
     shell:
         """
         > {log}
-        bash code/05-reads2bam.sh {input.ref} {output.index} {threads} {output.bamfiles} {input.reads} >> {log} 2>> {log}
+        bash code/08-reads2bam.sh {input.ref} {output.index} {threads} {output.bamfiles} {input.reads} >> {log} 2>> {log}
         """
 
 ##Create combined assemblies
@@ -208,10 +208,10 @@ rule combine_assemblies:
         NGI = expand("assemblies/NGI/fixed_ori/{i}.fasta", i = ["01", "02", "09", "10"]),
         Flye = expand("assemblies/Flye/fixed_ori/{i}.fasta", i = ["01", "02", "09", "10"]),
         og_strain = os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna"
-    log: "logs/06-combine_assemblies.log"
+    log: "logs/09-combine_assemblies.log"
     conda: "pixi_genome/genome_analysis.yml"
     threads: 1
-    script: "code/06-combine_assemblies.py"
+    script: "code/09-combine_assemblies.py"
 
 ##Prokka annotations
 rule prokka_annot:
@@ -220,13 +220,13 @@ rule prokka_annot:
     input:
         protein_list = os.path.expanduser("~") + "/Akunkeei_files/faa/H3B1-04J_protein.faa",
         assemblies = expand("assemblies/combined/{i}.fasta", i = ["01", "02", "09", "10"])
-    log: "logs/07-prokka.log"
+    log: "logs/10-prokka.log"
     conda: "pixi_genome/genome_analysis.yml"
     threads: 8
     shell:
         """
         > {log}
-        bash code/07-prokka.sh {threads} {input.protein_list} {input.assemblies} {output[0]} >> {log} 2>> {log};
+        bash code/10-prokka.sh {threads} {input.protein_list} {input.assemblies} {output[0]} >> {log} 2>> {log};
         """
 
 ##Modification of the reference GFF
@@ -235,10 +235,10 @@ rule modify_gff:
         "results/annotations/prokka/reference/reference.gff"
     input:
         os.path.expanduser("~") + "/Akunkeei_files/gff/H3B1-04J_genomic.gff"
-    log: "logs/08-modify_gff.log"
+    log: "logs/11-modify_gff.log"
     conda: "pixi_genome/default.yml"
     threads: 1
-    script: "code/08-modify_gff.py"
+    script: "code/11-modify_gff.py"
 
 ##Generation of the GenBank with improved annotation
 rule emapper2gbk:
@@ -249,13 +249,13 @@ rule emapper2gbk:
         faa = [os.path.expanduser("~") + "/Akunkeei_files/faa/H3B1-04J_protein.faa"] + expand("results/annotations/prokka/{isolate}/{isolate}.faa", isolate = ["01", "02", "09", "10"]),
         gff = expand("results/annotations/prokka/{isolate}/{isolate}.gff", isolate = ["reference", "01", "02", "09", "10"]),
         annot = expand("results/annotations/eggnog-mapper/{isolate}/out.emapper.annotations", isolate = ["reference", "01", "02", "09", "10"])
-    log: "logs/09-emapper2gbk.log"
+    log: "logs/12-emapper2gbk.log"
     threads: 4
     conda: "pixi_genome/annotations.yml"
     shell:
         """
         > {log}
-        bash code/09-emapper2gbk.sh {input.fna} {input.faa} {input.gff} {input.annot} {output} {threads} 2> {log} > {log}
+        bash code/12-emapper2gbk.sh {input.fna} {input.faa} {input.gff} {input.annot} {output} {threads} 2> {log} > {log}
         """
 
 ##Add locus tags to the reference GenBank
@@ -266,9 +266,9 @@ rule update_ref_gbk:
         NCBI = os.path.expanduser("~") + "/Akunkeei_files/gbff/H3B1-04J_genomic.gbff",
         emapper = "results/annotations/emapper2gbk/reference.gbk"
     threads: 1
-    log: "logs/10-add_loctag_gbk.log"
+    log: "logs/13-add_loctag_gbk.log"
     conda: "pixi_genome/default.yml"
-    script: "code/10-add_loctags_gbk.py"
+    script: "code/13-add_loctags_gbk.py"
 
 
 ##All vs all Blast
@@ -281,18 +281,18 @@ rule all_blast:
     params:
         outpath = "results/blast"
     threads: 16
-    log: "logs/08-blast_prokka.log"
+    log: "logs/11_alt-blast_prokka.log"
     conda: "pixi_genome/genome_analysis.yml"
-    script: "code/08-blast_prokka.py"
+    script: "code/11_alt-blast_prokka.py"
 
 ##Retrieve genes that are different in the re-sequenced genomes than in the reference
 rule get_differences:
     output: "results/blast/differences.tab"
     input: expand("results/blast/{i}.tab", i = ["01", "02", "09", "10"])
     threads: 1
-    log: "logs/09-get_differences.log"
+    log: "logs/12_alt-get_differences.log"
     conda: "pixi_genome/genome_analysis.yml"
-    script: "code/09-parse_blast.py"
+    script: "code/12_alt-parse_blast.py"
 
 
 ##Change FASTA line length from 60 nts to 80 nts
@@ -301,9 +301,9 @@ rule reformat_fna:
         expand("assemblies/combined/{i}_80nts.fasta", i = ["01", "02", "09", "10"])
     input:
         expand("assemblies/combined/{i}.fasta", i = ["01", "02", "09", "10"])
-    log: "logs/07c-reformat_fna.log"
+    log: "logs/10_alt2-reformat_fna.log"
     conda: "pixi_genome/default.yml"
-    script: "code/07c-reformat_fna.py"
+    script: "code/10_alt2-reformat_fna.py"
 
 ##Check for inversions
 rule Phase_Finder:
@@ -313,12 +313,12 @@ rule Phase_Finder:
     input:
         expand("assemblies/combined/{i}_80nts.fasta", i = ["01", "02", "09", "10"]),
         os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna"
-    log: "logs/08c-Phase_finder.log"
+    log: "logs/11_alt2-Phase_finder.log"
     conda: "pixi_phase_finder/default.yml"
     shell:
         """
         > {log}
-        bash code/08c-PhaseFinder.sh {output.general} {input} >> {log} 2>> {log}
+        bash code/11_alt2-PhaseFinder.sh {output.general} {input} >> {log} 2>> {log}
         """
 
 #rule synteny:
