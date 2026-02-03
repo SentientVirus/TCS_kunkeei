@@ -18,7 +18,11 @@ outfile=${@:5+$i:1} #Retrieve the output file
 outdir=$(dirname -- $outfile) #Retrieve the output directory
 echo "Outdir: "$outdir #Print output directory
 echo "File: "$file #Print output file
-i=$(expr $i + 1) #Increase the index
 mkdir -p $outdir #Create the output directory if it does not exist
-flye --pacbio-raw $file --genome-size 1.5m --threads $threads --out-dir $outdir --meta #Run Flye
+i=$(expr $i + 1) #Increase the index
+if [[ $outfile == *"subread"* ]]; then
+flye --pacbio-raw $file --genome-size 1.5m --threads $threads --out-dir $outdir --meta #Run Flye on raw reads  
+else
+flye --pacbio-hifi $file --genome-size 1.5m --threads $threads --out-dir $outdir --meta #Run Flye on high-quality reads
+fi
 done

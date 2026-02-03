@@ -78,6 +78,19 @@ rule run_Flye:
     shell:
         "bash code/04a-Flye_assembly.sh {input} {output.assembly} {threads} > {log} 2> {log}"
 
+rule run_Flye_subread:
+    output:
+        assembly = expand("assemblies/Flye/subread/{isolate}/assembly.fasta", isolate = ["01", "02", "09", "10"]),
+        stats = expand("assemblies/Flye/subread/{isolate}/assembly_info.txt", isolate = ["01", "02", "09", "10"])
+    input:
+        input_list
+    threads: 24
+    log: "logs/04a-run_Flye_subread.log"
+    conda: "pixi_assembly/default.yml"
+    shell:
+        "bash code/04a-Flye_assembly.sh {input} {output.assembly} {threads} > {log} 2> {log}"
+
+
 ##Second step, filter out contigs with low coverage
 rule filter_contigs:
     output:
@@ -104,7 +117,7 @@ rule fix_ori:
         """
         mkdir -p $(basename -- {output[0]})
         > {log}
-        bash code/06-circularize.sh {input.assemblies} {output} {input.start_genes} {log}
+        bash code/03-circularize.sh {input.assemblies} {output} {input.start_genes} {log}
         """
 
 ##Run progressive Mauve to compare with reference
@@ -116,7 +129,7 @@ rule pgv_mauve:
         new_seqs = expand("assemblies/Flye/fixed_ori/{isolate}.fasta", isolate = ["01", "02", "09", "10"])
     log: "logs/07a-pmauve.log"
     conda: "pixi_genome/genome_analysis.yml"
-    script: "code/07-pgvmauve.py"
+    script: "code/04-pgvmauve.py"
 
 
 ##Assembly from the sequencing facility
@@ -126,7 +139,7 @@ rule simplify_paths:
         expand("assemblies/NGI/00{i}.fasta", i = ["1", "2", "3", "4"])
     input:
         expand("analysis/ps_405_00{i}/ps_405_00{i}.polished_assembly.fasta", i = ["1", "2", "3", "4"])
-    log: "logs/01b-simplify_paths.log"
+    log: "logs/01-simplify_paths.log"
     shell:
         """
         > {log}
@@ -147,10 +160,10 @@ rule reverse_file:
         "assemblies/NGI/rev004.fasta"
     input:
         "assemblies/NGI/004.fasta"
-    log: "logs/02b-reverse_complement.log"
+    log: "logs/02-reverse_complement.log"
     conda: "pixi_genome/default.yml"
     script:
-        "code/02b-reverse_complement.py"
+        "code/02-reverse_complement.py"
 
 
 ##Set the oriC at the right position
@@ -160,13 +173,13 @@ rule fix_ori_seq:
     input:
         assemblies = expand("assemblies/NGI/{i}.fasta", i = ["001", "002", "003", "rev004"]),
         start_genes = "circlator/start_genes.fna"
-    log: "logs/06b-circularize.log"
+    log: "logs/03-circularize.log"
     conda: "pixi_genome/genome_analysis.yml"
     shell:
         """
         mkdir -p $(basename -- {output[0]})
         > {log}
-        bash code/06-circularize.sh {input.assemblies} {output} {input.start_genes} {log}
+        bash code/03-circularize.sh {input.assemblies} {output} {input.start_genes} {log}
         """
 
 ##Run progressive Mauve to compare with reference
@@ -178,25 +191,25 @@ rule pgv_mauve_seq:
         new_seqs = expand("assemblies/NGI/fixed_ori/{i}.fasta", i = ["01", "02", "09", "10"])
     log: "logs/07b-pmauve.log"
     conda: "pixi_genome/genome_analysis.yml"
-    script: "code/07-pgvmauve.py"
+    script: "code/04-pgvmauve.py"
 
 
 ##Based on the progressiveMauve results, align the reads back to the original assembly to check if there are any true differences
 rule pacbio2ref:
     output:
-        index="index/H3B1-04J.fna",
-        bamfiles=expand("results/bam/{no}.bam", no = ["01", "02", "09", "10"]),
-        bam_index=expand("results/bam/{no}.bam.bai", no = ["01", "02", "09", "10"])
+        index = "index/H3B1-04J.mmi",
+        bamfiles = expand("results/bam/{no}.bam", no = ["01", "02", "09", "10"]),
+        bam_index = expand("results/bam/{no}.bam.bai", no = ["01", "02", "09", "10"])
     input:
-        ref=os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna",
-        reads=input_list
-    log: "logs/08-reads2bam.log"
+        ref = os.path.expanduser("~") + "/Akunkeei_files/fna/H3B1-04J_genomic.fna",
+        reads = expand("results/trimming/{isolate}.fastq.gz", isolate = ["01", "02", "09", "10"]) #input_list
+    log: "logs/05-reads2bam.log"
     conda: "pixi_genome/genome_analysis.yml"
     threads: 48
     shell:
         """
         > {log}
-        bash code/08-reads2bam.sh {input.ref} {output.index} {threads} {output.bamfiles} {input.reads} >> {log} 2>> {log}
+        bash code/05-reads2bam.sh {input.ref} {output.index} {threads} {output.bamfiles} {input.reads} >> {log} 2>> {log}
         """
 
 ##Create combined assemblies
