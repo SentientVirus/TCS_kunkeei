@@ -6,6 +6,8 @@ input_list = [f"subreads/ps_405_00{key}/demultiplex.bc10{value}_BAK8A_OA--bc10{v
 
 rule all:
     input:
+        read_QC = expand("results/QC/CCS/fastplong/{isolate}_fastplong.html", isolate = ["01", "02", "09", "10"]),
+        CCS_assembly = expand("assemblies/Flye/CCS/{isolate}/assembly_filtered.fasta", isolate = ["01", "02", "09", "10"]),
         blast = "results/blast/differences.tab",
         phase_finder = "results/PhaseFinder/H3B1-04J_genomic.tab",
         pgvmauve = "results/pmauve/Flye/result.png",
@@ -51,11 +53,12 @@ rule demux:
         "bash code/02a-run_Lima.sh {input.bam} {input.barcodes} {output.demux} {output.fastq} > {log} 2>> {log}"
 
 ##Check step, to run Fastplong on the reads (mainly to get the QC report and re-name them to something more user-friendly, as it shouldn't perform any trimming)
-rule RNA_read_quality_control:
+##This step is not performed for subreads because they lack quality metrics
+rule RNA_QC_CCS:
     output:
-        html = expand("results/QC/fastplong/{isolate}_fastplong.html", isolate = ["01", "02", "09", "10"]), #add_path_extension(input_list, "results/QC/fastplong", "html", "_fastplong"),
-        json = expand("results/QC/fastplong/{isolate}_fastplong.json", isolate = ["01", "02", "09", "10"]), #add_path_extension(input_list, "results/QC/fastplong", "json", "_fastplong"),
-        reads = expand("results/trimming/{isolate}.fastq.gz", isolate = ["01", "02", "09", "10"]) #add_path_extension(input_list, "results/trimming", ".fastq.gz")
+        html = expand("results/QC/CCS/fastplong/{isolate}_fastplong.html", isolate = ["01", "02", "09", "10"]), #add_path_extension(input_list, "results/QC/fastplong", "html", "_fastplong"),
+        json = expand("results/QC/CCS/fastplong/{isolate}_fastplong.json", isolate = ["01", "02", "09", "10"]), #add_path_extension(input_list, "results/QC/fastplong", "json", "_fastplong"),
+        reads = expand("results/trimming/CCS/{isolate}.fastq.gz", isolate = ["01", "02", "09", "10"]) #add_path_extension(input_list, "results/trimming", ".fastq.gz")
     input:
         expand("demux/{isolate}.fastq", isolate = ["01", "02", "09", "10"])
     threads: 2
@@ -64,20 +67,20 @@ rule RNA_read_quality_control:
     script:
         "code/03a-read_QC.py"
 
-
 ##First step, running Flye to get the genomes with plasmids
-rule run_Flye:
+rule Flye_CCS:
     output:
-        assembly = expand("assemblies/Flye/{isolate}/assembly.fasta", isolate = ["01", "02", "09", "10"]),
-        stats = expand("assemblies/Flye/{isolate}/assembly_info.txt", isolate = ["01", "02", "09", "10"])
+        assembly = expand("assemblies/Flye/CCS/{isolate}/assembly.fasta", isolate = ["01", "02", "09", "10"]),
+        stats = expand("assemblies/Flye/CCS/{isolate}/assembly_info.txt", isolate = ["01", "02", "09", "10"])
     input:
-        expand("results/trimming/{isolate}.fastq.gz", isolate = ["01", "02", "09", "10"]) #input_list
+        expand("results/trimming/CCS/{isolate}.fastq.gz", isolate = ["01", "02", "09", "10"]) #input_list
     threads: 24
-    log: "logs/04a-run_Flye.log"
+    log: "logs/04a-run_Flye_CCS.log"
     conda: "pixi_assembly/default.yml"
     shell:
         "bash code/04a-Flye_assembly.sh {input} {output.assembly} {threads} > {log} 2> {log}"
 
+##First step, but for subreads
 rule run_Flye_subread:
     output:
         assembly = expand("assemblies/Flye/subread/{isolate}/assembly.fasta", isolate = ["01", "02", "09", "10"]),
@@ -92,24 +95,38 @@ rule run_Flye_subread:
 
 
 ##Second step, filter out contigs with low coverage
-rule filter_contigs:
+rule filter_CCS_contigs:
     output:
-        expand("assemblies/Flye/{isolate}/assembly_filtered.fasta", isolate = ["01", "02", "09", "10"])
+        expand("assemblies/Flye/CCS/{isolate}/assembly_filtered.fasta", isolate = ["01", "02", "09", "10"])
     input:
-        assembly = expand("assemblies/Flye/{isolate}/assembly.fasta", isolate = ["01", "02", "09", "10"]),
-        stats = expand("assemblies/Flye/{isolate}/assembly_info.txt", isolate = ["01", "02", "09", "10"])
+        assembly = expand("assemblies/Flye/CCS/{isolate}/assembly.fasta", isolate = ["01", "02", "09", "10"]),
+        stats = expand("assemblies/Flye/CCS/{isolate}/assembly_info.txt", isolate = ["01", "02", "09", "10"])
     threads: 2
-    log: "logs/05a-filter_contigs.log"
+    log: "logs/05a-filter_contigs_CCS.log"
     conda: "pixi_genome/default.yml"
     script:
         "code/05a-filter_contigs.py"
 
-##Set the oriC at the right position
+##Same step, but for the subreads
+rule filter_subread_contigs:
+    output:
+        expand("assemblies/Flye/subread/{isolate}/assembly_filtered.fasta", isolate = ["01", "02", "09", "10"])
+    input:
+        assembly = expand("assemblies/Flye/subread/{isolate}/assembly.fasta", isolate = ["01", "02", "09", "10"]),
+        stats = expand("assemblies/Flye/subread/{isolate}/assembly_info.txt", isolate = ["01", "02", "09", "10"])
+    threads: 2
+    log: "logs/05a-filter_contigs_subread.log"
+    conda: "pixi_genome/default.yml"
+    script:
+        "code/05a-filter_contigs.py"
+
+
+##Set the oriC at the right position (subreads)
 rule fix_ori:
     output:
         expand("assemblies/Flye/fixed_ori/{isolate}.fasta", isolate = ["01", "02", "09", "10"])
     input:
-        assemblies = expand("assemblies/Flye/{isolate}/assembly_filtered.fasta", isolate = ["01", "02", "09", "10"]),
+        assemblies = expand("assemblies/Flye/subread/{isolate}/assembly_filtered.fasta", isolate = ["01", "02", "09", "10"]),
         start_genes = "circlator/start_genes.fna"
     log: "logs/06a-circularize.log"
     conda: "pixi_genome/genome_analysis.yml"
@@ -129,7 +146,7 @@ rule pgv_mauve:
         new_seqs = expand("assemblies/Flye/fixed_ori/{isolate}.fasta", isolate = ["01", "02", "09", "10"])
     log: "logs/07a-pmauve.log"
     conda: "pixi_genome/genome_analysis.yml"
-    script: "code/04-pgvmauve.py"
+    script: "code/07-pgvmauve.py"
 
 
 ##Assembly from the sequencing facility
@@ -191,11 +208,11 @@ rule pgv_mauve_seq:
         new_seqs = expand("assemblies/NGI/fixed_ori/{i}.fasta", i = ["01", "02", "09", "10"])
     log: "logs/07b-pmauve.log"
     conda: "pixi_genome/genome_analysis.yml"
-    script: "code/04-pgvmauve.py"
+    script: "code/07-pgvmauve.py"
 
 
 ##Based on the progressiveMauve results, align the reads back to the original assembly to check if there are any true differences
-rule pacbio2ref:
+rule align2ref:
     output:
         index = "index/H3B1-04J.mmi",
         bamfiles = expand("results/bam/{no}.bam", no = ["01", "02", "09", "10"]),

@@ -35,6 +35,6 @@ echo $i" EggNOG-mapper annotation: "$annot_file
 echo $i" Output GenBank: "$out_file
 
 #Run emapper2gbk, -fn = genome fasta, -fp = protein fasta, -o output GenBank, -g = gff from Prokka, -gt = feature type, -n = organism name, -a = eggNOG annotation, -c = no. of threads
-emapper2gbk genomes -fn $fna_file -fp $faa_file -o $out_file -g $gff_file -gt CDS -n "Apilactobacillus kunkeei" -a $annot_file -c $threads --keep-gff-annotation 
+emapper2gbk genomes -fn $fna_file -fp $faa_file -o $out_file -g $gff_file -gt CDS -n "Apilactobacillus kunkeei" -a $annot_file -c $threads --keep-gff-annotation -go obo-db/go-basic.obo
 
 done

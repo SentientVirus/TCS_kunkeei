@@ -29,12 +29,14 @@ fastqc = ">=0.12.1,<0.13"
 pbccs = { version = ">=6.4.0,<7", channel = "bioconda" }
 lima = { version = ">=2.13.0,<3", channel = "bioconda" }
 minimap2 = ">=2.28,<3"
+unicycler = ">=0.5.1,<0.6"
+canu = ">=2.2,<3"
 
 [feature.annotations.dependencies]
 ete4 = { channel = "conda-forge" }
 gffutils = { channel = "bioconda" }
 pronto = { channel = "bioconda" }
-requests = { channel = "conda-forge" }
+urllib3 = ">=2.6.3,<3"
 
 [feature.annotations.pypi-dependencies]
 emapper2gbk = ">=0.3.2, <0.4"
