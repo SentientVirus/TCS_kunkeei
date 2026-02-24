@@ -7,7 +7,6 @@ dependencies:
 - conda-forge::ete4
 - bioconda::gffutils
 - bioconda::pronto
-- conda-forge::requests
 - biopython >=1.86,<2
 - spyder >=6.1.0,<7
 - pandas >=2.3.3,<3
