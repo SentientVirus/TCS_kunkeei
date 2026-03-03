@@ -10,3 +10,14 @@ rule parse_blastp:
     log: "logs/01-parse_BLASTp.log"
 #    conda: "pixi_phylo/default.yml"
     script: "code/01-merge_blastp_info.py"
+
+rule get_faa:
+    output:
+        faa = "fasta/blastp_hits.faa",
+        formatted = "fasta/blastp_formatted.faa"
+    input:
+        "blastp/20260302_RR-TF_Descriptions.csv"
+    threads: 1
+    log: "logs/02-get_faa.log"
+#    conda: "pixi_phylo/default.yml"
+    script: "code/02-get_faa.py"

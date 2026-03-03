@@ -56,6 +56,7 @@ outfile = snakemake.output[0] #Path to the output file
 # 2. Read the files and merge the information in both of them
 # =============================================================================
 
+print(f'Reading {hitfile} as a dataframe... (1/4)')
 with open(hitfile) as hits: #Open the file with hit information
     hit_df = pd.read_csv(hitfile, header = None, sep = ',') #Read the file as a dataframe
     hit_df.rename(columns={0: 'Query ID', 1: 'Subject accession', 
@@ -66,7 +67,9 @@ with open(hitfile) as hits: #Open the file with hit information
                            }, inplace = True)
     #Remove the column with the query (same for all hits)
     hit_df.drop(columns ='Query ID', inplace = True)
+print('Done! (1/4)')    
     
+print(f'Reading {descfile} as a dataframe... (2/4)')
 with open(descfile) as desc: #Open the file with the hit descriptions
     desc_df = pd.read_csv(descfile, sep = ',') #Read the file as a daraframe
     desc_df.rename(columns={'Accession  ': 'Subject accession', 
@@ -80,7 +83,9 @@ with open(descfile) as desc: #Open the file with the hit descriptions
                  inplace = True) #Remove columns not wanted in the output
     #Retrieve the accession of the hit from one of the columns
     desc_df['Subject accession'] = desc_df['Subject accession'].apply(lambda x: x.split('/')[4].split('?')[0])
+print('Done! (2/4)')
     
+print('Merging the two dataframes... (3/4)')
 df = hit_df.merge(desc_df, on = 'Subject accession', how = 'left') #Merge the two dataframes
 
 #Re-order dataframe columns
@@ -90,6 +95,9 @@ reorder = ['Subject accession', 'Scientific name', '% Identity',
            'E-value', 'Bit score', 'Max. score', 'Total score', '% Positives']
 
 df = df.reindex(columns = reorder) #Reset the index of the dataframe
+print('Done! (3/4)')
 
+print('Writing the merged dataframe to file... (4/4)')
 with open(outfile, 'w') as out_csv: #Open the output file
     df.to_csv(out_csv, sep = ',', index = False) #Write the dataframe to the file without the index column
+print('All done!')
