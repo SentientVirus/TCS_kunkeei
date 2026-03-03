@@ -42,3 +42,13 @@ rule run_IQtree:
 #    conda: "pixi_phylo/default.yml"
     script: "code/04-run_iqtree.py"
 
+rule plot_tree:
+    output:
+        expand("plots/blastp_RR-TF_tree.{ext}", ext = ["png", "svg", "pdf"])
+    input:
+        "fasta/trees/blastp_formatted.mafft.faa.treefile"
+    threads: 1
+    log: "logs/05-plot_tree.log"
+#    conda: "pixi_phylo/default.yml"
+    script: "code/05-ete4_plot.py"
+
