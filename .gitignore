@@ -9,3 +9,4 @@
 /.snakemake/*
 .*
 PhaseFinder
+!blast_searches/pixi_phylo/*

@@ -1,0 +1,12 @@
+
+
+rule parse_blastp:
+    output:
+        "blastp/20260302_RR-TF_results.csv"
+    input:
+        hits = "blastp/20260302_RR-TF_HitTable.csv",
+        descriptions = "blastp/20260302_RR-TF_Descriptions.csv"
+    threads: 1
+    log: "logs/01-parse_BLASTp.log"
+#    conda: "pixi_phylo/default.yml"
+    script: "code/01-merge_blastp_info.py"
