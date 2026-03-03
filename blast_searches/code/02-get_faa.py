@@ -6,7 +6,7 @@ Created on Fri Mar 28 17:51:55 2025
 Code to retrieve protein sequences from other A. kunkeei species from NCBI,
 add the species name to the accession, and save the sequences to a single
 fasta file.
-Environment: ncbi_download.yml
+Environment: pixi_phylo/default.yml
 
 @author: Marina Mota-Merlo
 """

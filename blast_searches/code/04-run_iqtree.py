@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Mar  3 14:27:43 2026
+Created on Tue Mar  3 14:39:03 2026
 
-Script to run MAFFT L-INS-i to align the retrieved amino acid sequences to
-each other.
+Script to run IQtree on the MAFFT L-INS-i alignment to generate a phylogeny of
+the RR-TF.
 Environment: pixi_phylo/default.yml
 
 @author: Marina Mota-Merlo
@@ -17,12 +17,16 @@ Environment: pixi_phylo/default.yml
 import subprocess
 import logging, traceback
 import sys
+import os
 
 # =============================================================================
 # 0. Logging
 # =============================================================================
 
 log = snakemake.log[0]
+
+with open(log, 'w') as handle: #Open the log file in write mode
+    handle.write('') #Overwrite the file
 
 logging.basicConfig(filename = log, level = logging.INFO,
                     format = '%(asctime)s %(message)s',
@@ -48,16 +52,20 @@ sys.stdout = open(log, 'a')
 # 1. Set paths to inputs and outputs
 # =============================================================================
 
-in_faa = snakemake.input[0] #Path to the formatted fasta file
-out_faa = snakemake.output[0] #Path to the alignment file
+in_aln = snakemake.input[0] #Path to the formatted fasta file
+outpath = os.path.dirname(snakemake.output[0]) #Directory to store the outputs
 threads = snakemake.threads #No. of threads to be used by MAFFT
 
+if not os.path.exists(outpath): #If the output directory doesn't exist
+    os.makedirs(outpath) #Create it
+
 # =============================================================================
-# 2. Run MAFFT
+# 2. Run IQtree
 # =============================================================================
 
-print(f'Running MAFFT on {in_faa} and saving results to {out_faa}... (1/1)')
+print(f'Running IQtree on {in_aln} and saving results to {outpath}... (1/1)')
 #Define the command to run
-command = f'mafft-linsi --thread {threads} {in_faa} > {out_faa} 2> {log}'
-subprocess.run(command, shell = True) #Run MAFFT
+command = f'iqtree -nt AUTO -ntmax {threads} -s {in_aln} -st AA -msub nuclear -bb 1000 -bnni >> {log}'
+subprocess.run(command, shell = True) #Run IQtree
+subprocess.run(f'mv {in_aln}.* {outpath}', shell = True) #Move IQtree results to the desired folder
 print('Done! (1/1)')

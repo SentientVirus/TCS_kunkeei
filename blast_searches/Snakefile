@@ -32,3 +32,13 @@ rule align_seqs:
 #    conda: "pixi_phylo/default.yml"
     script: "code/03-align_seqs.py"
 
+rule run_IQtree:
+    output:
+        expand("fasta/trees/blastp_formatted.mafft.faa.{ext}", ext = ["treefile", "ufboot", "splits.nex", "log", "mldist", "model.gz", "ckp.gz", "contree", "iqtree", "bionj"])
+    input:
+        "fasta/blastp_formatted.mafft.faa"
+    threads: 24
+    log: "logs/04-run_IQtree.log"
+#    conda: "pixi_phylo/default.yml"
+    script: "code/04-run_iqtree.py"
+
