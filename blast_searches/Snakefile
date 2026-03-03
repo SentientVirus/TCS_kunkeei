@@ -21,3 +21,14 @@ rule get_faa:
     log: "logs/02-get_faa.log"
 #    conda: "pixi_phylo/default.yml"
     script: "code/02-get_faa.py"
+
+rule align_seqs:
+    output:
+        "fasta/blastp_formatted.mafft.faa"
+    input:
+        "fasta/blastp_formatted.faa"
+    threads: 4
+    log: "logs/03-align_seqs.log"
+#    conda: "pixi_phylo/default.yml"
+    script: "code/03-align_seqs.py"
+

@@ -10,3 +10,4 @@
 .*
 PhaseFinder
 !blast_searches/pixi_phylo/*
+!blast_searches/code/*
