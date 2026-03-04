@@ -403,8 +403,6 @@ environments:
     channels:
     - url: https://conda.anaconda.org/conda-forge/
     - url: https://conda.anaconda.org/bioconda/
-    indexes:
-    - https://pypi.org/simple
     packages:
       linux-64:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/_libgcc_mutex-0.1-conda_forge.tar.bz2
@@ -794,8 +792,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/zeromq-4.3.5-h387f397_9.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/zipp-3.23.0-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/zstd-1.5.7-hb78ec9c_6.conda
-      - pypi: https://files.pythonhosted.org/packages/4d/fc/fb0ad7988b7db0bd88c2764fd6b82657786e61cd5ab7f051e823c1aa1d4a/bcbio_gff-0.7.1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/96/a6/26e34ca44ebbdb877661fe37a53aaaa309a7c284c9a59514ec666a61bfc6/genbank_to-0.54-py3-none-any.whl
   renv:
     channels:
     - url: https://conda.anaconda.org/conda-forge/
@@ -2145,13 +2141,6 @@ packages:
   - pkg:pypi/backports-zstd?source=hash-mapping
   size: 237970
   timestamp: 1767045004512
-- pypi: https://files.pythonhosted.org/packages/4d/fc/fb0ad7988b7db0bd88c2764fd6b82657786e61cd5ab7f051e823c1aa1d4a/bcbio_gff-0.7.1-py3-none-any.whl
-  name: bcbio-gff
-  version: 0.7.1
-  sha256: 98b18c797fbabd27f47c2edc2a5c5e75d37a353cc2286684c4650728e66ff8fd
-  requires_dist:
-  - six
-  - biopython
 - conda: https://conda.anaconda.org/conda-forge/linux-64/bcrypt-5.0.0-py312h868fb18_1.conda
   sha256: 22020286e3d27eba7c9efef79c1020782885992aea0e7d28d7274c4405001521
   md5: 8fbbd949c452efde5a75b62b22a88938
@@ -3668,17 +3657,6 @@ packages:
   license_family: GPL
   size: 77766660
   timestamp: 1759968214246
-- pypi: https://files.pythonhosted.org/packages/96/a6/26e34ca44ebbdb877661fe37a53aaaa309a7c284c9a59514ec666a61bfc6/genbank_to-0.54-py3-none-any.whl
-  name: genbank-to
-  version: '0.54'
-  sha256: ffbd587c41cf29ac86ebaa855fca8bc2107968bb754f869356936409d73f1361
-  requires_dist:
-  - biopython>=1.74
-  - numpy>=1.16.0
-  - pandas
-  - bcbio-gff>=0.6.6
-  - pytest>=7.0 ; extra == 'test'
-  requires_python: '>=3.9'
 - conda: https://conda.anaconda.org/conda-forge/linux-64/gettext-0.25.1-h3f43e3d_1.conda
   sha256: cbfa8c80771d1842c2687f6016c5e200b52d4ca8f2cc119f6377f64f899ba4ff
   md5: c42356557d7f2e37676e121515417e3b

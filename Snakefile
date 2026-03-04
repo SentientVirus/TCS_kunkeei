@@ -43,7 +43,7 @@ def input_strand(lst, strand = 1, path = "", extension = ""):
 ##Rule to define all desired outputs
 rule all:
     input:
-        multiqc = "results/multiqc/multiqc_report.html",
+        multiqc = expand("results/multiqc/{ba}/multiqc_report.html", ba = ["post", "pre"]),
         improved_annot = expand("results/DE/{comparison}{ext}_improved_annot.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"]),
         coverage = add_path_extension(all_input, "results/coverage", "perbase.cov"),
         picard = add_path_extension(all_input, "results/picard", "pdf", "_insert_size_histogram"),
@@ -61,6 +61,23 @@ rule index_genome:
     log: "logs/01-index_genome.log"
     shell:
         "bash code/01-index_genome.sh {input} {output.fna} 2> {log}"
+
+##Rule to run FastQC and MultiQC on raw reads
+rule RNA_read_QC_pre_trimming:
+    output:
+        R1 = add_path_extension(all_input, path = "results/fastqc/pre", extension = "zip", extra = "_R1_001_fastqc"),
+        R2 = add_path_extension(all_input, path = "results/fastqc/pre", extension = "zip", extra = "_R2_001_fastqc"),
+        multiqc = "results/multiqc/pre/multiqc_report.html"
+    input:
+        R1 = input_strand(all_input, strand = 1, path = "files/VF-3336/221006_M06455_0144_000000000-KMH8C", extension = "fastq.gz"),
+        R2 = input_strand(all_input, strand = -1, path = "files/VF-3336/221006_M06455_0144_000000000-KMH8C", extension = "fastq.gz")
+    threads: 2
+    conda: "pixi_transcript/rnaseq.yml"
+    log: "logs/02.1a-read_QC.log"
+    shell:
+        """
+        bash code/02.1-read_QC.sh {threads} {output.R1[0]} {output.multiqc} {input} >> {log} 2>> {log}
+        """
 
 ##Rule to trim the Illumina MiSeq RNA reads from the resequenced isolates of H3B1-04J
 rule trim_reads:
@@ -81,17 +98,17 @@ rule trim_reads:
         """
 
 ##Rule to run FastQC and MultiQC on trimmed reads
-rule RNA_read_quality_control:
+rule RNA_read_QC_post_trimming:
     output:
-        R1 = add_path_extension(all_input, path = "results/fastqc", extension = "zip", extra = "-trimmed-pair1_fastqc"),
-        R2 = add_path_extension(all_input, path = "results/fastqc", extension = "zip", extra = "-trimmed-pair2_fastqc"),
-        multiqc = "results/multiqc/multiqc_report.html"
+        R1 = add_path_extension(all_input, path = "results/fastqc/post", extension = "zip", extra = "-trimmed-pair1_fastqc"),
+        R2 = add_path_extension(all_input, path = "results/fastqc/post", extension = "zip", extra = "-trimmed-pair2_fastqc"),
+        multiqc = "results/multiqc/post/multiqc_report.html"
     input: 
         R1 = add_path_extension(all_input, path = "trimmed_reads", extension = "fastq", extra = "-trimmed-pair1"),
         R2 = add_path_extension(all_input, path = "trimmed_reads", extension = "fastq", extra = "-trimmed-pair2")
     threads: 2
     conda: "pixi_transcript/rnaseq.yml"
-    log: "logs/02.1-read_QC.log"
+    log: "logs/02.1b-read_QC.log"
     shell:
         """
         bash code/02.1-read_QC.sh {threads} {output.R1[0]} {output.multiqc} {input} >> {log} 2>> {log}
@@ -134,20 +151,20 @@ rule picard_tools:
         add_path_extension(all_input, "results/bam", "bam")
     params: "results/picard"
     conda: "pixi_transcript/rnaseq.yml"
-    log: "logs/04-picard.log"
+    log: "logs/05-picard.log"
     shell:
-        "bash code/04-picard.sh {params} {input} 1>&2 2> {log}"
+        "bash code/05-picard.sh {params} {input} 1>&2 2> {log}"
 
 ##Rule to create a gff from the new GenBank
-rule gbk2gff:
-    output:
-        "results/gff/reference_loctag.gff"
-    input:
-        "../ugc00027/results/annotations/emapper2gbk/reference_loctag.gbk"
-    log: "logs/05-gbk2gff.log"
-    conda: "pixi_transcript/gbk2gff.yml"
-    shell:
-        "genbank_to -g {input} --gff3 {output} 2> {log}"
+#rule gbk2gff:
+#    output:
+#        "results/gff/reference_loctag.gff"
+#    input:
+#        "../ugc00027/results/annotations/emapper2gbk/reference_loctag.gbk"
+#    log: "logs/05-gbk2gff.log"
+#    conda: "pixi_transcript/gbk2gff.yml"
+#    shell:
+#        "genbank_to -g {input} --gff3 {output} & mv genbank_to.log {log}"
 
 ##Rule to calculate gene counts using the read alignment and the annotation of the reference strain
 rule count_genes:
@@ -158,7 +175,7 @@ rule count_genes:
         summary_forward = add_path_extension(all_input, "featureCounts_forward/nofilter", "featureCounts.summary")
     input:
         bam = add_path_extension(all_input, "results/bam", "bam"),
-        gff = "results/gff/reference_loctag.gff" #"/Akunkeei_files/gff/H3B1-04J_genomic.gff"
+        gff = os.path.expanduser("~") + "/Akunkeei_files/gff/H3B1-04J_genomic.gff"
     params: out1 = "featureCounts_reverse/nofilter", out2 = "featureCounts_forward/nofilter"
     log: "logs/06-read_counts.log"
     conda: "pixi_transcript/rnaseq.yml"
@@ -199,7 +216,7 @@ rule filter_counts:
         summary = add_path_extension(summary_input, "results/summary", "tsv", "_count_distribution")
     input:
         counts = add_path_extension(all_input, "featureCounts_reverse/nofilter", "featureCounts"),
-        gbk = "../ugc00027/results/annotations/emapper2gbk/reference_loctag.gbk"  #"/Akunkeei_files/gbff/H3B1-04J_genomic.gbff" 
+        gbk = os.path.expanduser("~") + "/Akunkeei_files/gbff/H3B1-04J_genomic.gbff" 
     conda: "pixi_transcript/default.yml"
     params: workdir = os.getcwd()
     log: "logs/08-prefilter_counts.log"
