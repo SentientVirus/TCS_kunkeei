@@ -167,7 +167,7 @@ for leaf in leaves: #Loop through the leaves of the tree
     elif 'Carnobacterium' in leaf.name: #If it is a Carnobacterium
         color = color_dict['Carnobacteriaceae'] #Assign the corresponding color
     else: color = color_dict['Lactobacillaceae'] #Otherwise, use the Lactobacillaceae color
-    name_face = TextFace(nleaf.replace('_CroR', '').replace('_', ' '), #Remove CroR from the leaf name and replace underscores with spaces
+    name_face = TextFace(nleaf.replace('_CroR', '').replace('_', ' ').replace('WP ', 'WP_'), #Remove CroR from the leaf name and replace underscores with spaces
                          fgcolor = color, fsize = 40, ftype = 'Arial') #Create a text with locus tags
     leaf.add_face(name_face, column = 0, position = 'branch-right') #Add the text to the right leaf in the tree
     
