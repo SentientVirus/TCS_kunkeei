@@ -74,7 +74,7 @@ acc_list = ['WP_353317293.1', 'WP_120784742.1', 'WP_054658628.1', #Apilactobacil
             'WP_168721664.1', 'WP_057818986.1', 'WP_155431509.1', 
             'WP_028790024.1', 'WP_063084080.1',
             'WP_034561863.1', 'MGX7713849.1', 'WP_013774648.1', #Other non-Lactobacillaceae
-            'WP_077275945.1']
+            'WP_077275945.1', 'WP_048940986.1']
 
 if not os.path.exists(os.path.dirname(outfile)): #If the path to the output file doesn't exist
     os.makedirs(os.path.dirname(outfile)) #Create it

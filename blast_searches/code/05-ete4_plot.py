@@ -127,6 +127,8 @@ ns['size'] = 0 #Remove node representations as circles
 ns['vt_line_width'] = 1 #Set the width of vertical lines
 ns['hz_line_width'] = 1 #Set the width of horizontal lines
 ns['hz_line_type'] = 0 #Make horizontal lines solid
+ls = ns.copy() #Create another node style to highlight proteins annotated as CroR
+ls['bgcolor'] = croR #Assign the background color
 print('Done!')
 
 print('Apply the node style and add support values...')
@@ -154,6 +156,8 @@ print('Add labels and background colors to leaves in the tree')
 leaves = t.leaves() #Retrieve the leaves in the tree
 
 for leaf in leaves: #Loop through the leaves of the tree
+    if 'CroR' in leaf.name: #If the original leaf name includes CroR
+        leaf.set_style(ls) #Apply the background highlighting for CroR
     nleaf = leaf.name #Create an additional variable to store the leaf name
 
     if '_Apilactobacillus_' in leaf.name: #If Apilactobacillus is in the leaf name
@@ -167,8 +171,6 @@ for leaf in leaves: #Loop through the leaves of the tree
                          fgcolor = color, fsize = 40, ftype = 'Arial') #Create a text with locus tags
     leaf.add_face(name_face, column = 0, position = 'branch-right') #Add the text to the right leaf in the tree
     
-    if 'CroR' in leaf.name: #If the original leaf name includes CroR
-        leaf.img_style['bgcolor'] = croR #Apply the color highlight to the leaf
 print('Done!')
 
 # =============================================================================
