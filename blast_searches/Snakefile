@@ -1,4 +1,7 @@
-
+rule all:
+    input:
+        "blastp/20260302_RR-TF_results.csv", 
+        expand("plots/blastp_RR-TF_tree.{ext}", ext = ["png", "svg", "pdf"])
 
 rule parse_blastp:
     output:
