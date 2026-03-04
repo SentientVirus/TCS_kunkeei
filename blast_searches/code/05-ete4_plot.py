@@ -143,7 +143,7 @@ for n in t.traverse(): #Loop through the nodes in the tree
                color = 'black' #Color the support value in black
            else:
                color = 'dimgrey' #Otherwise, color it in grey
-           support_face = TextFace(int(n.support), fgcolor = color, fsize = 36,
+           support_face = TextFace(int(n.support), fgcolor = color, fsize = 20,
                                    ftype = 'Arial') #Create a text with the support value
            n.add_face(support_face, column = 0, position='branch-top') #Add the text to the corresponding node in the tree
 print('Done!')   
