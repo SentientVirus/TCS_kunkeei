@@ -49,7 +49,8 @@ rule plot_tree:
     output:
         expand("plots/blastp_RR-TF_tree.{ext}", ext = ["png", "svg", "pdf"])
     input:
-        "fasta/trees/blastp_formatted.mafft.faa.treefile"
+        tree = "fasta/trees/blastp_formatted.mafft.faa.treefile",
+        hits = "blastp/20260302_RR-TF_results.csv"
     threads: 1
     log: "logs/05-plot_tree.log"
 #    conda: "pixi_phylo/default.yml"
