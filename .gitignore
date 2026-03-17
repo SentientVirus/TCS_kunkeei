@@ -1,6 +1,7 @@
 *
 !pixi_transcript/*
 !code/*
+!code/interpro/*
 !.gitignore
 !Snakefile
 !*/
