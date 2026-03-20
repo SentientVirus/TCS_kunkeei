@@ -12,6 +12,7 @@ dependencies:
 - iqtree >=3.0.1,<4
 - spyder >=6.1.3,<7
 - pyqt6 >=6.8.1,<7
+- bioconda::emboss >=6.6.0,<7
 - pip
 - pip:
   - ncbi-acc-download>=0.2.9, <0.3
