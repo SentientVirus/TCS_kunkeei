@@ -28,17 +28,48 @@ bamfiles = sorted([f'{indir}/{file}' for file in os.listdir(indir) if file.endsw
 outdir = f'{workdir}/results/coverage'
 plotdir = f'{outdir}/plots'
 bamlist = f'{indir}/bam_list.txt' #File including the path to the BAM files
+outplot = f'{plotdir}/seqdepth.png'
 
 #Create output directories if they don't exist        
 [os.makedirs(newdir) for newdir in [outdir, plotdir] if not os.path.exists(newdir)]
     
 name_dict = {'chromosome': 'OX335197.1', 'pKUN': 'OX335198.1'} #Dictionary with contig IDs
+
+font_name = 'Arial'
+titles = 14
+plain = 12
  
 # =============================================================================
 # 2. Calculate the sequencing depth and generate plots
 # =============================================================================
 
-for file in bamfiles: #Loop through BAM files
+#Create the plot layout
+fig, axs = plt.subplots(4, 2, sharex = 'col', sharey = 'col', 
+                        figsize = (11.69, 8.27), dpi = 300) #A4, 300 DPI
+
+fig.tight_layout(h_pad = 3, w_pad = 1) #Adjust spacing between subplots
+fig.subplots_adjust(left = 0.1, top = 0.92) #Adjust figure margins
+
+#Add a label for each isolate
+fig.text(0.5, 0.95, 'Isolate 01', ha = 'center', va = 'center', 
+         rotation = 'horizontal', weight = 'semibold', fontname = font_name,
+         fontsize = titles)
+fig.text(0.5, 0.715, 'Isolate 02', ha = 'center', va = 'center', 
+         rotation = 'horizontal', weight = 'semibold', fontname = font_name,
+         fontsize = titles)
+fig.text(0.5, 0.478, 'Isolate 09', ha = 'center', va = 'center', 
+         rotation = 'horizontal', weight = 'semibold', fontname = font_name,
+         fontsize = titles)
+fig.text(0.5, 0.245, 'Isolate 10', ha = 'center', va = 'center',
+         rotation = 'horizontal', weight = 'semibold', fontname = font_name,
+         fontsize = titles)
+
+#Add a label for all the y axes (depth)
+fig.text(0.05, 0.5, 'Sequencing depth', ha = 'center', va = 'center', 
+         rotation = 'vertical', fontname = font_name, fontsize = plain)
+
+for i in range(0, len(bamfiles)): #Loop through the list of BAM files
+    file = bamfiles[i] #Retrieve the path to the file
     with open(bamlist, 'w') as handle: #Open the text file (overwrite mode)
         handle.write(f'{file}\n') #Write the BAM file
         
@@ -56,36 +87,30 @@ for file in bamfiles: #Loop through BAM files
     df.columns = ['contig', 'position', 'coverage'] #Add column names
     
     #Plot results for the chromosome
-    outplot = f'{plotdir}/{isolate}_chromosome.png' #Path to output plot
     df_chr = df[df['contig'] == name_dict['chromosome']] #Retrieve data from the chromosome
-    plt.plot('position', 'coverage', data = df_chr, color = '#7C55E6',
+    axs[i][0].plot('position', 'coverage', data = df_chr, color = '#7C55E6',
              linewidth = 1) #Plot the depth as a line
-    plt.fill_between(df_chr['position'], df_chr['coverage'], #Fill the space under the line
+    axs[i][0].fill_between(df_chr['position'], df_chr['coverage'],
                      where = df_chr['coverage'] >= 0, interpolate = False,
-                     color = '#55BFE6')
-    plt.margins(0, tight = True) #Remove plot margins
-    plt.yticks([0, 100, 200, 300, 400, 500, 600, 700, 800]) #Set ticks of the y axis
-    plt.title(f'Sequencing depth of isolate {isolate} (chromosome)') #Set plot title
-    plt.xlabel('Position in the chromosome (bp)') #Set x axis label
-    plt.ylabel('Read depth') #Set y axis label
-    plt.savefig(outplot, dpi = 300) #Save to file with 300 dpi
-    plt.savefig(outplot.replace('png', 'pdf'), dpi = 300) #Same, but in different formats
-    plt.savefig(outplot.replace('png', 'svg'), dpi = 300)
-    plt.show() #Show plot in the console
-    
-    outplot = f'{plotdir}/{isolate}_pKUN.png' #Same as above, but for the pKUN plasmid data
+                     color = '#55BFE6') #Fill the space under the line
+
+    #Plot results for the plasmid (same as above)
     df_pKUN = df[df['contig'] == name_dict['pKUN']]
-    plt.plot('position', 'coverage', data = df_pKUN, color = '#E67C55', 
+    axs[i][1].plot('position', 'coverage', data = df_pKUN, color = '#E67C55', 
              linewidth = 1)
-    plt.fill_between(df_pKUN['position'], df_pKUN['coverage'], 
+    axs[i][1].fill_between(df_pKUN['position'], df_pKUN['coverage'], 
                      where = df_pKUN['coverage'] >= 0, interpolate = False,
                      color = '#E6C355')
-    plt.margins(0, tight = True)
-    plt.yticks([0, 25, 50, 75, 100, 125, 150, 175, 200])
-    plt.title(f'Sequencing depth of isolate {isolate} (pKUN)')
-    plt.xlabel('Position in the plasmid (bp)')
-    plt.ylabel('Read depth')
-    plt.savefig(outplot, dpi = 300)
-    plt.savefig(outplot.replace('png', 'pdf'), dpi = 300)
-    plt.savefig(outplot.replace('png', 'svg'), dpi = 300)
-    plt.show()
+    
+    #Remove inner margins from both plots
+    [axs[i][j].margins(0, tight = True) for j in range(0, len(name_dict.keys()))]
+
+    if i == len(bamfiles)-1: #If it is the last row
+        axs[i][0].set_xlabel('Position in the chromosome (bp)', #Add ax label
+                             fontname = font_name, fontsize = plain)
+        axs[i][1].set_xlabel('Position in the plasmid (bp)', #Same for pKUN
+                             fontname = font_name, fontsize = plain)
+
+plt.savefig(outplot, dpi = 300) #Save the plot to a figure (PNG)
+plt.savefig(outplot.replace('png', 'pdf'), dpi = 300) #Save to PDF
+plt.savefig(outplot.replace('png', 'svg'), dpi = 300) #Save to SVG
