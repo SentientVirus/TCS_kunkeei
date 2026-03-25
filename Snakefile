@@ -14,6 +14,7 @@ rule all:
         pgmauve_NGI = "results/pmauve/NGI/result.png",
         pgamuve_combined = "results/pmauve/combined/result.png",
         bam = expand("results/bam/{no}.bam", no = ["01", "02", "09", "10"]),
+        depth = expand("results/coverage/plots/seqdepth.{ext}", ext = ["png", "pdf", "svg"]),
         gbk = expand("results/annotations/emapper2gbk/{isolate}.gbk", isolate = ["reference", "01", "02", "09", "10"]),
         ref_annot = "results/annotations/emapper2gbk/reference_loctag.gbk",
         blast_genome = expand("results/blast/{comparison}.txt", comparison = ["01_vs_02", "01_vs_09", "01_vs_10", "02_vs_09", "02_vs_10", "09_vs_10"])
