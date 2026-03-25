@@ -46,7 +46,6 @@ sys.stdout = open(log, 'a')
 
 infiles = sorted(snakemake.input) #Input assemblies
 outfiles = sorted(snakemake.output) #Path to outputs
-threads = snakemake.threads #Number of threads to be used
 
 outpath = os.path.dirname(outfiles[0]) #Output directory
 
@@ -57,14 +56,15 @@ if not os.path.exists(outpath): #If the output directory does not exist
 # 2. Running Blast       
 # =============================================================================
 
+n = 0 #Counting variable to retrieve the right output file
 for i in range(0, len(infiles)-1): #Loop through input files
     query = infiles[i] #Set query
     isolate1 = os.path.basename(query).replace('.fasta', '') #Set isolate name of query
     for j in range(i+1, len(infiles)): #Loop through input files, starting by the one after the query
         subject = infiles[j] #Set subject
         isolate2 = os.path.basename(subject).replace('.fasta', '') #Set isolate name of subject
-        outfile = outfiles[i+j-1] #Set output file
+        outfile = outfiles[n] #Set output file
         print(isolate1, isolate2, outfile) #Print isolate names and output file
-        S = f'blastn -num_threads {threads} -query {query} -out {outfile} -subject {subject} -outfmt 0' #Define BLAST command to run
+        S = f'blastn -query {query} -out {outfile} -subject {subject} -outfmt 0' #Define BLAST command to run
         subprocess.run(S, shell = True) #Run the command
-    
+        n += 1 #Increase counting variable by one
