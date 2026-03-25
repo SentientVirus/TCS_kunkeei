@@ -6,17 +6,21 @@ Script to Blast the newly-sequenced genomes against each other.
 
 @author: Marina Mota-Merlo
 """
+
+# =============================================================================
+# 0. Import required modules
+# =============================================================================
+
 import os
 import logging, traceback
 import sys
 import subprocess
 
 # =============================================================================
-# Logging
+# 0. Logging
 # =============================================================================
 
-workdir = os.path.expanduser('~') + '/mucoid_project/ugc00027'
-log = f'{workdir}/logs/test_blastn.log' #snakemake.log[0]
+log = snakemake.log[0]
 
 logging.basicConfig(filename = log, level = logging.INFO,
                     format = '%(asctime)s %(message)s',
@@ -37,30 +41,30 @@ sys.excepthook = handle_exception
 sys.stdout = open(log, 'a')
 
 # =============================================================================
-# Defining inputs
+# 1. Defining inputs
 # =============================================================================
 
-isolates = ['01', '02', '09', '10']
+infiles = sorted(snakemake.input) #Input assemblies
+outfiles = sorted(snakemake.output) #Path to outputs
+threads = snakemake.threads #Number of threads to be used
 
-infiles = [f'{workdir}/assemblies/combined/{isol}.fasta' for isol in isolates]
-outpath = f'{workdir}/test/blastn' #snakemake.params.outpath #Path to outputs
-threads = 12 #snakemake.threads #Number of threads to be used
+outpath = os.path.dirname(outfiles[0]) #Output directory
 
-if not os.path.exists(outpath):
-    os.makedirs(outpath)
+if not os.path.exists(outpath): #If the output directory does not exist
+    os.makedirs(outpath) #Create it
 
 # =============================================================================
-# Running Blast       
+# 2. Running Blast       
 # =============================================================================
 
 for i in range(0, len(infiles)-1): #Loop through input files
-    query = infiles[i]
-    isolate1 = os.path.basename(query).replace('.fasta', '')
-    for j in range(i+1, len(infiles)):
-        subject = infiles[j]
-        isolate2 = os.path.basename(subject).replace('.fasta', '')
-        outfile = f'{outpath}/{isolate1}_vs_{isolate2}.txt'
-        print(outfile)
-        S = f'blastn -query {query} -out {outfile} -subject {subject} -outfmt 0' #Define BLAST command to run
+    query = infiles[i] #Set query
+    isolate1 = os.path.basename(query).replace('.fasta', '') #Set isolate name of query
+    for j in range(i+1, len(infiles)): #Loop through input files, starting by the one after the query
+        subject = infiles[j] #Set subject
+        isolate2 = os.path.basename(subject).replace('.fasta', '') #Set isolate name of subject
+        outfile = outfiles[i+j-1] #Set output file
+        print(isolate1, isolate2, outfile) #Print isolate names and output file
+        S = f'blastn -num_threads {threads} -query {query} -out {outfile} -subject {subject} -outfmt 0' #Define BLAST command to run
         subprocess.run(S, shell = True) #Run the command
     

@@ -15,7 +15,8 @@ rule all:
         pgamuve_combined = "results/pmauve/combined/result.png",
         bam = expand("results/bam/{no}.bam", no = ["01", "02", "09", "10"]),
         gbk = expand("results/annotations/emapper2gbk/{isolate}.gbk", isolate = ["reference", "01", "02", "09", "10"]),
-        ref_annot = "results/annotations/emapper2gbk/reference_loctag.gbk"
+        ref_annot = "results/annotations/emapper2gbk/reference_loctag.gbk",
+        blast_genome = expand("results/blast/{comparison}.txt", comparison = ["01_vs_02", "01_vs_09", "01_vs_10", "02_vs_09", "02_vs_10", "09_vs_10"])
 
 ##Function to define Fastplong outputs
 def add_path_extension(lst, path = "", extension = "", extra = ""):
@@ -54,7 +55,7 @@ rule demux:
 
 ##Check step, to run Fastplong on the reads (mainly to get the QC report and re-name them to something more user-friendly, as it shouldn't perform any trimming)
 ##This step is not performed for subreads because they lack quality metrics
-rule RNA_QC_CCS:
+rule DNA_QC_CCS:
     output:
         html = expand("results/QC/CCS/fastplong/{isolate}_fastplong.html", isolate = ["01", "02", "09", "10"]), #add_path_extension(input_list, "results/QC/fastplong", "html", "_fastplong"),
         json = expand("results/QC/CCS/fastplong/{isolate}_fastplong.json", isolate = ["01", "02", "09", "10"]), #add_path_extension(input_list, "results/QC/fastplong", "json", "_fastplong"),
@@ -350,6 +351,16 @@ rule Phase_Finder:
         > {log}
         bash code/07ab02g-PhaseFinder.sh {output.general} {input} >> {log} 2>> {log}
         """
+
+rule blast_comparison:
+    output:
+        expand("results/blast/{comparison}.txt", comparison = ["01_vs_02", "01_vs_09", "01_vs_10", "02_vs_09", "02_vs_10", "09_vs_10"])
+    input:
+        expand("assemblies/combined/{i}.fasta", i = ["01", "02", "09", "10"])
+    log: "logs/06ab01h-compare_assemblies_blast.log"
+    conda: "pixi_genome/genome_analysis.yml"
+    threads: 12
+    script: "code/06ab01h-compare_assemblies.py"
 
 #rule synteny:
 #    input:
