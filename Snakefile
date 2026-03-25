@@ -212,7 +212,7 @@ rule pgv_mauve_seq:
     script: "code/04ab-pgvmauve.py"
 
 
-##Based on the progressiveMauve results, align the reads back to the original assembly to check if there are any true differences
+##Align the reads back to the original assembly to check if there are any true differences
 rule align2ref:
     output:
         index = "index/H3B1-04J.mmi",
@@ -229,6 +229,19 @@ rule align2ref:
         > {log}
         bash code/01d-reads2bam.sh {input.ref} {output.index} {threads} {output.bamfiles} {input.reads} >> {log} 2>> {log}
         """
+
+##Calculate the sequencing depth along the chromosome and plasmid and plot them
+rule plot_depth:
+    output:
+        depth = expand("results/coverage/{no}.tab", no = ["01", "02", "09", "10"]),
+        plots = expand("results/coverage/plots/seqdepth.{ext}", ext = ["png", "pdf", "svg"])
+    input:
+        expand("results/bam/{no}.bam", no = ["01", "02", "09", "10"])
+    log: "logs/02d-plot_depth.log"
+    conda: "pixi_genome/genome_analysis.yml"
+    threads: 1
+    script: "code/02d-samtools_depth.py" 
+
 
 ##Create combined assemblies
 rule combine_assemblies:
