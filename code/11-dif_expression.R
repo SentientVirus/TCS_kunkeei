@@ -72,6 +72,7 @@ gbks <- c("OX335197", "OX335198")
 # Get annotations from both GenBanks
 flog.info("Read GenBank files")
 my_annot <- getAnnotationsGenBank(gbks) #Retrieve gene annotations from the GenBank files
+print(my_annot)
 
 # Create a vector to store locus tags
 loctags <- c()
@@ -235,6 +236,7 @@ get_annot <- function(res_df, loci, annotation, descriptions, prefix = ""){ #Def
   
   gene_names <- c() #Initialize vectors
   prod <- c()
+  print(vsd_htmp)
   for (rown in rownames(res_df)){ #Loop through rows in input dataframe
     add_names <- annotation[paste(prefix, rown, sep = "") == loci][1] #Retrieve the annotation for the gene
     prod <- c(prod, descriptions[rown == loci][1]) #Append the product description of the gene

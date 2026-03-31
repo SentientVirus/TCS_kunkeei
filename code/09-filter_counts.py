@@ -54,6 +54,8 @@ print('Loaded input')
 
 [os.makedirs(outd) for outd in [outdir, outdir2] if not os.path.exists(outd)] #Create output directories if they don't exist
 
+TPM_threshold = 10 #Threshold below which genes are filtered out if TPM < threshold in >50% samples
+
 # =============================================================================
 # 2. Save data to a dictionary under replicate names
 # =============================================================================
@@ -121,7 +123,7 @@ for isolate in isolate_list:
                 
                 for index, gene in df_dict[name].iterrows(): #Loop through genes in the first dictionary
                     TPM = TPM_samples[TPM_samples['locus_tag'] == gene['Geneid']][tag][index] #Get the TPM for the gene
-                    if TPM < 50: #If the TPM count is lower than 50 in that sample
+                    if TPM < 10: #If the TPM count is lower than 10 in that sample
                         check = False #Set boolean to False
                     else:
                         check = True #Else, set it to True

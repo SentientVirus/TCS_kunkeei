@@ -44,7 +44,7 @@ input_files <- snakemake@input[["annotated_expr"]] #Annotated DESeq2 results
 output_files <- snakemake@output[["volcano"]] #Volcano plot files
 
 # Define vectors with formatting
-titles <- rep(c("Mucoid vs Inhibitor", " + Sucrose vs - Sucrose"), each = 2) # Plot titles
+titles <- rep(c("Inhibitor vs Mucoid", " - Sucrose vs + Sucrose"), each = 2) # Plot titles
 subtitles <- c("+ sucrose", "- sucrose", "Mucoid", "Inhibitor") # Plot subtitles
 all_shapes <- rep(data.frame(c(21, 23), c(25, 24)), each = 2) # Desired point shape for the plot
 comparison <- rep(data.frame(c("Inh", "Muc"), c("-", "+")), each = 2) # Comparisons to be plotted
