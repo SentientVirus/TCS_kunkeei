@@ -297,7 +297,7 @@ for adhesin in adhesins: #Loop through adhesins
                 
     #Align the intergenic regions and trim the alignments to remove gappy positions
     subprocess.run(f'mafft-linsi {outfile} > {mafft_outfile}', shell = True)
-    subprocess.run(f'trimal -in {mafft_outfile} -out {trimmed_outfile} -gappyout -fasta', shell = True)
+    subprocess.run(f'trimal -in {mafft_outfile} -out {trimmed_outfile} -gt 0.5 -fasta', shell = True)
 
 # =============================================================================
 # 7. Plot the alignments and write the consensus to file
