@@ -47,7 +47,7 @@ outdir = os.path.expanduser('~') + '/mucoid_project/adhesins/sequences/intergeni
 plotdir = os.path.expanduser('~') + '/mucoid_project/adhesins/plots/intergenic' #Output directory for plots
 consensus_file = f'{outdir}/consensus.fna' #Output consensus sequences
 mafft_consensus = consensus_file.replace('.fna', '.mafft.fna') #Output consensus alignment
-consensus_plot = f'{plotdir}/consensus.png' #Output consensus alignment plot
+consensus_plot = f'{plotdir}/consensus_untrimmed.png' #Output consensus alignment plot
 
 #Create output directories if they don't exist
 [os.makedirs(dirn) for dirn in [outdir, plotdir] if not os.path.exists(dirn)]
@@ -297,14 +297,14 @@ for adhesin in adhesins: #Loop through adhesins
                 
     #Align the intergenic regions and trim the alignments to remove gappy positions
     subprocess.run(f'mafft-linsi {outfile} > {mafft_outfile}', shell = True)
-    subprocess.run(f'trimal -in {mafft_outfile} -out {trimmed_outfile} -gt 0.5 -fasta', shell = True)
+    # subprocess.run(f'trimal -in {mafft_outfile} -out {trimmed_outfile} -gt 0.4 -fasta', shell = True)
 
 # =============================================================================
 # 7. Plot the alignments and write the consensus to file
 # =============================================================================
     
     #Create the object to be plotted and assign colors to the plot
-    mv = MsaViz(trimmed_outfile, wrap_length = 100, color_scheme = 'Identity', 
+    mv = MsaViz(mafft_outfile, wrap_length = 100, color_scheme = 'Identity', 
                 show_consensus = True, consensus_color = '#A4BF19')
     mv.savefig(plot_file, dpi = 300) #Save the plot to a file
     
