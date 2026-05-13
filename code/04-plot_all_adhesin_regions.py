@@ -29,8 +29,8 @@ leaf_color = {'A0901': '#D55E00', 'A1001': '#771853', 'A1003': '#0072B2',
               'A1202': '#33B18F', 'A1401': '#33B18F', 'A1404': '#FF74D6', 
               'A1805': '#33B18F', 'G0101': '#0072B2', 'G0403': '#33B18F', 
               'Fhon2': '#0072B2', 'H1B104J': '#0072B2', 'H1B105A': '#0072B2', 
-              'H1B302M': '#0072B2', 'H3B104J': '#0072B2', 'H3B104X': '#0072B2',
-              'H3B101A': '#0072B2', 'H3B202X': '#0072B2', 'H3B203J': '#0072B2', 
+              'H1B302M': '#0072B2', 'H3B101A': '#0072B2', 'H3B104J': '#0072B2',
+              'H3B104X': '#0072B2', 'H3B202X': '#0072B2', 'H3B203J': '#0072B2', 
               'H3B203M': '#D55E00', 'H3B206M': '#D55E00', 'H3B209X': '#33B18F', 
               'H4B111J': '#D55E00', 'H4B202J': '#0072B2', 'H4B204J': '#0072B2', 
               'H4B206J': '#D55E00', 'H4B402J': '#0072B2', 'H4B405J': '#D55E00',
@@ -108,6 +108,35 @@ adh4 = ['AKUA1003_13820', 'AKUA1202_14880', 'AKUA1401_14120',
 adh5 = ['AKUA0901_14630', 'AKUA1001_13630', 'AKUH3B206M_14150', 'AKUH4B111J_14900',
         'AKUH4B206J_14800', 'LDX55_06980']
 
+#Retrieve the RR-TF region too
+RR_TF = ['AKUA0901_02580', 'AKUA1001_02550', 'AKUA1003_02510', 
+         'AKUA1202_02650', 'AKUA1401_02570', 'AKUA1404_02750', 
+         'AKUA1805_02650', 'AKUG0101_02520', 'AKUG0403_02690',
+         'AKUFHON2_02600', 'AKUH1B104J_02540', 'AKUH1B105A_02410',
+         'AKUH1B302M_02570', 'AKUH3B101A_02440', 'AKUH3B104J_02430', 
+         'AKUH3B104X_02510', 'AKUH3B202X_02480', 'AKUH3B203J_02460', 
+         'AKUH3B203M_02550', 'AKUH3B206M_02920', 'AKUH3B209X_02520', 
+         'AKUH4B111J_02810', 'AKUH4B202J_02460', 'AKUH4B204J_02440', 
+         'AKUH4B206J_02630', 'AKUH4B402J_02570', 'AKUH4B405J_02820', 
+         'AKUH4B406M_03010', 'AKUH4B412M_02530', 'AKUH4B501J_02520', 
+         'AKUH4B503X_02470', 'AKUH4B504J_02660', 'AKUH4B505J_02620', 
+         'APS55_RS01525', 'LDX55_01310', 'K2W83_RS01310', 
+         'MUB42_03475', 'VQ058_RS01320'] #Pseudogene in DSMZ
+
+HK = ['AKUA0901_02590', 'AKUA1001_02560', 'AKUA1003_02520', 
+      'AKUA1202_02660', 'AKUA1401_02580', 'AKUA1404_02760', 
+      'AKUA1805_02660', 'AKUG0101_02530',  'AKUG0403_02700',
+      'AKUFHON2_02610', 'AKUH1B104J_02550', 'AKUH1B104J_02560', 
+      'AKUH1B105A_02420', 'AKUH1B302M_02580', 'AKUH3B101A_02450', 
+      'AKUH3B104J_02440', 'AKUH3B104X_02520', 'AKUH3B202X_02490', 
+      'AKUH3B203J_02470', 'AKUH3B203M_02560', 'AKUH3B206M_02930', 
+      'AKUH3B209X_02530', 'AKUH4B111J_02820', 'AKUH4B202J_02470', 
+      'AKUH4B204J_02450', 'AKUH4B206J_02640', 'AKUH4B402J_02580', 
+      'AKUH4B405J_02830', 'AKUH4B406M_03020', 'AKUH4B412M_02540', 
+      'AKUH4B501J_02530', 'AKUH4B503X_02480', 'AKUH4B504J_02670', 
+      'AKUH4B505J_02630', 'APS55_RS01520', 'LDX55_01315', 
+      'K2W83_RS01315', 'MUB42_03480', 'VQ058_RS01325']
+
 #Gene order when plotting
 phylo_order = {1: 'H4B4-12M', 2: 'H4B5-01J', 3: 'G0101', 4: 'H1B1-04J',
                5: 'H4B5-03X', 6: 'H4B4-02J', 7: 'H1B3-02M', 8: 'H3B2-02X',
@@ -123,15 +152,16 @@ phylo_order = {1: 'H4B4-12M', 2: 'H4B5-01J', 3: 'G0101', 4: 'H1B1-04J',
 color_dict = {'adh1': '#BBE36A', 'adh2': '#5FB477', 'gtf2': '#72A3E0', 
               'collagen': '#E072A3', 'TF': '#5603AD', 'FK': '#E0777D',
               'SK': '#B973FF', 'RE': '#FF802B', 'large': '#037971', 
-              'adh3': '#F7ED5C', 'adh4': '#F5BB64', 'adh5': '#F59264'}
+              'adh3': '#F7ED5C', 'adh4': '#F5BB64', 'adh5': '#F59264',
+              'RR-TF': '#FF0040', 'HK': '#FF8CAF', 'ppk': '#FFCCDC'}
 
 # =============================================================================
 # In this section, we run Blast between pairs of strains following the 
 # phylogeny.
 # =============================================================================
 
-adhesin_regions = ['MucBP+LPXTG', 'collagen_binding_Gtf2', 'MubB2+LPXTG'] #List of adhesin regions to retrieve
-ref_genes = ['NrdI', 'WalK', 'omoserine kinase'] #List of reference genes that are present across all strains near the region
+adhesin_regions = ['TCS', 'MucBP+LPXTG', 'collagen_binding_Gtf2', 'MubB2+LPXTG'] #List of adhesin regions to retrieve
+ref_genes = ['YchF', 'NrdI', 'WalK', 'omoserine kinase'] #List of reference genes that are present across all strains near the region
 projdir = os.path.expanduser('~') + '/mucoid_project/adhesins' #Working directory
 outpath = f'{projdir}/blast_tabs' #Output path to save BLAST comparisons
 folder_path = os.path.expanduser('~') + '/Akunkeei_files/fna' #Path to the input FNA files
@@ -204,10 +234,10 @@ def get_info(fnas, folder_path2, gene_name, adhesin_region, length = 0):
                         start = int(feature.location.split('..')[0].replace('complement(', '')) #Set start location to the beginning of the reference gene
                     # if len(gene_name) > 0: #If there is at least one qualifier
                     #     gene = gene_name[0] #Set the gene name to the first qualifier (gene name or locus tag)
-                        if adhesin_region == adhesin_regions[2] and strain == 'HNS-8':
+                        if adhesin_region == adhesin_regions[3] and strain == 'HNS-8':
                             break
 
-            if (strain != 'MP2' and adhesin_region != adhesin_regions[0]) or (strain == 'MP2' and adhesin_region == adhesin_regions[0]): #If the strain is not MP2 (assembly of the reverse strand)
+            if (strain != 'MP2' and region_strand == 'reverse') or (strain == 'MP2' and region_strand == 'forward'): #If the strain is not MP2 (assembly of the reverse strand)
                 start = lengths_dict[strain] - (start + length) #Set the start to the opposite strand
                 end = start + length #Set the end to the start + segment length
                 pos_dict[strain] = (start, end) #Save the new position to a dictionary
@@ -230,6 +260,11 @@ for i in range(len(adhesin_regions)):
     ref = ref_genes[i]
     outfig = f'{projdir}/plots/pyGenomeViz/{adhesin_region}_region.svg'
     
+    if i < 2: #For the first two regions
+        region_strand = 'forward' #Specify that they are located in the forward strand
+    else: region_strand = 'reverse' #The rest are located in the reverse strand
+    
+    #Create output directory for the plots if it doesn't exist
     if not os.path.exists(os.path.dirname(outfig)):
         os.makedirs(os.path.dirname(outfig))
     
@@ -267,7 +302,7 @@ for i in range(len(adhesin_regions)):
         chromosome_length = len(genbk.records[0].seq)
         length_dict[strain] = chromosome_length
         for segment in track.segments: #Loop through segments in the track
-            if (strain != 'MP2' and adhesin_region != adhesin_regions[0]) or (strain == 'MP2' and adhesin_region == adhesin_regions[0]): #If the strain is not MP2
+            if (strain != 'MP2' and region_strand == 'reverse') or (strain == 'MP2' and region_strand == 'forward'): #If the strain is not MP2
                 target_range = (lengths[strain] - segment.range[1], 
                                 lengths[strain] - segment.range[0]) #Get the target region on the opposite strand
                 features = genbk.extract_features(feature_type = 'CDS', 
@@ -298,7 +333,14 @@ for i in range(len(adhesin_regions)):
                 elif 'fructokinase' in cds.qualifiers['product'][0].lower() or '6-phosphate' in cds.qualifiers['product'][0] or 'ROK' in cds.qualifiers['product'][0]:
                     color = color_dict['FK']
                     true_dict['FK'] = True
-                elif 'kinase' in cds.qualifiers['product'][0].lower():
+                elif cds.qualifiers['locus_tag'][0] in HK:
+                    true_dict['HK'] = True
+                    color = color_dict['HK']
+                elif cds.qualifiers['locus_tag'][0] in RR_TF:
+                    color = color_dict['RR-TF']
+                elif 'polyphosphate kinase' in cds.qualifiers['product'][0].lower():
+                    color = color_dict['ppk']
+                elif 'kinase' in cds.qualifiers['product'][0].lower() and ('sensor' in cds.qualifiers['product'][0].lower() or 'signal' in cds.qualifiers['product'][0].lower()):
                     color = color_dict['SK']
                     true_dict['SK'] = True
                 elif 'transcription factor' in cds.qualifiers['product'][0] or 'regulator' in cds.qualifiers['product'][0] or 'sensory' in cds.qualifiers['product'][0].lower():
@@ -348,7 +390,7 @@ for i in range(len(adhesin_regions)):
                                                       size = 15, ymargin = 0, #Set label properties (text size and distance from the CDS)
                                                       vpos = 'top', hpos = 'left')) #Set label properties (vertical and horizontal position)
                 
-            if (strain != 'MP2' and adhesin_region != adhesin_regions[0]) or (strain == 'MP2' and adhesin_region == adhesin_regions[0]): #To change the direction of the plot depending on the strand
+            if (strain != 'MP2' and region_strand == 'reverse') or (strain == 'MP2' and region_strand == 'forward'): #To change the direction of the plot depending on the strand
                 segment.add_sublabel(f'{chromosome_length-segment.start:,} - {chromosome_length-segment.end:,} bp')  #Add text indicating segment range to the plot
             else:
                 segment.add_sublabel(f'{segment.start:,} - {segment.end:,} bp')  #Add text indicating segment range to the plot
@@ -393,7 +435,7 @@ for i in range(len(adhesin_regions)):
         
         query_pos = pos[phylo_order[i + 1]] #Retrieve start and end position of the query segment
         subject_pos = pos[phylo_order[i]] #Retrieve start and end position of the subject segment
-        if adhesin_region != adhesin_regions[0]: #Boundary positions have to be defined differently for the reverse strand
+        if region_strand == 'reverse': #Boundary positions have to be defined differently for the reverse strand
             query_pos = (length_dict[strain2_name] - query_pos[1], length_dict[strain2_name] - query_pos[0]) #Retrieve start and end position of the query segment
             subject_pos = (length_dict[strain1_name] - subject_pos[1], length_dict[strain1_name] - subject_pos[0]) #Retrieve start and end position of the subject segment
         
@@ -425,7 +467,7 @@ for i in range(len(adhesin_regions)):
             identity = tab_df.loc[j, '% identity']
             
             #Define the links (strain name, segment, start, end)
-            if adhesin_region != adhesin_regions[0]: #Link positions have to be defined differently if located in the reverse strand
+            if region_strand == 'reverse': #Link positions have to be defined differently if located in the reverse strand
                 link1 = (strain1_simp, 'region1', 
                          -1*(tab_df.loc[j, 'q. start'] - length_dict[strain2_name]), 
                          -1*(tab_df.loc[j, 'q. end'] - length_dict[strain2_name]))
@@ -456,7 +498,14 @@ for i in range(len(adhesin_regions)):
     if true_dict['adh1'] == True:
         handles += [Line2D([], [], marker=">", color=color_dict['adh1'], label="Adhesin, LPXTG 8a", ms=20, ls="none")]
     
-    if true_dict['adh2'] == True:
+    if true_dict['HK'] == True:
+        handles += [
+            Line2D([], [], marker=">", color=color_dict['RR-TF'], label = 'Response regulator CroR', ms=20, ls="none"),
+            Line2D([], [], marker=">", color=color_dict['HK'], label='Sensor histidine kinase', ms=20, ls="none"),
+            Line2D([], [], marker=">", color=color_dict['ppk'], label='Polyphosphate kinase', ms=20, ls="none")
+            ]
+        
+    elif true_dict['adh2'] == True:
         handles += [
             Line2D([], [], marker=">", color='#8DCC70', label="Adhesin, ambiguous", ms=20, ls="none"),
             Line2D([], [], marker=">", color=color_dict['adh2'], label="Adhesin, LPXTG 8b", ms=20, ls="none"),
@@ -465,7 +514,6 @@ for i in range(len(adhesin_regions)):
         
     elif true_dict['collagen'] == True:
         handles += [
-            Line2D([], [], marker=">", color=color_dict['adh1'], label="Adhesin, LPXTG 8a", ms=20, ls="none"),
             Line2D([], [], marker=">", color=color_dict['collagen'], label="Adhesin, collagen-binding", ms=20, ls="none"),
             Line2D([], [], marker=">", color=color_dict['gtf2'], label="Glycosyl hydrolase, family 2", ms=20, ls="none")
             ]
@@ -478,7 +526,7 @@ for i in range(len(adhesin_regions)):
             ]
         
     if true_dict['TF'] == True:
-        handles += [Line2D([], [], marker=">", color=color_dict['TF'], label="Transcription factor", ms=20, ls="none")]
+        handles += [Line2D([], [], marker=">", color=color_dict['TF'], label="Transcription factor or regulator", ms=20, ls="none")]
         
     if true_dict['SK'] == True:
         handles += [Line2D([], [], marker=">", color=color_dict['SK'], label="Sensory kinase", ms=20, ls="none")]
@@ -506,7 +554,7 @@ for i in range(len(adhesin_regions)):
     
     #Assign legent to figure. bbox_to_anchor sets the position, frameon removes the 
     #frame (border) of the legend box, and labelspacing increases vertical space between legends
-    legend = fig.legend(handles=handles, bbox_to_anchor=(1.35, 1), frameon = False,
+    legend = fig.legend(handles=handles, bbox_to_anchor=(1.05, 1), frameon = False,
                         fontsize = 16)
         
     fig.savefig(outfig) #Save figure to SVG
