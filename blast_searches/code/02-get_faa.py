@@ -62,7 +62,7 @@ descriptions = snakemake.input[0] #File with the BLASTp hit descriptions
 
 #List of hits to be retrieved after reviewing the BLASTp results
 acc_list = ['WP_353317293.1', 'WP_120784742.1', 'WP_054658628.1', #Apilactobacillus
-            'WP_220728881.1', 'CAI2564285.1',
+            'WP_220728881.1', 'CAI2564285.1', #The protein from H3B1-04J is the last accession
             'WP_035452186.1', 'WP_125761468.1','WP_089939307.1', #Other Lactobacillaceae
             'WP_349641026.1', 'WP_395391563.1', 'WP_010690715.1', 
             'WP_407884581.1', 'WP_056974007.1', 'WP_123156317.1', 
@@ -74,7 +74,8 @@ acc_list = ['WP_353317293.1', 'WP_120784742.1', 'WP_054658628.1', #Apilactobacil
             'WP_168721664.1', 'WP_057818986.1', 'WP_155431509.1', 
             'WP_028790024.1', 'WP_063084080.1',
             'WP_034561863.1', 'MGX7713849.1', 'WP_013774648.1', #Other non-Lactobacillaceae
-            'WP_077275945.1', 'WP_048940986.1']
+            'WP_077275945.1', 'WP_048940986.1', #CroR is the last accession
+            'NP_417864.1', 'NP_217763.1'] #OmpR, MtrA
 
 if not os.path.exists(os.path.dirname(outfile)): #If the path to the output file doesn't exist
     os.makedirs(os.path.dirname(outfile)) #Create it
@@ -121,15 +122,14 @@ with open(outfile) as handle: #Open the output file
         if 'CroR' in record.description: #If the record description contains CroR
             gtype = 'CroR' #Assign it as the gene type
         else: gtype = ''
+
         if len(species.split(' ')) > 1: #If the species name contains more than one word
-            epithet = species.split(' ')[1][:-1] #Retrieve the species epithet
-        if len(species.split(' ')) > 2 and epithet == 'sp': #If the species epithet is sp
-            epithet += f'_{species.split(" ")[2]}_{species.split(" ")[3][:-1]}' #Add an extra word to the species name
-        elif len(species.split(' ')) > 2:
-            epithet += f'i_{species.split(" ")[2][:-1]}'
-        elif len(species.split(' ')) == 1: #If the species is only one word
-            epithet = '' #Leave the species epithet empty
-            genus = genus[:-1] #Retrieve the genus
+            epithet = species.split(' ')[1] #Retrieve the species epithet
+        else: genus = genus[:-1] #If the genus is the last word, remove the empty space at the end
+        for i in range(2, len(species.split(' '))): #Loop through the words after the species
+            epithet += f'_{species.split(" ")[i]}' #Add them after the species
+        epithet = epithet[:-1] #Remove the character at the end
+        
         new_description = f'{record.id}_{genus}_{epithet}_{gtype}' #Define new record description
         if new_description.endswith('_'): #If the description ends with an underscore
             new_description = new_description[:-1] #Remove it

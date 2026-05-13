@@ -63,7 +63,8 @@ outdir = os.path.dirname(outfiles[0]) #Output directory
 color_dict = {'Apilactobacillus': '#D34300', 
             'Lactobacillaceae': '#FA8D33', 
             'Enterococcaceae': '#1B305D', 
-            'Carnobacteriaceae': '#9197AE'}
+            'Carnobacteriaceae': '#9197AE',
+            'Reference regulators': 'black'}
 
 croR = '#F2F1EB' #Color to highlight the genes labelled as CroR
 
@@ -78,6 +79,7 @@ print('Done!')
 
 print('Load the tree file and root it at its midpoint...')
 t = Tree(treefile, parser = 'name') #Load the tree into a Tree object
+print(list(t.leaves()))
 midpoint = t.get_midpoint_outgroup() #Get midpoint node
 t.set_outgroup(midpoint) #Root the tree on the outgroup node
 print('Done!')
@@ -92,7 +94,7 @@ ts = TreeStyle() #Create a tree style
 ts.show_branch_length = False #Hide branch lengths
 ts.show_branch_support = False #Hide support values
 ts.show_leaf_name = False #Hide leaf names
-ts.scale = 2900 #Set the length of the tree
+ts.scale = 500 #2900 #Set the length of the tree
 ts.scale_length = 0.1 #Set the length of the tree scale
 ts.branch_vertical_margin = 35 #Spacing between branches
 ts.optimal_scale_level = 'full' #Avoid dotted lines to increase the length of branches
@@ -177,7 +179,7 @@ for leaf in leaves: #Loop through the leaves of the tree
     nleaf = leaf.name #Create an additional variable to store the leaf name
     
     prot_id = nleaf.split('.')[0] + '.' + nleaf.split('.')[1][0]
-    if prot_id != 'CAI2564285.1':
+    if prot_id not in ['CAI2564285.1', 'NP_417864.1', 'NP_217763.1']:
         id_no = float(perc_id[perc_id['Subject accession'] == prot_id]['% Identity'].iloc[0])
         print(id_no)
     else: id_no = 100
@@ -188,17 +190,20 @@ for leaf in leaves: #Loop through the leaves of the tree
         color = color_dict['Enterococcaceae'] #Assign the corresponding color
     elif 'Carnobacterium' in leaf.name: #If it is a Carnobacterium
         color = color_dict['Carnobacteriaceae'] #Assign the corresponding color
+    elif 'Escherichia' in leaf.name or 'Mycobacterium' in leaf.name:
+        color = 'black'
     else: color = color_dict['Lactobacillaceae'] #Otherwise, use the Lactobacillaceae color
-    name_face = TextFace(nleaf.replace('_CroR', '').replace('_', ' ').replace('WP ', 'WP_') + ' ', #Remove CroR from the leaf name and replace underscores with spaces
+    name_face = TextFace(nleaf.replace('_CroR', '').replace('_', ' ').replace('WP ', 'WP_').replace('NP ', 'NP_')  + ' ', #Remove CroR from the leaf name and replace underscores with spaces
                          fgcolor = color, fsize = 40, ftype = 'Arial') #Create a text with locus tags
     leaf.add_face(name_face, column = 0, position = 'branch-right') #Add the text to the right leaf in the tree
 
     #Add the circles with percentages of identity next to the leaves
     perc_face = CircleFace(id_no/4, color, 'circle') #The circles have a size of the % id divided by 4, and are colored by taxonomy
-    perc_text = TextFace('100' if id_no == 100 else f'{id_no:.2f}', #Add text face with the % id
-                         fgcolor = 'black', fsize = 32, ftype = 'Arial') #Create a text with locus tags
-    leaf.add_face(perc_face, column = 1, position = 'branch-right') #Add the circle to the leaf name
-    leaf.add_face(perc_text, column = 2, position = 'branch-right') #Add the % id next to the circle
+    if 'NP_' not in leaf.name:
+        perc_text = TextFace('100' if id_no == 100 else f'{id_no:.2f}', #Add text face with the % id
+                             fgcolor = 'black', fsize = 32, ftype = 'Arial') #Create a text with locus tags
+        leaf.add_face(perc_face, column = 1, position = 'branch-right') #Add the circle to the leaf name
+        leaf.add_face(perc_text, column = 2, position = 'branch-right') #Add the % id next to the circle
     
 print('Done!')
 
