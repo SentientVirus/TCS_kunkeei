@@ -46,8 +46,9 @@ indir2 = indir.replace('/gbff', '/new_genomes/gbff') #Path to GenBanks of newest
 outdir = os.path.expanduser('~') + '/mucoid_project/adhesins/sequences/intergenic' #Output directory for FASTA files
 plotdir = os.path.expanduser('~') + '/mucoid_project/adhesins/plots/intergenic' #Output directory for plots
 consensus_file = f'{outdir}/consensus.fna' #Output consensus sequences
+consensus_untrimmed = consensus_file.replace('.fna', '_untrimmed.fna')
 mafft_consensus = consensus_file.replace('.fna', '.mafft.fna') #Output consensus alignment
-consensus_plot = f'{plotdir}/consensus_untrimmed.png' #Output consensus alignment plot
+consensus_plot = f'{plotdir}/consensus.png' #Output consensus alignment plot
 
 #Create output directories if they don't exist
 [os.makedirs(dirn) for dirn in [outdir, plotdir] if not os.path.exists(dirn)]
@@ -56,7 +57,7 @@ with open(consensus_file, 'w') as handle: #Open the consensus file in write mode
     handle.write('') #Create it/Overwrite it
 
 #Note: For the MubB2+LPXTG and the Gtf2&collagen-binding, that are placed next to each other in the genome, only the region upstream of the first locus is retrieved
-adhesins = ['MucBP+LPXTG', 'MubB2+LPXTG', 'Gtf2'] #SH3b can also be added?
+adhesins = ['MucBP+LPXTG', 'MubB2+LPXTG', 'Gtf2', 'ppk'] #Note: The region with ppk does not contain adhesins, and Gtf2 is not an adhesin
 
 for adhesin in adhesins: #Loop through adhesins
 
@@ -109,18 +110,18 @@ for adhesin in adhesins: #Loop through adhesins
     
     if adhesin == adhesins[0]:
         adh_tags = ['K2W83_RS00570', 'AKUFHON2_01050', #'AAPFHON13_00970', 
-                      'AKUG0102_01050', 'AKUG0403_PLPX00290', 'AKUH1B104J_01050', 
-                      'AKUH1B105A_00960', 'AKUH3B103M_PLPX00290', 'AKUH3B104J_01020', 
-                      'AKUH3B104X_PLPX00300', 'AKUH3B111M_01040', 'AKUH3B202X_01030',
-                      'AKUH3B203J_01060', 'AKUH4B202J_00960', 'AKUH4B204J_01060',
-                      'AKUH4B412M_01120', 'AKUH4B501J_01120', 'MUB42_02660'] #1 loctag less for HNS-8
+                      'AKUG0101_01060', 'AKUG0403_PLPX00290', 'AKUH1B104J_01050', 
+                      'AKUH1B105A_00960', 'AKUH3B101A_01040', 'AKUH3B104J_01020', 
+                      'AKUH3B104X_PLPX00300', 'AKUH3B202X_01030', 'AKUH3B203J_01060', 
+                      'AKUH4B202J_00960', 'AKUH4B204J_01060', 'AKUH4B412M_01120', 
+                      'AKUH4B501J_01120', 'MUB42_02660'] #1 loctag less for HNS-8
         
         pre_adh_tags = ['K2W83_RS00565', 'AKUFHON2_01040', #'AAPFHON13_00970', 
-                      'AKUG0102_01040', 'AKUG0403_PLPX00300', 'AKUH1B104J_01040', 
-                      'AKUH1B105A_00950', 'AKUH3B103M_PLPX00300', 'AKUH3B104J_01010', 
-                      'AKUH3B104X_PLPX00310', 'AKUH3B111M_01030', 'AKUH3B202X_01020',
-                      'AKUH3B203J_01050', 'AKUH4B202J_00950', 'AKUH4B204J_01050', 
-                      'AKUH4B412M_01110', 'AKUH4B501J_01110', 'MUB42_02655'] #1 loctag less for HNS-8
+                      'AKUG0101_01050', 'AKUG0403_PLPX00300', 'AKUH1B104J_01040', 
+                      'AKUH1B105A_00950', 'AKUH3B101A_01040', 'AKUH3B104J_01010', 
+                      'AKUH3B104X_PLPX00310', 'AKUH3B202X_01020', 'AKUH3B203J_01050', 
+                      'AKUH4B202J_00950', 'AKUH4B204J_01050',  'AKUH4B412M_01110', 
+                      'AKUH4B501J_01110', 'MUB42_02655'] #1 loctag less for HNS-8
         # adh_tags = ['K2W83_RS00570', 'AKUFHON2_01050', #'AAPFHON13_00970', 
         #               'AKUG0101_01060', 'AKUG0102_01050', 'AKUG0103_01050', 
         #               'AKUG0401_01050', 'AKUG0402_01050', 'AKUG0403_PLPX00290',
@@ -166,50 +167,55 @@ for adhesin in adhesins: #Loop through adhesins
     elif adhesin == adhesins[1]:
         adh_tags = ['AKUA1003_13820', 'AKUA1202_14880', 'AKUA1401_14120',
                     'AKUA1805_14110', 'K2W83_RS06805', 'AKUFHON2_14900',
-                    'AKUG0102_14080', 'AKUG0403_14370', 'VQ058_RS06965',
+                    'AKUG0101_14170', 'AKUG0403_14370', 'VQ058_RS06965',
                     'AKUH1B104J_14360', 'AKUH1B105A_13510', 'AKUH1B302M_14240',
-                    'AKUH3B103M_14630', 'AKUH3B104J_14310', 'AKUH3B104X_14630',
-                    'AKUH3B111M_13900', 'AKUH3B202X_14170', 'AKUH3B203J_14720',
-                    'AKUH3B203M_13780', 'AKUH3B209X_14730', 'AKUH4B202J_14100',
-                    'AKUH4B204J_14700', 'AKUH4B402J_13930', 'AKUH4B412M_14600',
-                    'AKUH4B501J_14220', 'AKUH4B503X_14010', 'AKUH4B504J_14660',
-                    'AKUH4B505J_14210', 'APS55_RS03170'] #Note: only one predicted for G0403 and H3B2-03M? Why?
+                    'AKUH3B104J_14310', 'AKUH3B104X_14630', 'AKUH3B101A_14580', 
+                    'AKUH3B202X_14170', 'AKUH3B203J_14720', 'AKUH3B203M_13780', 
+                    'AKUH3B209X_14730', 'AKUH4B202J_14100', 'AKUH4B204J_14700', 
+                    'AKUH4B402J_13930', 'AKUH4B412M_14600', 'AKUH4B501J_14220', 
+                    'AKUH4B503X_14010', 'AKUH4B504J_14660', 'AKUH4B505J_14210', 
+                    'APS55_RS03170'] #Note: only one predicted for G0403 and H3B2-03M? Why?
         
         pre_adh_tags = ['AKUA1003_13830', 'AKUA1202_14890', 'AKUA1401_14130',
                     'AKUA1805_14120', 'K2W83_RS06810', 'AKUFHON2_14910',
-                    'AKUG0102_14090', 'AKUG0403_14380', 'VQ058_RS06970',
+                    'AKUG0101_14180', 'AKUG0403_14380', 'VQ058_RS06970',
                     'AKUH1B104J_14370', 'AKUH1B105A_13520', 'AKUH1B302M_14250',
-                    'AKUH3B103M_14640', 'AKUH3B104J_14320', 'AKUH3B104X_14640',
-                    'AKUH3B111M_13910', 'AKUH3B202X_14180', 'AKUH3B203J_14730',
-                    'AKUH3B203M_13790', 'AKUH3B209X_14740', 'AKUH4B202J_14110',
-                    'AKUH4B204J_14710', 'AKUH4B402J_13940', 'AKUH4B412M_14610',
-                    'AKUH4B501J_14230', 'AKUH4B503X_14020', 'AKUH4B504J_14670',
-                    'AKUH4B505J_14220', 'APS55_RS03165']
+                    'AKUH3B104J_14320', 'AKUH3B104X_14640', 'AKUH3B101A_14590', 
+                    'AKUH3B202X_14180', 'AKUH3B203J_14730', 'AKUH3B203M_13790', 
+                    'AKUH3B209X_14740', 'AKUH4B202J_14110', 'AKUH4B204J_14710', 
+                    'AKUH4B402J_13940', 'AKUH4B412M_14610', 'AKUH4B501J_14230', 
+                    'AKUH4B503X_14020', 'AKUH4B504J_14670', 'AKUH4B505J_14220', 
+                    'APS55_RS03165']
         
     elif adhesin == adhesins[2]:
         adh_tags = ['AKUA0901_00560', 'AKUA1003_00540', 'AKUA1202_00570',
                     'AKUA1401_00560', 'AKUA1805_00590', 'K2W83_RS00320',
-                    'AKUFHON2_00530', 'AKUG0102_00540', 'AKUG0403_00530',
+                    'AKUFHON2_00530', 'AKUG0101_00540', 'AKUG0403_00530',
                     'VQ058_RS00290', 'AKUH1B104J_00520', 'AKUH1B105A_00480',
-                    'AKUH1B302M_00560', 'AKUH3B103M_00540', 'AKUH3B104J_00520',
-                    'AKUH3B104X_00540', 'AKUH3B111M_00510', 'AKUH3B202X_00520',
-                    'AKUH3B203J_00530', 'AKUH3B209X_00540', 'AKUH4B111J_00580',
-                    'AKUH4B202J_00480', 'AKUH4B204J_00540', 'AKUH4B206J_00580',
-                    'AKUH4B402J_00530', 'AKUH4B412M_00590', 'AKUH4B501J_00570',
-                    'AKUH4B503X_00500', 'AKUH4B504J_00560', 'AKUH4B505J_00560',
-                    'MUB42_02470', 'LDX55_00290', 'APS55_RS02515']
+                    'AKUH1B302M_00560', 'AKUH3B104J_00520','AKUH3B104X_00540', 
+                    'AKUH3B101A_00500', 'AKUH3B202X_00520', 'AKUH3B203J_00530', 
+                    'AKUH3B209X_00540', 'AKUH4B111J_00580', 'AKUH4B202J_00480', 
+                    'AKUH4B204J_00540', 'AKUH4B206J_00580', 'AKUH4B402J_00530', 
+                    'AKUH4B412M_00590', 'AKUH4B501J_00570', 'AKUH4B503X_00500', 
+                    'AKUH4B504J_00560', 'AKUH4B505J_00560', 'MUB42_02470', 
+                    'LDX55_00290', 'APS55_RS02515']
         
         pre_adh_tags = ['AKUA0901_00570', 'AKUA1003_00550', 'AKUA1202_00580',
                         'AKUA1401_00570', 'AKUA1805_00600', 'K2W83_RS00325',
-                        'AKUFHON2_00540', 'AKUG0102_00550', 'AKUG0403_00540',
+                        'AKUFHON2_00540', 'AKUG0101_00550', 'AKUG0403_00540',
                         'VQ058_RS00295', 'AKUH1B104J_00530', 'AKUH1B105A_00490',
-                        'AKUH1B302M_00570', 'AKUH3B103M_00550', 'AKUH3B104J_00530',
-                        'AKUH3B104X_00550', 'AKUH3B111M_00520', 'AKUH3B202X_00530',
-                        'AKUH3B203J_00540', 'AKUH3B209X_00550', 'AKUH4B111J_00590',
-                        'AKUH4B202J_00490', 'AKUH4B204J_00550', 'AKUH4B206J_00590',
-                        'AKUH4B402J_00540', 'AKUH4B412M_00600', 'AKUH4B501J_00580',
-                        'AKUH4B503X_00510', 'AKUH4B504J_00570', 'AKUH4B505J_00570',
-                        'MUB42_02475', 'LDX55_00295', 'APS55_RS02510']
+                        'AKUH1B302M_00570', 'AKUH3B104J_00530', 'AKUH3B104X_00550', 
+                        'AKUH3B101A_00510', 'AKUH3B202X_00530', 'AKUH3B203J_00540', 
+                        'AKUH3B209X_00550', 'AKUH4B111J_00590', 'AKUH4B202J_00490', 
+                        'AKUH4B204J_00550', 'AKUH4B206J_00590', 'AKUH4B402J_00540', 
+                        'AKUH4B412M_00600', 'AKUH4B501J_00580', 'AKUH4B503X_00510', 
+                        'AKUH4B504J_00570', 'AKUH4B505J_00570', 'MUB42_02475', 
+                        'LDX55_00295', 'APS55_RS02510']
+    
+    elif adhesin == adhesins[3]:
+        adh_tags = [] #Locus tags of the CDS before ppk (forward)
+        
+        pre_adh_tags = [] #Locus tags of the CDS before the one before ppk
 
 # =============================================================================
 # 3. Define paths to inputs and outputs
@@ -297,14 +303,14 @@ for adhesin in adhesins: #Loop through adhesins
                 
     #Align the intergenic regions and trim the alignments to remove gappy positions
     subprocess.run(f'mafft-linsi {outfile} > {mafft_outfile}', shell = True)
-    # subprocess.run(f'trimal -in {mafft_outfile} -out {trimmed_outfile} -gt 0.4 -fasta', shell = True)
+    subprocess.run(f'trimal -in {mafft_outfile} -out {trimmed_outfile} -gt 0.4 -fasta', shell = True)
 
 # =============================================================================
 # 7. Plot the alignments and write the consensus to file
 # =============================================================================
     
     #Create the object to be plotted and assign colors to the plot
-    mv = MsaViz(mafft_outfile, wrap_length = 100, color_scheme = 'Identity', 
+    mv = MsaViz(trimmed_outfile, wrap_length = 100, color_scheme = 'Identity', 
                 show_consensus = True, consensus_color = '#A4BF19')
     mv.savefig(plot_file, dpi = 300) #Save the plot to a file
     
@@ -314,6 +320,19 @@ for adhesin in adhesins: #Loop through adhesins
                                  description = 'intergenic consensus')
 
     with open(consensus_file, 'a') as handle: #Open output file with consensus sequences
+        handle.write(as_fasta(consensus_record)) #Write the consensus to the file
+        
+    #Create the object to be plotted and assign colors to the plot (untrimmed alignments)
+    mv = MsaViz(mafft_outfile, wrap_length = 100, color_scheme = 'Identity', 
+                show_consensus = True, consensus_color = '#A4BF19')
+    mv.savefig(plot_file.replace('.png', '_untrimmed.png'), dpi = 300) #Save the plot to a file
+    
+    consensus = mv._consensus_seq.upper() #Retrieve the consensus sequence
+    #Convert it to a Biopython record
+    consensus_record = SeqRecord(Seq(consensus), id = adhesin,
+                                 description = 'intergenic consensus')
+   
+    with open(consensus_untrimmed, 'a') as handle: #Open output file with consensus sequences
         handle.write(as_fasta(consensus_record)) #Write the consensus to the file
         
 # =============================================================================
@@ -327,3 +346,12 @@ subprocess.run(f'mafft-linsi {consensus_file} > {mafft_consensus}', shell = True
 mv = MsaViz(mafft_consensus, wrap_length = 100, color_scheme = 'Identity', 
             show_consensus = True, consensus_color = '#A4BF19')
 mv.savefig(consensus_plot, dpi = 300)
+
+#Run MAFFT to align all the consensus to each other
+subprocess.run(f'mafft-linsi {consensus_untrimmed} > {consensus_untrimmed.replace(".fna", ".mafft.fna")}', shell = True)
+
+#Plot the consensus
+mv = MsaViz(consensus_untrimmed.replace('.fna', '.mafft.fna'), 
+            wrap_length = 100, color_scheme = 'Identity', 
+            show_consensus = True, consensus_color = '#A4BF19')
+mv.savefig(consensus_plot.replace('.png', '_untrimmed.png'), dpi = 300)

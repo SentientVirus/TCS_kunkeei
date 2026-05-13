@@ -92,7 +92,7 @@ class adhesin:
             elif loctag_no < 10000:
                 self.ref_locus = 'AKUH3B104J_01250'
             else: self.ref_locus = 'None'
-        elif is_sublist(sorted(['PF00746', 'PF19258']), sorted(self.pfams)) or self.locus_tag == 'AKUH3B104J_14300':
+        elif is_sublist(sorted(['PF00746', 'PF19258']), sorted(self.pfams)) or (is_sublist(sorted(['PF00746', 'PF17966']), sorted(self.pfams)) and 'PF17965' not in self.pfams and 'PF12799' not in self.pfams) or self.locus_tag == 'AKUH3B104J_14300':
             self.type = 'MubB2+LPXTG' #OK for now, but should be divided into subtypes
             self.ref_locus = 'AKUH3B104J_14310'
         elif is_sublist(sorted(['PF17966', 'PF17965']), self.pfams) or self.locus_tag == 'AKUH3B104X_PLPX00300':
@@ -116,15 +116,16 @@ seqdir = f'{workdir}/sequences/adhesins'
 
 pfam_domains = ['PF06458', 'PF19087', 'PF05737', 'PF19258', #MucBP, DUF5776, collagen-binding, signal peptide
                 'PF13632', 'PF17966', 'PF17965',  #gtf2, MucB2, MucBP_2
-                'PF00746', 'PF07564', 'PF03382']  #LPXTG, EBH (DUF1542), DUF285
+                'PF00746', 'PF07564', 'PF03382',  #LPXTG, EBH (DUF1542), DUF285
+                'PF12799'] #Leucine-rich repeats (to exclude certain sequences)
 
 pfam_names = ['MucBP', 'DUF5776', 'collagen-binding', 'Gtf2', 'MucB2', 
               'MucBP_2', 'LPXTG']
 
 repr_strains = ['DSMZ12361', 'IBH001', 'GYUN-333', 'HNS-8', 'A0901', 
                 'A1001', 'A1003', 'A1202', 'A1401', 'A1404', 'A1805', 
-                'Fhon2', 'G0102', 'G0403', 'H1B1-04J', 'H1B1-05A', 
-                'H1B3-02M', 'H3B1-11M', 'H3B1-04J', 'H3B1-04X', 'H3B1-03M', #The last one is an extra strain, added because of the plasmid gene
+                'Fhon2', 'G0101', 'G0403', 'H1B1-04J', 'H1B1-05A', 
+                'H1B3-02M', 'H3B1-01A', 'H3B1-04J', 'H3B1-04X', 
                 'H3B2-02X', 'H3B2-03J', 'H3B2-03M', 'H3B2-06M', 'H3B2-09X', 
                 'H4B1-11J', 'H4B2-02J', 'H4B2-04J', 'H4B2-06J', 'H4B4-02J', 
                 'H4B4-05J', 'H4B4-06M', 'H4B4-12M', 'H4B5-01J', 'H4B5-03X', 
@@ -143,7 +144,7 @@ curr_adh = adhesin('', '')
 adh_dict = {}
 strains = []
 to_retrieve = {}
-for file in interpro_files:
+for file in sorted(interpro_files):
     with open(file) as ips:
         annot_df = pd.read_csv(ips, sep = '\t', header = None)
         pfam_df = annot_df[annot_df[4].isin(pfam_domains)] #Filter out the lines that are not 
