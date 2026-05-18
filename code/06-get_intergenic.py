@@ -118,7 +118,7 @@ for adhesin in adhesins: #Loop through adhesins
         
         pre_adh_tags = ['K2W83_RS00565', 'AKUFHON2_01040', #'AAPFHON13_00970', 
                       'AKUG0101_01050', 'AKUG0403_PLPX00300', 'AKUH1B104J_01040', 
-                      'AKUH1B105A_00950', 'AKUH3B101A_01040', 'AKUH3B104J_01010', 
+                      'AKUH1B105A_00950', 'AKUH3B101A_01030', 'AKUH3B104J_01010', 
                       'AKUH3B104X_PLPX00310', 'AKUH3B202X_01020', 'AKUH3B203J_01050', 
                       'AKUH4B202J_00950', 'AKUH4B204J_01050',  'AKUH4B412M_01110', 
                       'AKUH4B501J_01110', 'MUB42_02655'] #1 loctag less for HNS-8
@@ -190,10 +190,10 @@ for adhesin in adhesins: #Loop through adhesins
     elif adhesin == adhesins[2]:
         adh_tags = ['AKUA0901_00560', 'AKUA1003_00540', 'AKUA1202_00570',
                     'AKUA1401_00560', 'AKUA1805_00590', 'K2W83_RS00320',
-                    'AKUFHON2_00530', 'AKUG0101_00540', 'AKUG0403_00530',
+                    'AKUFHON2_00530', 'AKUG0101_00550', 'AKUG0403_00530',
                     'VQ058_RS00290', 'AKUH1B104J_00520', 'AKUH1B105A_00480',
-                    'AKUH1B302M_00560', 'AKUH3B104J_00520','AKUH3B104X_00540', 
-                    'AKUH3B101A_00500', 'AKUH3B202X_00520', 'AKUH3B203J_00530', 
+                    'AKUH1B302M_00560', 'AKUH3B101A_00510', 'AKUH3B104J_00520',
+                    'AKUH3B104X_00540', 'AKUH3B202X_00520', 'AKUH3B203J_00530', 
                     'AKUH3B209X_00540', 'AKUH4B111J_00580', 'AKUH4B202J_00480', 
                     'AKUH4B204J_00540', 'AKUH4B206J_00580', 'AKUH4B402J_00530', 
                     'AKUH4B412M_00590', 'AKUH4B501J_00570', 'AKUH4B503X_00500', 
@@ -202,10 +202,10 @@ for adhesin in adhesins: #Loop through adhesins
         
         pre_adh_tags = ['AKUA0901_00570', 'AKUA1003_00550', 'AKUA1202_00580',
                         'AKUA1401_00570', 'AKUA1805_00600', 'K2W83_RS00325',
-                        'AKUFHON2_00540', 'AKUG0101_00550', 'AKUG0403_00540',
+                        'AKUFHON2_00540', 'AKUG0101_00560', 'AKUG0403_00540',
                         'VQ058_RS00295', 'AKUH1B104J_00530', 'AKUH1B105A_00490',
-                        'AKUH1B302M_00570', 'AKUH3B104J_00530', 'AKUH3B104X_00550', 
-                        'AKUH3B101A_00510', 'AKUH3B202X_00530', 'AKUH3B203J_00540', 
+                        'AKUH1B302M_00570', 'AKUH3B101A_00520', 'AKUH3B104J_00530', 
+                        'AKUH3B104X_00550', 'AKUH3B202X_00530', 'AKUH3B203J_00540', 
                         'AKUH3B209X_00550', 'AKUH4B111J_00590', 'AKUH4B202J_00490', 
                         'AKUH4B204J_00550', 'AKUH4B206J_00590', 'AKUH4B402J_00540', 
                         'AKUH4B412M_00600', 'AKUH4B501J_00580', 'AKUH4B503X_00510', 
@@ -213,9 +213,31 @@ for adhesin in adhesins: #Loop through adhesins
                         'LDX55_00295', 'APS55_RS02510']
     
     elif adhesin == adhesins[3]:
-        adh_tags = [] #Locus tags of the CDS before ppk (forward)
+        adh_tags = ['AKUA0901_02780', 'AKUA1003_02730','AKUA1202_02860',
+                    'AKUA1401_02790', 'AKUA1805_02860', 'K2W83_RS01415',
+                    'AKUFHON2_02820', 'AKUG0101_02740', 'AKUG0403_02900', 
+                    'VQ058_RS01425', 'AKUH1B104J_02770', 'AKUH1B105A_02610', 
+                    'AKUH1B302M_02770', 'AKUH3B101A_02640', 'AKUH3B104J_02630', 
+                    'AKUH3B104X_02720', 'AKUH3B202X_02720', 'AKUH3B203J_02660', 
+                    'AKUH3B203M_02750', 'AKUH3B206M_03130', 'AKUH3B209X_02730', 
+                    'AKUH4B111J_03020', 'AKUH4B202J_02660', 'AKUH4B204J_02690', 
+                    'AKUH4B206J_02830', 'AKUH4B402J_02790', 'AKUH4B405J_03030', 
+                    'AKUH4B406M_03220', 'AKUH4B412M_02730', 'AKUH4B501J_02720', 
+                    'AKUH4B503X_02690', 'AKUH4B504J_02900', 'AKUH4B505J_02830', 
+                    'LDX55_01410', 'APS55_RS01420'] #Locus tags of the CDS before ppk (forward)
         
-        pre_adh_tags = [] #Locus tags of the CDS before the one before ppk
+        pre_adh_tags = ['AKUA0901_02770', 'AKUA1003_02720', 'AKUA1202_02850',
+                        'AKUA1401_02780', 'AKUA1805_02850', 'K2W83_RS01410',
+                        'AKUFHON2_02810', 'AKUG0101_02730', 'AKUG0403_02890', 
+                        'VQ058_RS01420', 'AKUH1B104J_02760', 'AKUH1B105A_02600', 
+                        'AKUH1B302M_02760', 'AKUH3B101A_02630', 'AKUH3B104J_02620', 
+                        'AKUH3B104X_02710', 'AKUH3B202X_02710', 'AKUH3B203J_02650', 
+                        'AKUH3B203M_02740', 'AKUH3B206M_03120', 'AKUH3B209X_02720', 
+                        'AKUH4B111J_03010', 'AKUH4B202J_02650', 'AKUH4B204J_02680', 
+                        'AKUH4B206J_02820', 'AKUH4B402J_02780', 'AKUH4B405J_03020', 
+                        'AKUH4B406M_03210', 'AKUH4B412M_02720', 'AKUH4B501J_02710', 
+                        'AKUH4B503X_02680', 'AKUH4B504J_02890', 'AKUH4B505J_02820', 
+                        'LDX55_01405', 'APS55_RS01425'] #Locus tags of the CDS before the one before ppk
 
 # =============================================================================
 # 3. Define paths to inputs and outputs
@@ -248,9 +270,10 @@ for adhesin in adhesins: #Loop through adhesins
     pos_dict = {} #Dictonary to store the positions
     for file in infiles: #Loop through GenBank files
         with open(file) as handle: #Open input file
+            strain = os.path.basename(file).split('_')[0] #Retrieve the strain name
             for record in SeqIO.parse(handle, 'genbank'): #Loop through records (contigs) in file
                 for cds in record.features: #Loop through features in each record (genes)
-                    if cds.type == 'CDS' and 'locus_tag' in list(cds.qualifiers.keys()): #If the gene has an assigned locus tag
+                    if cds.type == 'gene' and 'locus_tag' in list(cds.qualifiers.keys()): #If the gene has an assigned locus tag
                         loctag = cds.qualifiers['locus_tag'][0] #Retrieve the locus tag
                         #If the locus tag corresponds to the gene before the adhesin and the adhesin is in the forward strand
                         if loctag in pre_adh_tags and (cds.location.strand == 1 and 'PLPX' not in loctag):
@@ -270,7 +293,7 @@ for adhesin in adhesins: #Loop through adhesins
                         prev_loctag = loctag #Store previous locus tag
                         if loctag in adh_tags: #If the locus tag corresponds to an adhesin
                             strand_dict[loctag] = strand #Store strand
-        strain = os.path.basename(file).split('_')[0] #Retrieve the strain name
+        # strain = os.path.basename(file).split('_')[0] #Retrieve the strain name
         pos_dict[strain] = (start, end, strand) #Save the position
         print(f'{strain}: {start}-{end} ({strand}), {abs(end-start)} nucleotides.')
         
@@ -287,10 +310,12 @@ for adhesin in adhesins: #Loop through adhesins
             with open(fna) as handle: #Open FASTA file
                 for record in SeqIO.parse(handle, 'fasta'): #Loop through records in the file
                     if not plasmid: #If the gene is not in the plasmid
+                        if strain == 'MP2':
+                            record.seq = record.seq.reverse_complement()
                         start = min(pos_dict[strain][0], pos_dict[strain][1]) #Get lowest value
                         end = max(pos_dict[strain][0], pos_dict[strain][1]) #Get highest value
                         fna_seq = record.seq[start:end] #Retrieve segment
-                        if pos_dict[strain][2] == '-': #If the gene is in the reverse strand
+                        if pos_dict[strain][2] == '-': # or (strain == 'MP2' and pos_dict[strain] == '+'): #If the gene is in the reverse strand
                             fna_seq = fna_seq.reverse_complement() #Get reverse complement of segments in the reverse strand
                         new_record = SeqRecord(fna_seq, id = f'{strain}', description = '') #Create new record with the sequence
                         intergenic.write(as_fasta(new_record)) #Write as fasta
