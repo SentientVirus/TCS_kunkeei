@@ -31,7 +31,7 @@ def get_unique_strains(tag_list):
         strain = tag.split('_')[0].replace('AKU', '')
         if strain.startswith('H'):
             strain = strain[:4] + '-' + strain[4:]
-        strain = strain.replace('K2W83', 'DSMZ12361').replace('MUB42', 'HNS-8').replace('FHON', 'Fhon').replace('APS55', 'MP2')
+        strain = strain.replace('K2W83', 'DSMZ12361').replace('MUB42', 'HNS-8').replace('FHON', 'Fhon').replace('APS55', 'MP2').replace('VQ058', 'GYUN-333')
         if strain not in strains:
             strains.append(strain)
     strains = sorted(strains)
