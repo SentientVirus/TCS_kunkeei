@@ -121,7 +121,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/ipykernel-6.31.0-pyha191276_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/ipython-9.10.0-pyh53cf698_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/ipython_pygments_lexers-1.1.1-pyhd8ed1ab_0.conda
-      - conda: https://conda.anaconda.org/bioconda/linux-64/iqtree-3.0.1-h503566f_0.tar.bz2
+      - conda: https://conda.anaconda.org/bioconda/linux-64/iqtree-3.1.2-h8471819_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/isort-8.0.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/jaraco.classes-3.4.0-pyhcf101f3_3.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/jaraco.context-6.1.0-pyhcf101f3_0.conda
@@ -1950,19 +1950,20 @@ packages:
   - pkg:pypi/ipython-pygments-lexers?source=hash-mapping
   size: 13993
   timestamp: 1737123723464
-- conda: https://conda.anaconda.org/bioconda/linux-64/iqtree-3.0.1-h503566f_0.tar.bz2
-  sha256: e0dcb9e8678bd5a50c2c966d1916f9b38fc29ee5e98ce3207e0f50c2145d6dba
-  md5: fd4dfb10aac70986b4b51d73c45b4312
+- conda: https://conda.anaconda.org/bioconda/linux-64/iqtree-3.1.2-h8471819_0.conda
+  sha256: 1a71184e2a72019d146a0094f2bb3b040dba64343568262ec89d943681bc29a0
+  md5: 933288b3ac1a54275dc846d572a810ac
   depends:
+  - __glibc >=2.17,<3.0.a0
   - _openmp_mutex >=4.5
-  - libgcc >=13
+  - libgcc >=14
   - libgomp
-  - libstdcxx >=13
+  - libstdcxx >=14
   license: GPL-2.0-or-later
   license_family: GPL2
   purls: []
-  size: 4400455
-  timestamp: 1752022486560
+  size: 4351734
+  timestamp: 1779049030031
 - conda: https://conda.anaconda.org/conda-forge/noarch/isort-8.0.0-pyhd8ed1ab_0.conda
   sha256: 7b2620c8aee9cf8c11dd70f2729cd29078a4f0e9f04acb3e24ce8ab41ecd3c27
   md5: 83297265e95a934c256d04177ad09293
