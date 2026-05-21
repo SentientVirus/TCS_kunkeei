@@ -48,16 +48,19 @@ sys.stdout = open(log, 'a')
 # 1. Set paths to inputs and outputs
 # =============================================================================
 
-in_faa = snakemake.input[0] #Path to the formatted fasta file
-out_faa = snakemake.output[0] #Path to the alignment file
 threads = snakemake.threads #No. of threads to be used by MAFFT
 
+for i in range(len(snakemake.output)):
+
+    in_faa = snakemake.input[i] #Path to the formatted fasta file
+    out_faa = snakemake.output[i] #Path to the alignment file
+    
 # =============================================================================
 # 2. Run MAFFT
 # =============================================================================
-
-print(f'Running MAFFT on {in_faa} and saving results to {out_faa}... (1/1)')
-#Define the command to run
-command = f'mafft-linsi --thread {threads} {in_faa} > {out_faa} 2> {log}'
-subprocess.run(command, shell = True) #Run MAFFT
-print('Done! (1/1)')
+    
+    print(f'Running MAFFT on {in_faa} and saving results to {out_faa}... (1/1)')
+    #Define the command to run
+    command = f'mafft-linsi --thread {threads} {in_faa} > {out_faa} 2> {log}'
+    subprocess.run(command, shell = True) #Run MAFFT
+    print('Done! (1/1)')

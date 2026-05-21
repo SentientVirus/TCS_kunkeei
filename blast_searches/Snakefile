@@ -5,10 +5,10 @@ rule all:
 
 rule parse_blastp:
     output:
-        "blastp/20260302_RR-TF_results.csv"
+        ["blastp/RR-TF/20260521_RR-TF_results.csv", "blastp/HK/20260520_HK_results.csv"]
     input:
-        hits = "blastp/20260302_RR-TF_HitTable.csv",
-        descriptions = "blastp/20260302_RR-TF_Descriptions.csv"
+        hits = ["blastp/RR-TF/20260521_RR-TF_HitTable.csv", "blastp/HK/20260520_HK_HitTable.csv"],
+        descriptions = ["blastp/RR-TF/20260521_RR-TF_Descriptions.csv", "blastp/HK/20260520_HK_Descriptions.csv"] 
     threads: 1
     log: "logs/01-parse_BLASTp.log"
 #    conda: "pixi_phylo/default.yml"
@@ -16,20 +16,20 @@ rule parse_blastp:
 
 rule get_faa:
     output:
-        faa = "fasta/blastp_hits.faa",
-        formatted = "fasta/blastp_formatted.faa"
+        faa = expand("fasta/blastp_{gene}_hits.faa", gene = ["RR-TF", "HK"]),
+        formatted = expand("fasta/blastp_{gene}_formatted.faa", gene = ["RR-TF", "HK"])
     input:
-        "blastp/20260302_RR-TF_Descriptions.csv"
+        expand("blastp/{date_gene}_Descriptions.csv", date_gene = ["RR-TF/20260521_RR-TF", "HK/20260520_HK"])
     threads: 1
     log: "logs/02-get_faa.log"
 #    conda: "pixi_phylo/default.yml"
-    script: "code/02-get_faa.py"
+    script: "code/02-get_faa_HK.py"
 
 rule align_seqs:
     output:
-        "fasta/blastp_formatted.mafft.faa"
+        expand("fasta/blastp_{gene}_formatted.mafft.faa", gene = ["RR-TF", "HK"])
     input:
-        "fasta/blastp_formatted.faa"
+        expand("fasta/blastp_{gene}_formatted.faa", gene = ["RR-TF", "HK"])
     threads: 4
     log: "logs/03-align_seqs.log"
 #    conda: "pixi_phylo/default.yml"
@@ -37,9 +37,9 @@ rule align_seqs:
 
 rule run_IQtree:
     output:
-        expand("fasta/trees/blastp_formatted.mafft.faa.{ext}", ext = ["treefile", "ufboot", "splits.nex", "log", "mldist", "model.gz", "ckp.gz", "contree", "iqtree", "bionj"])
+        expand("fasta/trees/blastp_{gene}_formatted.mafft.faa.{ext}", gene = ["RR-TF", "HK"], ext = ["treefile", "ufboot", "splits.nex", "log", "mldist", "model.gz", "ckp.gz", "contree", "iqtree", "bionj"])
     input:
-        "fasta/blastp_formatted.mafft.faa"
+        expand("fasta/blastp_{gene}_formatted.mafft.faa", gene = ["RR-TF", "HK"])
     threads: 24
     log: "logs/04-run_IQtree.log"
 #    conda: "pixi_phylo/default.yml"

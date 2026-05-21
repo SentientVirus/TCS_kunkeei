@@ -52,20 +52,24 @@ sys.stdout = open(log, 'a')
 # 1. Set paths to inputs and outputs
 # =============================================================================
 
-in_aln = snakemake.input[0] #Path to the formatted fasta file
 outpath = os.path.dirname(snakemake.output[0]) #Directory to store the outputs
-threads = snakemake.threads #No. of threads to be used by MAFFT
+threads = snakemake.threads #No. of threads to be used by IQtree
 
 if not os.path.exists(outpath): #If the output directory doesn't exist
     os.makedirs(outpath) #Create it
 
+
+for i in range(len(snakemake.input)):
+
+    in_aln = snakemake.input[i] #Path to the formatted fasta file
+
 # =============================================================================
 # 2. Run IQtree
 # =============================================================================
-
-print(f'Running IQtree on {in_aln} and saving results to {outpath}... (1/1)')
-#Define the command to run
-command = f'iqtree -nt AUTO -ntmax {threads} -s {in_aln} -st AA -msub nuclear -bb 1000 -bnni >> {log}'
-subprocess.run(command, shell = True) #Run IQtree
-subprocess.run(f'mv {in_aln}.* {outpath}', shell = True) #Move IQtree results to the desired folder
-print('Done! (1/1)')
+    
+    print(f'Running IQtree on {in_aln} and saving results to {outpath}... (1/1)')
+    #Define the command to run
+    command = f'iqtree -nt AUTO -ntmax {threads} -s {in_aln} -st AA -msub nuclear -bb 1000 -bnni >> {log}'
+    subprocess.run(command, shell = True) #Run IQtree
+    subprocess.run(f'mv {in_aln}.* {outpath}', shell = True) #Move IQtree results to the desired folder
+    print('Done! (1/1)')
