@@ -72,11 +72,13 @@ for i in range(len(snakemake.output.faa)):
                     
                     'WP_101703914.1', 'WP_069698772.1', 'WP_193991767.1',
                     #Other Lactobacillales (first is Carnobacteriaceae, rest are Enterococcaceae)
-                    'WP_014525065.1' #Model HK
+                    'WP_014525065.1', 'WP_001253704.1', 'WP_003917137.1', 
+                    #Model CroS, EnvZ and MtrB
             ]
     elif 'RR-TF' in outfile:
         acc_list = ['WP_125712160.1', 'WP_353317293.1', 'WP_120784742.1',
-                    'WP_203619426.1', 'WP_054658628.1', 'WP_220728881.1', #Apilactobacillus
+                    'WP_203619426.1', 'WP_054658628.1', 'WP_220728881.1', 
+                    'CAI2564285.1', #Apilactobacillus
                     
                     'WP_125761468.1', 'WP_089939307.1', 'WP_446183611.1',
                     'WP_069698773.1', 'WP_349641026.1', 'WP_039145020.1',
@@ -91,7 +93,8 @@ for i in range(len(snakemake.output.faa)):
                     
                     'WP_101703913.1', 'WP_013774648.1', 'WP_028790024.1',
                     'WP_077275945.1', #Other Lactobacillales (first is Carnobacteriaceae, rest are Enterococcaceae)
-                    'WP_002355963.1'  #Model CroR
+                    'WP_002355963.1', 'WP_001157757.1', 'WP_003899985.1'  
+                    #Model CroR, OmpR and MtrA
             ]
     
     if not os.path.exists(os.path.dirname(outfile)): #If the path to the output file doesn't exist
@@ -148,6 +151,22 @@ for i in range(len(snakemake.output.faa)):
             elif record.id == 'WP_002355963.1':
                 genus = 'Bacterial'
                 epithet = 'model '
+            elif record.id == 'WP_001253704.1':
+                genus = 'Escherichia'
+                epithet = 'coli '
+                gtype = 'EnvZ'
+            elif record.id == 'WP_003917137.1':
+                genus = 'Mycobacterium'
+                epithet = 'model '
+                gtype = 'MtrB'
+            elif record.id == 'WP_001157757.1':
+                genus = 'Escherichia'
+                epithet = 'coli '
+                gtype = 'OmpR'
+            elif record.id == 'WP_003899985.1':
+                genus = 'Mycobacterium'
+                epithet = 'model '
+                gtype = 'MtrA'
             
             elif len(species.split(' ')) > 1: #If the species name contains more than one word
                 epithet = species.split(' ')[1] #Retrieve the species epithet

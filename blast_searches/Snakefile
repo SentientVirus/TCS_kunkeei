@@ -23,7 +23,7 @@ rule get_faa:
     threads: 1
     log: "logs/02-get_faa.log"
 #    conda: "pixi_phylo/default.yml"
-    script: "code/02-get_faa_HK.py"
+    script: "code/02-get_faa.py"
 
 rule align_seqs:
     output:
@@ -47,10 +47,10 @@ rule run_IQtree:
 
 rule plot_tree:
     output:
-        expand("plots/blastp_RR-TF_tree.{ext}", ext = ["png", "svg", "pdf"])
+        expand("plots/blastp_{gene}_tree.{ext}", gene = ["RR-TF", "HK"], ext = ["png", "svg", "pdf"])
     input:
-        tree = "fasta/trees/blastp_formatted.mafft.faa.treefile",
-        hits = "blastp/20260302_RR-TF_results.csv"
+        tree = expand("fasta/trees/blastp_{gene}_formatted.mafft.faa.treefile", gene = ["RR-TF", "HK"]),
+        hits = ["blastp/RR-TF/20260521_RR-TF_results.csv", "blastp/HK/20260520_HK_results.csv"]
     threads: 1
     log: "logs/05-plot_tree.log"
 #    conda: "pixi_phylo/default.yml"
