@@ -135,7 +135,7 @@ with open(log, 'w') as handle: #Open the log file in write mode
         ts.legend.add_face(TextFace('% ID', ftype = 'Arial', fsize = 42), column = 3) 
         ts.legend.add_face(TextFace(' ', ftype = 'Arial', fsize = 42), column = 2)
         
-        for val in [25, 20, 15]: #Loop through circle sizes
+        for val in [25, 20, 15, 10]: #Loop through circle sizes
             ts.legend.add_face(CircleFace(val, 'grey', 'circle'), column =  2) #Create a circle of that size
             ts.legend.add_face(TextFace(f'  {val*4}', ftype = 'Arial', fsize = 36), 
                                column = 3) #Add the legend text next to the circle
