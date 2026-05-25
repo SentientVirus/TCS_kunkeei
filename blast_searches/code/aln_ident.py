@@ -16,6 +16,7 @@ pipeline, and hence isn't included in the Snakefile.'
 
 import os, re
 import subprocess
+from pymsaviz import MsaViz
 
 # =============================================================================
 # 1. Define regular expressions and functions
@@ -23,20 +24,31 @@ import subprocess
 p = re.compile('\((.*)\)')
 q = re.compile('Score: (.*)')
 
-def run_mafft(infile, outfile, cores):
+def run_mafft(infile, outfile, outplot, cores):
+    #Create the alignment by running MAFFT
     command = f'mafft-linsi --thread {cores} {infile} > {outfile} 2> {log}'
     subprocess.run(command, shell = True)
+    
+    #Plot the alignment
+    mv = MsaViz(outfile, wrap_length = 100, color_scheme = 'Identity', 
+                show_consensus = True, consensus_color = '#A4BF19')
+    mv.savefig(outplot, dpi = 300)
 
 # =============================================================================
 # 2. Set paths to inputs and outputs
 # =============================================================================
 
 workdir = os.path.expanduser('~') + '/mucoid_project/ugc00027/blast_searches' #Set working directory
+plotdir = f'{workdir}/plots/pyMSAViz' #Directory to store plots
 log = f'{workdir}/logs/aln_indentity.log' #Set log file
+
+if not os.path.exists(plotdir):
+    os.makedirs(plotdir)
 
 for gene in ['RR-TF', 'HK']:
     infile = f'{workdir}/ref_aln/{gene}/{gene}.faa' #Set input file with all the RR-TF protein FASTA sequences
     out_mafft = infile.replace('.faa', '.mafft.faa') #Set the aligned output
+    outplot = f'{plotdir}/{gene}.pdf' #Set the plot output
     out_needle = infile.replace('.faa', '_needle.tsv') #Set the Needle output
     sep_dir = f'{workdir}/ref_aln/{gene}/separated_seqs' #Directory with the individual protein FASTA sequences
     in_prots = [f'{sep_dir}/{file}' for file in os.listdir(sep_dir) if file.endswith('.faa')] #Individual protein FASTA sequences
@@ -46,7 +58,7 @@ for gene in ['RR-TF', 'HK']:
     # 3. Perform an alignment
     # =============================================================================
     
-    run_mafft(infile, out_mafft, t)
+    run_mafft(infile, out_mafft, outplot, t)
     
     # =============================================================================
     # 4. Run EMBOSS Needle on the sequences and save results to files
