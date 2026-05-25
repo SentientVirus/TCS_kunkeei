@@ -366,8 +366,9 @@ for i in range(len(adhesin_regions)):
                     color = color_dict['adh4']
                 elif cds.qualifiers['locus_tag'][0] in adh5:
                     color = color_dict['adh5']
-                elif 'restriction' in cds.qualifiers['product'][0] or 'nuclease' in cds.qualifiers['product'][0]:
+                elif 'restriction' in cds.qualifiers['product'][0] or 'endonuclease' in cds.qualifiers['product'][0] or 'CRISPR' in cds.qualifiers['product'][0]:
                     color = color_dict['RE']
+                    true_dict['RE'] = True
                 if strain == 'Fhon13' and 'product' in cds.qualifiers.keys():
                     possible_name = cds.qualifiers['product'][0].split(' ')[0]
                     if len(cds.qualifiers['product'][0]) < 7 or (len(possible_name) < 7 and not (possible_name[0].isupper() and possible_name[1].islower())):
@@ -533,9 +534,11 @@ for i in range(len(adhesin_regions)):
         
     if true_dict['FK'] == True:
         handles += [Line2D([], [], marker=">", color=color_dict['FK'], label="Genes for sugar metabolism", ms=20, ls="none")]
+        
+    if true_dict['RE'] == True:
+        handles += [Line2D([], [], marker=">", color=color_dict['RE'], label="Restriction endonuclease", ms=20, ls="none")]
     
     handles += [ #Add the basic legend (strain phylogroup colors and common genes)
-        Line2D([], [], marker=">", color=color_dict['RE'], label="Restriction endonuclease", ms=20, ls="none"),
         Line2D([], [], marker=">", color='black', label="Transposase", ms=20, ls="none"),
         Line2D([], [], marker="", color='#771853', label="", ms=20, ls="none"),
         Line2D([], [], marker="", color='black', label="Matches", ms=20, ls="none"),
@@ -554,7 +557,7 @@ for i in range(len(adhesin_regions)):
     
     #Assign legent to figure. bbox_to_anchor sets the position, frameon removes the 
     #frame (border) of the legend box, and labelspacing increases vertical space between legends
-    legend = fig.legend(handles=handles, bbox_to_anchor=(1.05, 1), frameon = False,
+    legend = fig.legend(handles=handles, bbox_to_anchor=(1.35, 1), frameon = False,
                         fontsize = 16)
         
     fig.savefig(outfig) #Save figure to SVG
