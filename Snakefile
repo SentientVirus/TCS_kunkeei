@@ -142,6 +142,18 @@ rule calculate_coverage:
     shell:
         "bash code/04-coverage.sh {params} {input} 1>&2 2> {log}"
 
+##Rule to make the depth plot using Samtools results
+rule plot_coverage:
+    output:
+        depth = add_path_extension(all_input, "results/samtools_coverage", "tsv"),
+        plots = expand("plots/coverage/coverage_plot.{ext}", ext = ["png", "svg", "pdf"])
+    input:
+        add_path_extension(all_input, "results/bam", "bam")
+    log: "logs/04b-plot_coverage.log"
+    conda: "pixi_transcript/plots.yml"
+    script:
+        "code/04b-samtools_depth.py"
+
 ##Rule to calculate several metrics related to the alignment
 rule picard_tools:
     output:

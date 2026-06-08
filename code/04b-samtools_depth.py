@@ -23,8 +23,8 @@ from matplotlib import pyplot as plt
 # 0. Logging
 # =============================================================================
 
-workdir = os.path.expanduser('~') + '/mucoid_project/snpseq00064'
-log = f'{workdir}/logs/04b-plot_depth.log' #snakemake.log[0] #Path to log file
+#workdir = os.path.expanduser('~') + '/mucoid_project/snpseq00064'
+log = snakemake.log[0] #Path to log file f'{workdir}/logs/04b-plot_depth.log'
 
 with open(log, 'w') as handle:
     handle.write('')
@@ -53,17 +53,15 @@ sys.stdout = open(log, 'a')
 # 1. Set inputs and outputs
 # =============================================================================
 
-bamdir = f'{workdir}/results/bam'
-depth_dir = f'{workdir}/results/samtools_coverage'
-bamfiles = sorted([f'{bamdir}/{file}' for file in os.listdir(bamdir) if file.endswith('.bam')]) #snakemake.input #Path to BAM files
+#bamdir = f'{workdir}/results/bam'
+#depth_dir = f'{workdir}/results/samtools_coverage'
+bamfiles =  snakemake.input #Path to BAM files sorted([f'{bamdir}/{file}' for file in os.listdir(bamdir) if file.endswith('.bam')])
 indir = os.path.dirname(bamfiles[0]) #Input directory with the BAM files
-#depthfiles = sorted([f'{depth_dir}/{file}' for file in os.listdir(depth_dir) if file.endswith('.cov')]) #snakemake.output.depth #Path to Samtools outputs
-depthfiles = sorted([f'{depth_dir}/{file.replace(".bam", ".tsv")}' for file in os.listdir(bamdir) if file.endswith('.bam')])
+depthfiles = snakemake.output.depth #Path to Samtools outputs sorted([f'{depth_dir}/{file}' for file in os.listdir(depth_dir) if file.endswith('.tsv')])
 outdir = os.path.dirname(depthfiles[0]) #Directory with the Samtools outputs
-outplots = [f'{workdir}/plots/coverage/coverage_plot.png', #snakemake.output.plots #Output plot
-            f'{workdir}/plots/coverage/coverage_plot.pdf',
-            f'{workdir}/plots/coverage/coverage_plot.svg']
+outplots = snakemake.output.plots #Output plot 
 plotdir = os.path.dirname(outplots[0]) #Directory with the output plot
+
 bamlist = f'{indir}/bam_list.txt' #File including the path to the BAM files
 
 #Create output directories if they don't exist        
