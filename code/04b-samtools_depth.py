@@ -107,19 +107,21 @@ for i in range(0, len(bamfiles)): #Loop through the list of BAM files
     sample = os.path.basename(file).split('.')[0] #Retrieve isolate name
     print(f'Processing sample {sample}... ({i+1}/{len(bamfiles)}')
     
-    isolate = sample.split('-')[4]
-    condition = sample.split('-')[5]
+    isolate = sample.split('-')[4] #Retrieve isolate number from file name
+    condition = sample.split('-')[5] #Retrieve condition from file name
     
+    #Assign a phenotype based on isolate
     if isolate == '01' or isolate == '02':
         phenotype = 'Mucoid'
     else: phenotype = 'Aggregating'
     
+    #Assign a condition based on file name
     if condition == 'S':
         condition = '+S'
     elif condition == 'F':
         condition = '-S'
         
-    sample_cond = f'{phenotype} {condition}'
+    sample_cond = f'{phenotype} {condition}' #Create a variable with sample and condition information
     
     outfile = depthfiles[i] #Output file
     
@@ -140,9 +142,6 @@ for i in range(0, len(bamfiles)): #Loop through the list of BAM files
                                               color = isolate_colors[isolate], #'#7C55E6',
                                               alpha = 0.1, linewidth = 1) #Plot the depth as a line
     axs[plot_conditions[sample_cond]][0].set_title(f'{sample_cond}, chromosome')
-    # axs[i][0].fill_between(df_chr['position'], df_chr['coverage'],
-    #                  where = df_chr['coverage'] >= 0, interpolate = False,
-    #                  color = '#55BFE6') #Fill the space under the line
 
     #Plot results for the plasmid (same as above)
     print(f'Plotting the depth of the pKUN of isolate {isolate}...')
@@ -151,9 +150,6 @@ for i in range(0, len(bamfiles)): #Loop through the list of BAM files
                                               color =  isolate_colors[isolate], #'#E67C55',
                                               alpha = 0.1, linewidth = 1)
     axs[plot_conditions[sample_cond]][1].set_title(f'{sample_cond}, pKUN')
-    # axs[i][1].fill_between(df_pKUN['position'], df_pKUN['coverage'], 
-    #                  where = df_pKUN['coverage'] >= 0, interpolate = False,
-    #                  color = '#E6C355')
     
     #Remove inner margins from both plots
     [axs[plot_conditions[sample_cond]][j].margins(0, tight = True) for j in range(0, len(name_dict.keys()))]
