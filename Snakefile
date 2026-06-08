@@ -73,10 +73,10 @@ rule RNA_read_QC_pre_trimming:
         R2 = input_strand(all_input, strand = -1, path = "files/VF-3336/221006_M06455_0144_000000000-KMH8C", extension = "fastq.gz")
     threads: 2
     conda: "pixi_transcript/rnaseq.yml"
-    log: "logs/02.1a-read_QC.log"
+    log: "logs/02-read_QC.log"
     shell:
         """
-        bash code/02.1-read_QC.sh {threads} {output.R1[0]} {output.multiqc} {input} >> {log} 2>> {log}
+        bash code/02-read_QC.sh {threads} {output.R1[0]} {output.multiqc} {input} >> {log} 2>> {log}
         """
 
 ##Rule to trim the Illumina MiSeq RNA reads from the resequenced isolates of H3B1-04J
