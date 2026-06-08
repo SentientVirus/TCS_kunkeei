@@ -54,10 +54,11 @@ sys.stdout = open(log, 'a')
 # =============================================================================
 
 bamdir = f'{workdir}/results/bam'
-depth_dir = f'{workdir}/results/coverage'
+depth_dir = f'{workdir}/results/samtools_coverage'
 bamfiles = sorted([f'{bamdir}/{file}' for file in os.listdir(bamdir) if file.endswith('.bam')]) #snakemake.input #Path to BAM files
 indir = os.path.dirname(bamfiles[0]) #Input directory with the BAM files
-depthfiles = sorted([f'{depth_dir}/{file}' for file in os.listdir(depth_dir) if file.endswith('.cov')]) #snakemake.output.depth #Path to Samtools outputs
+#depthfiles = sorted([f'{depth_dir}/{file}' for file in os.listdir(depth_dir) if file.endswith('.cov')]) #snakemake.output.depth #Path to Samtools outputs
+depthfiles = sorted([f'{depth_dir}/{file.replace(".bam", ".tsv")}' for file in os.listdir(bamdir) if file.endswith('.bam')])
 outdir = os.path.dirname(depthfiles[0]) #Directory with the Samtools outputs
 outplots = [f'{workdir}/plots/coverage/coverage_plot.png', #snakemake.output.plots #Output plot
             f'{workdir}/plots/coverage/coverage_plot.pdf',
@@ -94,20 +95,6 @@ fig, axs = plt.subplots(4, 2, sharex = 'col', #sharey = 'col',
 fig.tight_layout(h_pad = 2, w_pad = 1) #Adjust spacing between subplots
 fig.subplots_adjust(left = 0.1, top = 0.92, bottom = 0.1) #Adjust figure margins
 
-# #Add a label for each isolate
-# fig.text(0.5, 0.95, 'Isolate 01', ha = 'center', va = 'center', 
-#          rotation = 'horizontal', weight = 'semibold', fontname = font_name,
-#          fontsize = titles)
-# fig.text(0.5, 0.73, 'Isolate 02', ha = 'center', va = 'center', 
-#          rotation = 'horizontal', weight = 'semibold', fontname = font_name,
-#          fontsize = titles)
-# fig.text(0.5, 0.51, 'Isolate 09', ha = 'center', va = 'center', 
-#          rotation = 'horizontal', weight = 'semibold', fontname = font_name,
-#          fontsize = titles)
-# fig.text(0.5, 0.29, 'Isolate 10', ha = 'center', va = 'center',
-#          rotation = 'horizontal', weight = 'semibold', fontname = font_name,
-#          fontsize = titles)
-
 #Add a label for all the y axes (depth)
 fig.text(0.05, 0.5, 'Sequencing depth', ha = 'center', va = 'center', 
          rotation = 'vertical', fontname = font_name, fontsize = plain)
@@ -136,11 +123,11 @@ for i in range(0, len(bamfiles)): #Loop through the list of BAM files
     
     outfile = depthfiles[i] #Output file
     
-    # #Run Samtools
-    # command = f'samtools depth -a -f {bamlist} -o {outfile} -q 0 -Q 10 -J -s' #Command to run
-    # subprocess.run(command, shell = True) #Run the command
+    #Run Samtools
+    command = f'samtools depth -a -f {bamlist} -o {outfile} -q 0 -Q 10 -J -s' #Command to run
+    subprocess.run(command, shell = True) #Run the command
     
-    # print(f'Samtools results saved to {outfile}!')
+    print(f'Samtools results saved to {outfile}!')
     
     #Read results into a dataframe
     df = pd.read_csv(outfile, sep = '\t', header = None)
