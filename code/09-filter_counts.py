@@ -7,7 +7,7 @@ Script that, taking featureCounts output as input, filters low-count reads and
 builds a dataframe with the strain names as columns, the three locus tags
 as row name and the count as values.
 
-@author: marina
+@author: Marina Mota-Merlo
 """
 
 # =============================================================================

@@ -5,7 +5,7 @@ Created on Wed Nov  8 16:32:56 2023
 
 This is a script to filter counts that removes ribosomal genes
 
-@author: marina
+@author: Marina Mota-Merlo
 """
 
 # =============================================================================

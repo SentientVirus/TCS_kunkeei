@@ -45,7 +45,7 @@ rule all:
     input:
         multiqc = expand("results/multiqc/{ba}/multiqc_report.html", ba = ["post", "pre"]),
         improved_annot = expand("results/DE/{comparison}{ext}_improved_annot.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"]),
-        coverage = add_path_extension(all_input, "results/coverage", "perbase.cov"),
+        coverage = add_path_extension(all_input, "results/coverage", "tsv"),
         picard = add_path_extension(all_input, "results/picard", "pdf", "_insert_size_histogram"),
         saturation = expand("plots/saturation{extra}_k0.ps", extra = ["_collapsed", ""]),
         volcano = expand("plots/{comparison}_volcano.{ext}", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["png", "pdf"])
@@ -130,29 +130,17 @@ rule align2fna:
     shell:
         "bash code/03-read_alignment.sh {params.outdir} {input.genome} {log} {input.R1}"
 
-##Rule to calculate RNA read coverage along the genome
-rule calculate_coverage:
-    output:
-        add_path_extension(all_input, "results/coverage", "perbase.cov")
-    input:
-        add_path_extension(all_input, "results/bam", "bam")
-    params: "results/coverage"
-    conda: "pixi_transcript/rnaseq.yml"
-    log: "logs/04-coverage.log"
-    shell:
-        "bash code/04-coverage.sh {params} {input} 1>&2 2> {log}"
-
 ##Rule to make the depth plot using Samtools results
 rule plot_coverage:
     output:
-        depth = add_path_extension(all_input, "results/samtools_coverage", "tsv"),
+        depth = add_path_extension(all_input, "results/coverage", "tsv"),
         plots = expand("plots/coverage/coverage_plot.{ext}", ext = ["png", "svg", "pdf"])
     input:
         add_path_extension(all_input, "results/bam", "bam")
-    log: "logs/04b-plot_coverage.log"
+    log: "logs/04-plot_coverage.log"
     conda: "pixi_transcript/plots.yml"
     script:
-        "code/04b-samtools_depth.py"
+        "code/04-coverage.py"
 
 ##Rule to calculate several metrics related to the alignment
 rule picard_tools:

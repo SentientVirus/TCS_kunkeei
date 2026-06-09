@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Nov 10 11:12:54 2023
+
 A script that calculates the number of TPM based on the number of counts
-@author: marina
+
+@author: Marina Mota-Merlo
 """
 
 # =============================================================================
