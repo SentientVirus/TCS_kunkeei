@@ -155,17 +155,6 @@ rule picard_tools:
     shell:
         "bash code/05-picard.sh {params} {input} 1>&2 2> {log}"
 
-##Rule to create a gff from the new GenBank
-#rule gbk2gff:
-#    output:
-#        "results/gff/reference_loctag.gff"
-#    input:
-#        "../ugc00027/results/annotations/emapper2gbk/reference_loctag.gbk"
-#    log: "logs/05-gbk2gff.log"
-#    conda: "pixi_transcript/gbk2gff.yml"
-#    shell:
-#        "genbank_to -g {input} --gff3 {output} & mv genbank_to.log {log}"
-
 ##Rule to calculate gene counts using the read alignment and the annotation of the reference strain
 rule count_genes:
     output:
@@ -184,19 +173,6 @@ rule count_genes:
 
 
 ##Rule to calculate TPM per sample and per isolate
-#rule get_TPM:
-#    output:
-#        out = add_path_extension(all_input, "results/TPM", "out", "_genes"),
-#        ent = add_path_extension(all_input, "results/TPM", "ent", "_genes"),
-#        uni = add_path_extension(all_input, "results/TPM", "uni", "_genes") 
-#    input:
-#        bam = add_path_extension(all_input, "results/bam", "bam"),
-#        gtf = "H3B1-04J_genomic.gtf" #Modified gtf were CDS features have been renamed to exon
-#    conda: "envs/circular.yml"
-#    log: "logs/07-calculate_TPM.log"
-#    shell:
-#        "bash code/07-calculate_TPM.sh {input.gtf} {input.bam} 2> {log}"
-
 rule get_TPM_formula:
     output:
         per_sample = "results/TPM/TPM_per_sample.tsv",
