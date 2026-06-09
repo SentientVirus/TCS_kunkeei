@@ -171,6 +171,16 @@ rule count_genes:
     shell:
         "bash code/06-read_counts.sh {params.out1} {params.out2} {input.gff} {log} {input.bam}"
 
+##Rule to get the statistics of the count files
+rule count_stats:
+    output:
+        "results/count_info/count_stats.tsv"
+    input:
+        add_path_extension(all_input, "featureCounts_reverse/nofilter", "featureCounts.summary")
+    log: "logs/06.1-count_stats.log"
+    conda: "pixi_transcript/default.yml"
+    script:
+        "code/06.1-read_count_stats.py"
 
 ##Rule to calculate TPM per sample and per isolate
 rule get_TPM_formula:
