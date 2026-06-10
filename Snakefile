@@ -231,6 +231,24 @@ rule align2ref:
         bash code/01d-reads2bam.sh {input.ref} {output.index} {threads} {output.bamfiles} {input.reads} >> {log} 2>> {log}
         """
 
+#rule plasmid2ref:
+#    output:
+#        index = "index/H3B1-04J_plasmid.mmi",
+#        bamfiles = expand("results/bam/plasmid/58TC5S_{id}.bam", id = ["1_H34_1", "2_H34_2", "3_H34_9", "4_H34_10"]),
+#        bam_index = expand("results/bam/plasmid/58TC5S_{id}.bam.bai", id = ["1_H34_1", "2_H34_2", "3_H34_9", "4_H34_10"])
+#    input:
+#        ref = "../C1_C3/ONT_Illumina/assemblies/2XWHL4_1_34_9_C1/2XWHL4_1_34_9_C1_1_polished-reference.fasta", #"plasmid_reseq/results/58TC5S_fasta-files/58TC5S_1_H34_1.fasta",
+#        reads = expand("plasmid_reseq/fastq/58TC5S_{id}.fastq", id = ["1_H34_1", "2_H34_2", "3_H34_9", "4_H34_10"]) #input_list #expand("results/trimming/{isolate}.fastq.gz", isolate = ["01", "02", "09", "10"])
+#    log: "logs/01f-plasmid2bam.log"
+#    conda: "pixi_genome/genome_analysis.yml"
+#    threads: 48
+#    shell:
+#        """
+#        > {log}
+#        bash code/01f-plasmid2bam.sh {input.ref} {output.index} {threads} {output.bamfiles} {input.reads} >> {log} 2>> {log}
+#        """
+
+
 ##Calculate the sequencing depth along the chromosome and plasmid and plot them
 rule plot_depth:
     output:
