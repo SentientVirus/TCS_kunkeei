@@ -47,7 +47,7 @@ output_files <- snakemake@output[["volcano"]] #Volcano plot files
 titles <- rep(c("Aggregating vs Mucoid", " - Sucrose vs + Sucrose"), each = 2) # Plot titles
 subtitles <- c("+ sucrose", "- sucrose", "Mucoid", "Aggregating") # Plot subtitles
 all_shapes <- rep(data.frame(c(21, 23), c(25, 24)), each = 2) # Desired point shape for the plot
-comparison <- rep(data.frame(c("Inh", "Muc"), c("-", "+")), each = 2) # Comparisons to be plotted
+comparison <- rep(data.frame(c("Agg", "Muc"), c("-", "+")), each = 2) # Comparisons to be plotted
 scale_val <- c(0, 3) # Variable to scale points
 
 pval_filter <- 0.1 #p-adjusted threshold
