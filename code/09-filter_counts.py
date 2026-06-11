@@ -103,7 +103,7 @@ for isolate in isolate_list:
     if isolate == '01' or isolate == '02': #Depending on isolate name, assign phenotype
         sample_type = 'mucoid'
     else:
-        sample_type = 'inhibitor'
+        sample_type = 'aggregating'
     name_dict[isolate] = sample_type #Store phenotype information in a dictionary
     
     for condition in conditions: #Loop through conditions

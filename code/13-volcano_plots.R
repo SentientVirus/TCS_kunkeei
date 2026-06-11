@@ -44,11 +44,14 @@ input_files <- snakemake@input[["annotated_expr"]] #Annotated DESeq2 results
 output_files <- snakemake@output[["volcano"]] #Volcano plot files
 
 # Define vectors with formatting
-titles <- rep(c("Inhibitor vs Mucoid", " - Sucrose vs + Sucrose"), each = 2) # Plot titles
-subtitles <- c("+ sucrose", "- sucrose", "Mucoid", "Inhibitor") # Plot subtitles
+titles <- rep(c("Aggregating vs Mucoid", " - Sucrose vs + Sucrose"), each = 2) # Plot titles
+subtitles <- c("+ sucrose", "- sucrose", "Mucoid", "Aggregating") # Plot subtitles
 all_shapes <- rep(data.frame(c(21, 23), c(25, 24)), each = 2) # Desired point shape for the plot
 comparison <- rep(data.frame(c("Inh", "Muc"), c("-", "+")), each = 2) # Comparisons to be plotted
 scale_val <- c(0, 3) # Variable to scale points
+
+pval_filter <- 0.1 #p-adjusted threshold
+lfc_filter <- 1 #Log2FC threshold
 
 # Loop through i to get res and plot
 for (i in 1:4){
@@ -117,21 +120,21 @@ keyvals.col <- c()
 # Coloring depending on x (different colors if it's < 0.5, > 3 or between) and y
 # (different colors depending on if the padj is <1e-5 or >1e-5)
 keyvals.col <- ifelse(
-  abs(res$log2FoldChange) < 0.5 & res$padj < 1e-5, "#00008B",
-  ifelse(abs(res$log2FoldChange) > 0.5 & abs(res$log2FoldChange) < 3 & res$padj < 1e-5, "#008B8B",
-         ifelse(abs(res$log2FoldChange) > 3 & res$padj < 1e-5, "#66CDAA",
-                ifelse(abs(res$log2FoldChange) < 0.5 & res$padj > 1e-5, "#8B7D6B",
-                       ifelse(abs(res$log2FoldChange) > 3 & res$padj > 1e-5, "#EED5B7",
+  abs(res$log2FoldChange) < lfc_filter & res$padj < pval_filter, "#00008B",
+  ifelse(abs(res$log2FoldChange) > lfc_filter & abs(res$log2FoldChange) < 3 & res$padj < pval_filter, "#008B8B",
+         ifelse(abs(res$log2FoldChange) > 3 & res$padj < pval_filter, "#66CDAA",
+                ifelse(abs(res$log2FoldChange) < lfc_filter & res$padj > pval_filter, "#8B7D6B",
+                       ifelse(abs(res$log2FoldChange) > 3 & res$padj > pval_filter, "#EED5B7",
                               "#CDB79E")))))
 
 # Labels for each color
 keyvals.col[is.na(keyvals.col)] <- "red" # NAs should not be in the data
-names(keyvals.col)[keyvals.col == "#66CDAA"] <- expression(italic("p"["adj"])*" < 10"^-5*", Log"[2]*italic("FC")*" > 3")
-names(keyvals.col)[keyvals.col == "#008B8B"] <- expression(italic("p"["adj"])*" < 10"^-5*", 0.5 < Log"[2]*italic("FC")*" < 3")
-names(keyvals.col)[keyvals.col == "#00008B"] <- expression(italic("p"["adj"])*" < 10"^-5*", Log"[2]*italic("FC")*" < 0.5")
-names(keyvals.col)[keyvals.col == "#EED5B7"] <- expression(italic("p"["adj"])*" > 10"^-5*", Log"[2]*italic("FC")*" < 3")
-names(keyvals.col)[keyvals.col == "#CDB79E"] <- expression(italic("p"["adj"])*" > 10"^-5*", 0.5 < Log"[2]*italic("FC")*" < 3")
-names(keyvals.col)[keyvals.col == "#8B7D6B"] <- expression(italic("p"["adj"])*" > 10"^-5*", Log"[2]*italic("FC")*" < 0.5")
+names(keyvals.col)[keyvals.col == "#66CDAA"] <- expression(italic("p"["adj"])*" < 0.1, Log"[2]*italic("FC")*" > 3")
+names(keyvals.col)[keyvals.col == "#008B8B"] <- expression(italic("p"["adj"])*" < 0.1, 1 < Log"[2]*italic("FC")*" < 3")
+names(keyvals.col)[keyvals.col == "#00008B"] <- expression(italic("p"["adj"])*" < 0.1, Log"[2]*italic("FC")*" < 1")
+names(keyvals.col)[keyvals.col == "#EED5B7"] <- expression(italic("p"["adj"])*" > 0.1, Log"[2]*italic("FC")*" < 3")
+names(keyvals.col)[keyvals.col == "#CDB79E"] <- expression(italic("p"["adj"])*" > 0.1, 1 < Log"[2]*italic("FC")*" < 3")
+names(keyvals.col)[keyvals.col == "#8B7D6B"] <- expression(italic("p"["adj"])*" > 0.1, Log"[2]*italic("FC")*" < 1")
 
 # Assign colors to data points
 color_values <- unique(keyvals.col)
@@ -145,8 +148,8 @@ size_vector <- abs(res$log2FoldChange)
 flog.info(paste("Generate the volcano plot for file"), input_files[i]) 
 # Code to generate the Volcano plot
 volcanoplot <- ggplot(data = res, aes(x = log2FoldChange, y = yval, col = keyvals.col, label = vollabels)) +
-  geom_vline(xintercept = c(-0.5, 0.5), col = "gray", linetype = "dashed") + # Add dashed line to show log2FC < 0.5
-  geom_hline(yintercept = -log10(1e-5), col = "gray", linetype = "dashed") + # Add dashed line for p-value > 1e-5
+  geom_vline(xintercept = c(-lfc_filter, lfc_filter), col = "gray", linetype = "dashed") + # Add dashed line to show log2FC < 0.5
+  geom_hline(yintercept = -log10(pval_filter), col = "gray", linetype = "dashed") + # Add dashed line for p-value > 1e-5
   geom_point(aes(size = size_vector, shape = sign_shape, fill = keyvals.col), alpha = 0.6, stroke = 0.5, color = "darkorchid") + # Line the size, shape, color (fill + border) and stroke of the points
   geom_label_repel(max.overlaps = Inf, color = "black", #show_guide = FALSE,  
         size = 3, box.padding = 0.4, fontface = "bold.italic") + # Add label boxes

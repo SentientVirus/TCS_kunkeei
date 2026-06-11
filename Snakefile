@@ -44,11 +44,11 @@ def input_strand(lst, strand = 1, path = "", extension = ""):
 rule all:
     input:
         multiqc = expand("results/multiqc/{ba}/multiqc_report.html", ba = ["post", "pre"]),
-        improved_annot = expand("results/DE/{comparison}{ext}_improved_annot.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"]),
+        improved_annot = expand("results/DE/{comparison}{ext}_improved_annot.tsv", comparison = ["Smucoid_vs_Saggregating", "Fmucoid_vs_Faggregating", "Smucoid_vs_Fmucoid", "Saggregating_vs_Faggregating"], ext = ["", "_lfc1"]),
         coverage = add_path_extension(all_input, "results/coverage", "tsv"),
         picard = add_path_extension(all_input, "results/picard", "pdf", "_insert_size_histogram"),
         saturation = expand("plots/saturation{extra}_k0.ps", extra = ["_collapsed", ""]),
-        volcano = expand("plots/{comparison}_volcano.{ext}", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["png", "pdf"])
+        volcano = expand("plots/{comparison}_volcano.{ext}", comparison = ["Smucoid_vs_Saggregating", "Fmucoid_vs_Faggregating", "Smucoid_vs_Fmucoid", "Saggregating_vs_Faggregating"], ext = ["png", "pdf"])
 
 ##Rule to index the reference genome of strain H3B1-04J
 rule index_genome:
@@ -245,11 +245,11 @@ rule saturation:
 ##Rule to run a differential expression analysis, comparing several conditions
 rule differential_expression:   
     output:
-        dif_expr = expand("results/DE/{comparison}{ext}.csv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"]),
-        DE_annot = expand("results/DE/{comparison}{ext}_annotated.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"]),
+        dif_expr = expand("results/DE/{comparison}{ext}.csv", comparison = ["Smucoid_vs_Saggregating", "Fmucoid_vs_Faggregating", "Smucoid_vs_Fmucoid", "Saggregating_vs_Faggregating"], ext = ["", "_lfc1"]),
+        DE_annot = expand("results/DE/{comparison}{ext}_annotated.tsv", comparison = ["Smucoid_vs_Saggregating", "Fmucoid_vs_Faggregating", "Smucoid_vs_Fmucoid", "Saggregating_vs_Faggregating"], ext = ["", "_lfc1"]),
         pca = expand("plots/pcaplot.{ext}", ext = ["png", "pdf"]), dist = expand("plots/dist_plot.{ext}", ext = ["png", "ps"]),
-        heatmap = expand("plots/{comparison}_heatmap.{ext}", comparison = ["global", "Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["png", "ps"]), 
-        plots = expand("plots/{comparison}.{ext}", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["png", "ps"])
+        heatmap = expand("plots/{comparison}_heatmap.{ext}", comparison = ["global", "Smucoid_vs_Saggregating", "Fmucoid_vs_Faggregating", "Smucoid_vs_Fmucoid", "Saggregating_vs_Faggregating"], ext = ["png", "ps"]), 
+        plots = expand("plots/{comparison}.{ext}", comparison = ["Smucoid_vs_Saggregating", "Fmucoid_vs_Faggregating", "Smucoid_vs_Fmucoid", "Saggregating_vs_Faggregating"], ext = ["png", "ps"])
     input:
         counts = expand("featureCounts_reverse/countfiles/filtered/H3B1-04J_{isol}{cond}_counts.tsv", isol = ["01", "02", "09", "10"], cond = ["F", "S"]),
         meta = "featureCounts_reverse/countfiles/H3B1-04J_metadata.tsv"
@@ -261,10 +261,10 @@ rule differential_expression:
 ##Rule to add improved annotations to the results
 rule add_improved_annotations:
     output:
-        improved_annot = expand("results/DE/{comparison}{ext}_improved_annot.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"])    
+        improved_annot = expand("results/DE/{comparison}{ext}_improved_annot.tsv", comparison = ["Smucoid_vs_Saggregating", "Fmucoid_vs_Faggregating", "Smucoid_vs_Fmucoid", "Saggregating_vs_Faggregating"], ext = ["", "_lfc1"])    
     input:
         ref_gbk = os.path.expanduser("~") + "/mucoid_project/ugc00027/results/annotations/emapper2gbk/reference_loctag.gbk",
-        DE_annot = expand("results/DE/{comparison}{ext}_annotated.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["", "_lfc1"])
+        DE_annot = expand("results/DE/{comparison}{ext}_annotated.tsv", comparison = ["Smucoid_vs_Saggregating", "Fmucoid_vs_Faggregating", "Smucoid_vs_Fmucoid", "Saggregating_vs_Faggregating"], ext = ["", "_lfc1"])
     conda: "pixi_transcript/default.yml"
     log: "logs/12-modify_annot.log"
     script:
@@ -274,9 +274,9 @@ rule add_improved_annotations:
 ##Rule to generate volcano plots
 rule volcano_plots:
     output:
-        volcano = expand("plots/{comparison}_volcano.{ext}", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"], ext = ["png", "pdf"])
+        volcano = expand("plots/{comparison}_volcano.{ext}", comparison = ["Smucoid_vs_Saggregating", "Fmucoid_vs_Faggregating", "Smucoid_vs_Fmucoid", "Saggregating_vs_Faggregating"], ext = ["png", "pdf"])
     input:
-        annotated_expr = expand("results/DE/{comparison}_improved_annot.tsv", comparison = ["Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor", "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor"])
+        annotated_expr = expand("results/DE/{comparison}_improved_annot.tsv", comparison = ["Smucoid_vs_Saggregating", "Fmucoid_vs_Faggregating", "Smucoid_vs_Fmucoid", "Saggregating_vs_Faggregating"])
     conda: "pixi_transcript/renv.yml"
     log: "logs/13-volcano_plots.log"
     script: "code/13-volcano_plots.R"

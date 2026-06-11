@@ -51,6 +51,7 @@ heatplot <- snakemake@output[["heatmap"]][1] #Global heatmap file
 metadat <- snakemake@input[["meta"]] #Metadata file
 
 cw <- 18 #Heatmap cell width
+pval_filter <- .1 #Minimum p-adjusted/s-value
 
 # Create output directories if they don't exist
 if (!file.exists(sub_dir)){
@@ -124,7 +125,7 @@ for (file in sampleFiles){
   if ((grepl("01", file, fixed = TRUE) == 1) | (grepl("02", file, fixed = TRUE) == 1)){ #If the file name contains the names of isolates 01 or 02
     sampleCondition <- c(sampleCondition, "mucoid") #Assign the mucoid condition
   }
-  else{sampleCondition <- c(sampleCondition, "inhibitor")} #Else, assign the inhibitor condition
+  else{sampleCondition <- c(sampleCondition, "aggregating")} #Else, assign the aggregating condition
 }
 
 # Create table with metadata (sample names and condition)
@@ -141,7 +142,7 @@ for (filename in sampleFiles[2:length(sampleFiles)]){ #Loop through the remainin
   counts <- cbind(counts, cts) #Append to the original count matrix
 }
 
-# Add metadata (three conditions, mucoid/inhibitor, fructose/sucrose and date)
+# Add metadata (three conditions, mucoid/aggregating, fructose/sucrose and date)
 coldata <- read.csv(metadat, sep = "\t", row.names = 1) #Read metadata file
 coldata$condition2 <- factor(coldata$condition2) #Convert the three conditions to factors
 coldata$condition1 <- factor(coldata$condition1)
@@ -293,10 +294,10 @@ invisible(dev.off()) #Restart canvas
 #=============================================================================#
 
 # Define lists with information to loop over
-comparisons <- c("Smucoid_vs_Sinhibitor", "Fmucoid_vs_Finhibitor",
-                 "Smucoid_vs_Fmucoid", "Sinhibitor_vs_Finhibitor")
+comparisons <- c("Smucoid_vs_Saggregating", "Fmucoid_vs_Faggregating",
+                 "Smucoid_vs_Fmucoid", "Saggregating_vs_Faggregating")
 
-coefs <- c("condition1_mucoid_vs_inhibitor", "condition1_mucoid_vs_inhibitor",
+coefs <- c("condition1_mucoid_vs_aggregating", "condition1_mucoid_vs_aggregating",
            "condition2_S_vs_F", "condition2_S_vs_F")
 
 my_condition <- c("condition1", "condition1", "condition2", "condition2")
@@ -310,7 +311,7 @@ for (i in 1:length(comparisons)){ #Loop through comparisons
   flog.info(paste("Running DESeq2 for comparison", savename))
   
   # Get data for the differential expression analysis
-  if (grepl("mucoid", savename) & grepl("inhibitor", savename)){ #If it is a mucoid vs inhibitor comparison
+  if (grepl("mucoid", savename) & grepl("aggregating", savename)){ #If it is a mucoid vs aggregating comparison
     if (grepl("S", savename)){ #And the carbon source is sucrose
       flog.info("Muc vs Inh, S+")
       coldata2 <- coldata[coldata$condition2 == "S",] #Set the carbon source condition to keep
@@ -336,7 +337,7 @@ for (i in 1:length(comparisons)){ #Loop through comparisons
     }
     else { #Same, but for the other phenotype
       flog.info("S+ vs S-, Inh")
-      coldata2 <- coldata[coldata$condition1 == "inhibitor",]
+      coldata2 <- coldata[coldata$condition1 == "aggregating",]
     }
   # Retrieve data for the condition of interest
   coldata2 <- coldata2[rownames(coldata2) %in% colnames(counts),]
@@ -355,12 +356,13 @@ dds <- DESeq(dds) #Run DESeq2
 # Get results with and without lfc threshold filters
 flog.info("Add lfc shrinkage and threshold")
 res <- lfcShrink(dds, coef=coefs[i], type="apeglm") #Get results applying log2FC shrinkage
-res_subset <- results(dds, lfcThreshold=1); #Filter out results with log2FC < 1
+res_subset <- lfcShrink(dds, coef=coefs[i], type="apeglm", lfcThreshold = 1) #Get results applying log2FC shrinkage and |log2FC| > 1
 summary(res); #Print a summary of the results
+summary(res_subset); #Print a summary of the filtered results
 
 flog.info("Filter by p-value")
-res_subset <- subset(res_subset, padj < .1); #Filter out results with an adjusted p-value > 0.1
-res_filter <- subset(res, padj < .1);
+res_subset <- subset(res_subset, svalue < pval_filter); #Filter out results with an adjusted p-value > 0.1
+res_filter <- subset(res, padj < pval_filter);
 res_comp_htmp <- subset(res_filter, baseMean >= 100); #Filter out results with mean counts < 100
 
 # Create a heatmap for this comparison
