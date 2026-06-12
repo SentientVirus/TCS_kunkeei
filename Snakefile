@@ -186,9 +186,12 @@ rule count_stats:
 rule get_TPM_formula:
     output:
         per_sample = "results/TPM/TPM_per_sample.tsv",
-        mean = "results/TPM/mean_TPM.tsv"
+        mean = "results/TPM/mean_TPM.tsv",
+        annot = "results/TPM/mean_annot.tsv"
     input:
-        counts = add_path_extension(all_input, "featureCounts_reverse/nofilter", "featureCounts")
+        counts = add_path_extension(all_input, "featureCounts_reverse/nofilter", "featureCounts"),
+        gbk = os.path.expanduser("~") + "/mucoid_project/ugc00027/results/annotations/emapper2gbk/reference_loctag.gbk",
+        base_gbk = os.path.expanduser("~") + "/Akunkeei_files/gbff/H3B1-04J_genomic.gbff"
     params: os.getcwd()
     log: "logs/07-calculate_TPM.log"
     conda: "pixi_transcript/default.yml"

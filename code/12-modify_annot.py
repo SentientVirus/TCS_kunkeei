@@ -100,7 +100,7 @@ replace_dict = {'AKUH3B104J_00510': 'adhesin_510', 'AKUH3B104J_00520': 'GT2_520'
                 'AKUH3B104J_PKUN00030': 'kukP', 'AKUH3B104J_PKUN00040': 'kukA',
                 'AKUH3B104J_PKUN00050': 'kukC', 'AKUH3B104J_PKUN00060': 'kukT',
                 'AKUH3B104J_PKUN00070': 'kukF', 'AKUH3B104J_PKUN00080': 'kukE',
-                'AKUH3B104J_PKUN00090': 'kukG_90', 'AKUH3B104J_OKUN00100': 'kukG_100',
+                'AKUH3B104J_PKUN00090': 'kukG_90', 'AKUH3B104J_PKUN00100': 'kukG_100',
                 'AKUH3B104J_PKUN00110': 'kukB', 'AKUH3B104J_PKUN00120': 'pKUN_HK',
                 'AKUH3B104J_PKUN00130': 'pKUN_HTH', 'AKUH3B104J_PKUN00140': 'pKUN_tnpR',
                 'AKUH3B104J_PKUN00190': 'repA'}
