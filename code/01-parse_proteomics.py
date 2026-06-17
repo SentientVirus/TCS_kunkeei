@@ -262,7 +262,7 @@ for df1 in df_list: #Loop through all the dataframes with subsets of the data
                 pval_list = [] #Create a list to store pvalues
                 for index, row in comparison_df.iterrows(): #Loop through the dataframe
                     pval = ttest_ind(list(row[3:6].values), list(row[6:9].values), 
-                                     equal_var = True) #Calculate the p-value for each row
+                                     equal_var = False) #Calculate the p-value for each row
                     pval_list.append(pval.pvalue) #Add the p-value to the list
  
                 comparison_df['p-value'] = pval_list #Create a column from the p-value list
