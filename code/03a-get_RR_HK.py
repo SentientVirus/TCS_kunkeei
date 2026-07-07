@@ -3,10 +3,14 @@
 """
 Created on Fri Oct  3 16:47:34 2025
 
-Script to retrieve the sequences of two genes neighboring the adhesins.
+Script to retrieve the sequences of the RR-TF and the histidine kinase.
 
 @author: Marina Mota-Merlo
 """
+
+# =============================================================================
+# 0. Import required modules
+# =============================================================================
 
 import os
 import time
@@ -15,20 +19,53 @@ from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
 import pandas as pd
+import logging, sys
 
-#I added the tags for TetR manually, doesn't seem easy to retrieve from annotations
+# =============================================================================
+# 0. Logging
+# =============================================================================
 
-start_time = time.time()
+workdir = os.path.expanduser('~') + '/mucoid_project/adhesins' #Path to the working directory
 
-inpath = os.path.expanduser('~') + '/Akunkeei_files/gbff'
-workdir = os.path.expanduser('~') + '/mucoid_project/adhesins'
-outseqs = f'{workdir}/sequences/RR-TF_HK'
-outdir = outseqs.replace('sequences', 'alignments')
-interpro_dir = f'{workdir}/interproscan/locus_tags'
-log = f'{workdir}/logs/03a-get_RR-TF_HK_trees.log'
-tree_dir = f'{workdir}/trees/RR-TF_HK'
-threads = 8
+logdir = f'{workdir}/logs' #Path to the log directory
 
+#Create the log directory if it doesn't exist
+if not os.path.exists(logdir):
+    os.makedirs(logdir)
+    
+#Path to the log file
+log = f'{logdir}/03a-get_RR-TF_HK_trees.log'
+with open(log, 'w') as logfile: #Overwrite log file
+    logfile.write('')
+            
+#Redirect stdout and stderr to log file
+sys.stdout = open(log, 'a')
+sys.stderr = open(log, 'a')
+
+#Logging configuration
+logging.basicConfig(filename = log, level = logging.INFO,
+                    format = '%(asctime)s %(message)s',
+                    datefmt = '%Y-%m-%d %H:%M:%S')
+
+start_time = time.time() #Get starting time
+
+# =============================================================================
+# 1. Define input variables
+# =============================================================================
+
+#Input directories
+inpath = os.path.expanduser('~') + '/Akunkeei_files/gbff' #Path to the GenBank files
+interpro_dir = f'{workdir}/interproscan/locus_tags' #Path to InterProScan annotations
+
+#Output directories
+outseqs = f'{workdir}/sequences/RR-TF_HK' #Path to the FASTA files with the sequences
+outdir = outseqs.replace('sequences', 'alignments') #Path to the alignments
+tree_dir = f'{workdir}/trees/RR-TF_HK' #Path to tree files
+
+#Parameters/intermediate variables
+threads = 8 #No. of threads to run software
+gene_dict = {} #Dictionary to store gene information
+#Representative strains to include in the analysis
 repr_strains = ['DSMZ12361', 'IBH001', 'GYUN-333', 'HNS-8', 'A0901', 
                 'A1001', 'A1003', 'A1202', 'A1401', 'A1404', 'A1805', 
                 'Fhon2', 'G0102', 'G0403', 'H1B1-04J', 'H1B1-05A', 
@@ -37,166 +74,111 @@ repr_strains = ['DSMZ12361', 'IBH001', 'GYUN-333', 'HNS-8', 'A0901',
                 'H4B1-11J', 'H4B2-02J', 'H4B2-04J', 'H4B2-06J', 'H4B4-02J', 
                 'H4B4-05J', 'H4B4-06M', 'H4B4-12M', 'H4B5-01J', 'H4B5-03X', 
                 'H4B5-04J', 'H4B5-05J', 'MP2', 'Fhon13']
+new_strains = ['GYUN-333', 'HNS-8'] #Complete genomes that were published more recently
 
-new_strains = ['GYUN-333', 'HNS-8']
+#Input files
+#GenBank files of the more recently published genomes
 extra_files = [inpath.replace('/gbff', '/new_genomes/gbff') + f'/{strain}_genomic.gbff' for strain in new_strains]
+#Remaining GenBank files
 infiles = [f'{inpath}/{file}' for file in sorted(os.listdir(inpath)) if file.endswith('.gbff') and 'M-0' not in file and any(rep in file for rep in repr_strains)]
-infiles += extra_files
-infiles = sorted(infiles)
-gene_dict = {}
+infiles += extra_files #Merge the two lists
+infiles = sorted(infiles) #Sort the input files
 
-new_dirs = [outseqs, outdir, tree_dir]
-
+#Create output directories if they don't exist
+new_dirs = [outseqs, outdir, tree_dir] #List of output directories
+#List comprehension to create them if needed
 [os.makedirs(new_dir) for new_dir in new_dirs if not os.path.exists(new_dir)]
 
-for file in infiles:
-    strain = os.path.basename(file).replace('_genomic.gbff', '')
-    interpro_file = f'{interpro_dir}/{strain}.tsv'
+# =============================================================================
+# 2. Retrieve the RR-TF and HK sequences
+# =============================================================================
+
+for file in infiles: #Loop through input files
+    strain = os.path.basename(file).replace('_genomic.gbff', '') #Retrieve strain name
+    interpro_file = f'{interpro_dir}/{strain}.tsv' #Set the path to the InterProScan file
     
-    with open(interpro_file) as handle:
-        annot = pd.read_csv(handle, sep = '\t', header = None)
+    with open(interpro_file) as handle: #Open InterProScan file
+        annot = pd.read_csv(handle, sep = '\t', header = None) #Read annotations as dataframe
+        #Set dataframe column names
         annot.columns = ['locus_tag', 'MD5_digest', 'length', 'analysis',
                          'analysis_accession', 'analysis_description', 
                          'start', 'end', 'score', 'status', 'date', 
                          'InterPro_accession', 'InterPro_description']
-        
+    #Retrieve the RR by annotation
     RR = annot[annot['analysis_description'].str.contains('ResD')]['locus_tag']
-    if len(RR) > 0:
-        RR = RR.to_string().split('    ')[1]
-    else: RR = None
+    if len(RR) > 0: #If the RR is present
+        RR = RR.to_string().split('    ')[1] #Retrieve the locus tag
+    else: RR = None #Otherwise, set it to None
     
+    #Do the same for the histidine kinase
     HK = annot[annot['analysis_accession'] == 'G3DSA:3.30.565.10:FF:000013']['locus_tag']
-    if len(HK) > 0:
-        HK = HK.to_string().split('    ')[1]
+    if len(HK) > 0: #If the HK is found
+        HK = HK.to_string().split('    ')[1] #Retrieve the locus tag as a string
+                                          
+    #If the strain comes from the dataset from Dyrhage et al. (2022) and the RR is found
     elif strain not in ['DSMZ12361', 'HNS-8', 'GYUN-333', 'IBH001', 'MP2'] and RR != None:
-        tag = int(RR.split('_')[1]) + 10
-        HK = RR.split('_')[0] + '_' + str(tag)
+        tag = int(RR.split('_')[1]) + 10 #Retrieve the HK as the locus tag after the RR
+        HK = RR.split('_')[0] + '_' + str(tag) #Convert back to string
+    #For certain other strains
     elif strain in ['HNS-8', 'GYUN-333', 'IBH001'] and RR != None:
-        tag = int(RR.split('_')[1]) + 5
-        HK = RR.split('_')[0] + '_' + str(tag)
-    elif strain == 'DSMZ12361':
+        tag = int(RR.split('_')[1]) + 5 #Retrieve the HK as the locus tag after the RR
+        HK = RR.split('_')[0] + '_' + str(tag) #Convert back to string
+    elif strain == 'DSMZ12361': #For the type strain
+        #Retrieve the HK from a different previous annotation
         HK = annot[annot['analysis_accession'] == 'G3DSA:3.20.20.70:FF:000424']['locus_tag'].to_string().split('    ')[1]
-        HK = HK.split('_')[0] + '_RS0' + str(int(HK.split('_RS')[1]) + 10)
-    elif strain == 'MP2':
-        tag = int(RR.split('_')[1]) - 5
-        HK = RR.split('_')[0] + '_' + str(tag)
-    else: HK = None
+        HK = HK.split('_')[0] + '_RS0' + str(int(HK.split('_RS')[1]) + 10) #Get the next locus tag
+    elif strain == 'MP2': #If the strain is MP2
+        tag = int(RR.split('_')[1]) - 5 #Retrieve the HK as the locus tag before the RR (assembly on the reverse strand)
+        HK = RR.split('_')[0] + '_' + str(tag) #Convert back to string
+    else: HK = None #Otherwise, set the HK to None
     
+    #If the RR or the HK are retrieved, assign gene types to each locus tag in the dictionary
     if RR != None:
         gene_dict[RR] = 'RR'
     if HK != None:
         gene_dict[HK] = 'HK'
         
-    print(strain, RR, HK)
+    print(strain, RR, HK) #Print retrieved locus tags
         
-    with open(file) as gbff:
-        gbk = SeqIO.parse(gbff, 'genbank')
+    with open(file) as gbff: #Open the GenBank file
+        gbk = SeqIO.parse(gbff, 'genbank') #Parse the GenBank file
         
-        for record in gbk:
-            for feature in record.features:
+        for record in gbk: #Loop through records in the file
+            for feature in record.features: #Loop through features in the records
+                #If the feature is a CDS with an assigned locus tga
                 if feature.type == 'CDS' and 'locus_tag' in feature.qualifiers.keys():
-                    loctag = feature.qualifiers['locus_tag'][0]
-                    if loctag in gene_dict.keys():
-                        seq = feature.qualifiers['translation'][0]
+                    loctag = feature.qualifiers['locus_tag'][0] #Retrieve the locus tag
+                    if loctag in gene_dict.keys(): #If the locus tag is in the dictionary with gene types
+                        seq = feature.qualifiers['translation'][0] #Retrieve the gene sequence
+                        #Create a new record where the ID is the locus tag and the name is the gene type
                         new_record = SeqRecord(Seq(seq), id = loctag, 
                                                 name = gene_dict[loctag],
                                                 description = '')
-                        if file == infiles[0]:
+                        if file == infiles[0]: #If it is the first file
+                            #Create/overwirte the output file
                             with open(f'{outseqs}/{gene_dict[loctag]}.faa', 'w') as rep_faa:
-                                SeqIO.write(new_record, rep_faa, 'fasta')
-                        else:
+                                SeqIO.write(new_record, rep_faa, 'fasta') #Write the record to file
+                        else: #If it is not the first file
+                            #Append the next record to the file
                             with open(f'{outseqs}/{gene_dict[loctag]}.faa', 'a') as rep_faa:
                                 SeqIO.write(new_record, rep_faa, 'fasta')
-                        
-        
-
-# {'AAPFHON13_00810': 'sasA', 'AAPFHON13_01070': 'efpA', 'AAPFHON13_00980': 'ipdC',
-#             'K2W83_RS00530': 'sasA', 'K2W83_RS00670': 'efpA', 'K2W83_RS00580': 'ipdC',
-#             'APS55_RS02280': 'sasA', 'APS55_RS02155': 'efpA',
-#             'VQ058_RS00490': 'sasA', 'VQ058_RS00660': 'efpA',
-#             'MUB42_02625': 'sasA'} #efpA is labelled as a pseudogene in this strain
-
-# tetR_tags = ['K2W83_RS00575', 'AKUFHON2_01060', #'AAPFHON13_00970', 
-#               'AKUG0101_01070', 'AKUG0102_01060', 'AKUG0103_01060', 
-#               'AKUG0401_01060', 'AKUG0402_01060', 'AKUG0403_PLPX00280',
-#               'AKUG0404_01060', 'AKUG0405_01060', 'AKUG0406_PLPX00290',
-#               'AKUG0407_01060', 'AKUG0408_01060', 'AKUG0410_01100',
-#               'AKUG0412_01100', 'AKUG0414_01060', 'AKUG0415_01060',
-#               'AKUG0417_01090', 'AKUG0420_PLPX00320', 'AKUG0601_01060',
-#               'AKUG0602_01060', 'AKUG0702_01060', 'AKUG0801_01060',
-#               'AKUG0802_01060', 'AKUG0803_01060', 'AKUG0804_01060',
-#               'AKUH1B104J_01060', 'AKUH1B105A_00970', 'AKUH3B101A_01050',
-#               'AKUH3B101J_01030', 'AKUH3B102A_01050', 'AKUH3B103J_01050',
-#               'AKUH3B103M_PLPX00280', 'AKUH3B104J_01030', 'AKUH3B104X_PLPX00280',
-#               'AKUH3B107A_01050', 'AKUH3B109M_01050', 'AKUH3B110M_01050',
-#               'AKUH3B111A_PLPX00270', 'AKUH3B111M_01050', 'AKUH3B202X_01040',
-#               'AKUH3B203J_01070', 'AKUH3B204J_01050', 'AKUH3B205J_01050',
-#               'AKUH3B207X_01050', 'AKUH3B208X_01060', 'AKUH4B202J_00970',
-#               'AKUH4B204J_01070', 'AKUH4B205J_01050', 'AKUH4B211M_01090',
-#               'AKUH4B412M_01130', 'AKUH4B501J_01130', 'AKUH4B502X_01060',
-#               'AKUH4B507J_01060', 'AKUH4B507X_01050', 'AKUH4B508X_01050',
-#               'MUB42_02670',
-#               'K2W83_RS00660', 'AKUA1805_01340', 'AKUA2101_01340',
-#               'AAPFHON13_01050', 'AKUH3B101A_01260', 'AKUH3B102A_01260',
-#               'AKUH3B107A_01260', 'AKUH3B109M_01250', 'AKUH3B111M_01240',
-#               'AKUH3B202X_01210', 'AKUH3B203J_01280', 'AKUH3B203M_01300',
-#               'AKUH3B204J_01260', 'AKUH3B205J_01260', 'AKUH3B208X_01270',
-#               'AKUH4B502X_01270', 'AKUH4B504J_01260', 'AKUH4B507X_01260',
-#               'AKUH4B508X_01250']
-        
-
-# [os.makedirs(out_dir) for out_dir in [outseqs, outdir, tree_dir] if not os.path.exists(out_dir)]
-
-# sasA_loctags = ['']
-# suffixes = ['', '_repset']
-# [open(f'{outseqs}/{gene}{suffix}.faa', 'w') for gene in genes for suffix in suffixes]
-
-# with open(log, 'w') as handle:
-#     handle.write('')
-
-# for file in infiles:
-#     strain = os.path.basename(file).split('_')[0]
-#     if strain in repr_strains:
-#         rep = True
-#     else: rep = False
-#     with open(file) as gbff:
-#         gbk = SeqIO.parse(gbff, 'genbank')
-        # for record in gbk:
-        #     for feature in record.features:
-        #         if 'locus_tag' in feature.qualifiers.keys():
-        #             loctag = feature.qualifiers['locus_tag'][0]
-#                     if strain == 'H1B1-04J' and len(loctag.split('_')[1]) == 5 and 'R' not in loctag and 900 < int(loctag.split('_')[1]) < 1100:
-#                         print(loctag)
-#                     if (loctag in tetR_tags or 'gene' in feature.qualifiers.keys() or loctag in tag_dict.keys()) and 'translation' in feature.qualifiers.keys():
-#                         if loctag in tag_dict.keys():
-#                             gene_name = tag_dict[loctag]
-#                         elif loctag in tetR_tags:
-#                             gene_name = 'tetR'
-#                         else:
-#                             gene_name = feature.qualifiers['gene'][0]
-                            
-#                         if gene_name == 'tetR' or ((gene_name == 'efpA' or gene_name == 'sasA' or gene_name == 'ipdC' or gene_name == 'kdc') and not (loctag.startswith('AKU') and int(loctag.split('_')[1]) > 2000)):
-#                             print(f'Strain: {strain}, locus: {loctag}, gene: {gene_name}')
-#                             gene_dict[loctag] = gene_name.replace('kdc', 'ipdC')
-                            # seq = feature.qualifiers['translation'][0]
-                            # new_record = SeqRecord(Seq(seq), id = loctag, 
-                            #                         name = gene_name,
-                            #                         description = '')
-                            
-                            # with open(f'{outseqs}/{gene_name}{suffixes[0]}.faa', 'a') as all_faa:
-                            #     SeqIO.write(new_record, all_faa, 'fasta')
-#                             if rep:
-                                # with open(f'{outseqs}/{gene_name}{suffixes[1]}.faa', 'a') as all_faa:
-                                #     SeqIO.write(new_record, all_faa, 'fasta')
                                 
+# =============================================================================
+# 3. Align the sequences wth MAFFT and generate a phylogeny with IQtree
+# =============================================================================
                             
+#Use the unique values in the dictionary (RR and HK) to loop through the output FASTA files
 for file in [f'{outseqs}/{gene}.faa' for gene in list(set(gene_dict.values()))]:
+    #Define the path to the sequence alignment
     outfile = file.replace('.faa', '.mafft.faa').replace('sequences', 'alignments')
+    #Run the sequence alignment with MAFFT
     subprocess.run(f'mafft-linsi --thread {threads} {file} > {outfile} 2>> {log};',
                     shell = True)
+    #Create a phylogeny with IQtree
     subprocess.run(f'iqtree -nt AUTO -ntmax {threads} -redo -s {outfile} -st AA -msub nuclear -bb 1000 -bnni >> {log}', 
                     shell = True)
+    #Move the IQtree output to the desired directory
     subprocess.run(f'mv {outfile}.* {tree_dir}', shell = True)
     
-end_time = time.time() - start_time
+end_time = time.time() - start_time #Get total running time of the script
 print(f'This script took {end_time/60:2f} minutes.')
