@@ -95,7 +95,6 @@ needle_outdir = f'{outdir}/needle' #Path to Needle results
 #Parameters/intermediate variables
 threads = 8 #No. of threads to run software
 gene_dict = {} #Dictionary to store gene information
-perc_ident = {} #Dictionary to store gene % of ID
 #Representative strains to include in the analysis
 repr_strains = ['DSMZ12361', 'IBH001', 'GYUN-333', 'HNS-8', 'A0901', 
                 'A1001', 'A1003', 'A1202', 'A1401', 'A1404', 'A1805', 
@@ -159,20 +158,24 @@ for file in all_infiles: #Loop through input files
         tag = int(RR.split('_')[1]) + 10 #Retrieve the HK as the locus tag after the RR
         HK = RR.split('_')[0] + '_0' + str(tag) #Convert back to string
         logging.info(f'Retrieving HK for strain {strain}...')
+        
     #For certain other strains
     elif strain in ['HNS-8', 'GYUN-333', 'IBH001'] and RR != None:
         tag = int(RR.split('_')[1]) + 5 #Retrieve the HK as the locus tag after the RR
         HK = RR.split('_')[0] + '_' + str(tag) #Convert back to string
         logging.info(f'Retrieving HK for strain {strain}...')
+        
     elif strain == 'DSMZ12361': #For the type strain
         #Retrieve the HK from a different previous annotation
         HK = annot[annot['analysis_accession'] == 'G3DSA:3.20.20.70:FF:000424']['locus_tag'].to_string().split('    ')[1]
         HK = HK.split('_')[0] + '_RS0' + str(int(HK.split('_RS')[1]) + 10) #Get the next locus tag
         logging.info(f'Retrieving HK for strain {strain}...')
+        
     elif strain == 'MP2': #If the strain is MP2
         tag = int(RR.split('_')[1]) - 5 #Retrieve the HK as the locus tag before the RR (assembly on the reverse strand)
         HK = RR.split('_')[0] + '_' + str(tag) #Convert back to string
         logging.info(f'Retrieving HK for strain {strain}...')
+        
     else: 
         HK = None #Otherwise, set the HK to None
         logging.info(f'HK not found in strain {strain}!')
@@ -193,24 +196,29 @@ for file in all_infiles: #Loop through input files
             if 'locus_tag' in record.description:
                 loctag = [info for info in record.description.split(']') if 'locus_tag=' in info][0]
                 loctag = loctag.split('[locus_tag=')[-1]
+                
                 if loctag in gene_dict.keys(): #If the locus tag is in the dictionary with gene types
                     seq = record.seq #Retrieve the gene sequence
                     #Create a new record where the ID is the locus tag and the name is the gene type
                     new_record = SeqRecord(Seq(seq), id = loctag, 
                                             name = gene_dict[loctag],
                                             description = '')
+                    
                     if file == infiles[0]: #If it is the first file (representative strains)
                         #Create/overwrite the output file with representative sequences
                         with open(f'{outseqs}/{gene_dict[loctag]}_repset.fna', 'w') as rep_fna:
                             SeqIO.write(new_record, rep_fna, 'fasta') #Write the record to file
+                            
                     if file == all_infiles[0]: #If it is the first file (all strains)
                         #Create/overwirte the output file with all the sequences
                         with open(f'{outseqs}/{gene_dict[loctag]}_all.fna', 'w') as all_fna:
                             SeqIO.write(new_record, all_fna, 'fasta') #Write the record to file
+                            
                     if file != infiles[0] and file in infiles: #If it is not the first file (representative strains)
                         #Append the next record to the file
                         with open(f'{outseqs}/{gene_dict[loctag]}_repset.fna', 'a') as rep_fna:
                             SeqIO.write(new_record, rep_fna, 'fasta')
+                            
                     if file != infiles[0]: #If is not the first file (all strains)
                         #Append the next record to the file
                         with open(f'{outseqs}/{gene_dict[loctag]}_all.fna', 'a') as all_fna:
@@ -235,31 +243,29 @@ for file in [f'{outseqs}/{gene}_{suffix}.fna' for gene in list(set(gene_dict.val
     subprocess.run(f'mafft-linsi --thread {threads} {file} > {outfile} 2>> {log};',
                     shell = True)
     
+    #Retrieve all the FASTA records
     records = [record for record in SeqIO.parse(file, 'fasta')]
-    for i in range(0, len(records)-1):
-        id1 = records[i].id
-        seq1 = records[i].seq
-        for j in range(i+1, len(records)):
-            id2 = records[j].id
-            seq2 = records[j].seq
-            ident_out = needle_align_code(seq1, seq2)
+    for i in range(0, len(records)-1): #Loop through the records
+        id1 = records[i].id #Retrieve the first record ID
+        seq1 = records[i].seq #Retrieve the first record sequence
+        
+        for j in range(i+1, len(records)): #Loop through the remaining records
+            id2 = records[j].id #Retrieve the second record ID
+            seq2 = records[j].seq #Retrieve the second record sequence
+            
+            ident_out = needle_align_code(seq1, seq2) #Run Needle
             out_split = ident_out.stdout.split('\n') #Divide the output into lines
             ident = p.search(out_split[26]).group(1).replace('%', '') #Retrieve the percentage of identity
-            perc_ident[(id1, id2)] = ident
             
-            needle_out = f'{needle_outdir}/{id1}_vs_{id2}.txt'
+            needle_out = f'{needle_outdir}/{id1}_vs_{id2}.txt' #Path to Needle output
             
+            #Write the Needle stdout to the output file
             with open(needle_out, 'w') as handle:
                 handle.write(ident_out.stdout)
-                
-            with open(tab_outfile, 'w') as handle:
-                handle.write(f'{id1}\t{id2}\t{perc_ident}\n')
-    
-    # #Create a phylogeny with IQtree
-    # subprocess.run(f'iqtree -nt AUTO -ntmax {threads} -redo -s {outfile} -st AA -msub nuclear -bb 1000 -bnni >> {log}', 
-    #                 shell = True)
-    # #Move the IQtree output to the desired directory
-    # subprocess.run(f'mv {outfile}.* {tree_dir}', shell = True)
+            
+            #Write pairwise results to a TSV file
+            with open(tab_outfile, 'a') as handle:
+                handle.write(f'{id1}\t{id2}\t{ident}\n')
     
 end_time = time.time() - start_time #Get total running time of the script
 logging.info(f'This script took {end_time/60:2f} minutes.')
