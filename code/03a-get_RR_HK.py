@@ -108,7 +108,10 @@ for file in infiles: #Loop through input files
     RR = annot[annot['analysis_description'].str.contains('ResD')]['locus_tag']
     if len(RR) > 0: #If the RR is present
         RR = RR.to_string().split('    ')[1] #Retrieve the locus tag
-    else: RR = None #Otherwise, set it to None
+        logging.info(f'Retrieving RR-TF for strain {strain}...')
+    else: 
+        RR = None #Otherwise, set it to None
+        logging.info(f'RR-TF not found in strain {strain}!')
     
     #Do the same for the histidine kinase
     HK = annot[annot['analysis_accession'] == 'G3DSA:3.30.565.10:FF:000013']['locus_tag']
@@ -118,19 +121,25 @@ for file in infiles: #Loop through input files
     #If the strain comes from the dataset from Dyrhage et al. (2022) and the RR is found
     elif strain not in ['DSMZ12361', 'HNS-8', 'GYUN-333', 'IBH001', 'MP2'] and RR != None:
         tag = int(RR.split('_')[1]) + 10 #Retrieve the HK as the locus tag after the RR
-        HK = RR.split('_')[0] + '_' + str(tag) #Convert back to string
+        HK = RR.split('_')[0] + '_0' + str(tag) #Convert back to string
+        logging.info(f'Retrieving HK for strain {strain}...')
     #For certain other strains
     elif strain in ['HNS-8', 'GYUN-333', 'IBH001'] and RR != None:
         tag = int(RR.split('_')[1]) + 5 #Retrieve the HK as the locus tag after the RR
         HK = RR.split('_')[0] + '_' + str(tag) #Convert back to string
+        logging.info(f'Retrieving HK for strain {strain}...')
     elif strain == 'DSMZ12361': #For the type strain
         #Retrieve the HK from a different previous annotation
         HK = annot[annot['analysis_accession'] == 'G3DSA:3.20.20.70:FF:000424']['locus_tag'].to_string().split('    ')[1]
         HK = HK.split('_')[0] + '_RS0' + str(int(HK.split('_RS')[1]) + 10) #Get the next locus tag
+        logging.info(f'Retrieving HK for strain {strain}...')
     elif strain == 'MP2': #If the strain is MP2
         tag = int(RR.split('_')[1]) - 5 #Retrieve the HK as the locus tag before the RR (assembly on the reverse strand)
         HK = RR.split('_')[0] + '_' + str(tag) #Convert back to string
-    else: HK = None #Otherwise, set the HK to None
+        logging.info(f'Retrieving HK for strain {strain}...')
+    else: 
+        HK = None #Otherwise, set the HK to None
+        logging.info(f'HK not found in strain {strain}!')
     
     #If the RR or the HK are retrieved, assign gene types to each locus tag in the dictionary
     if RR != None:
@@ -138,7 +147,7 @@ for file in infiles: #Loop through input files
     if HK != None:
         gene_dict[HK] = 'HK'
         
-    print(strain, RR, HK) #Print retrieved locus tags
+    logging.info(f'{strain}, RR-TF {RR}, HK: {HK}') #Print retrieved locus tags
         
     with open(file) as gbff: #Open the GenBank file
         gbk = SeqIO.parse(gbff, 'genbank') #Parse the GenBank file
@@ -169,6 +178,7 @@ for file in infiles: #Loop through input files
                             
 #Use the unique values in the dictionary (RR and HK) to loop through the output FASTA files
 for file in [f'{outseqs}/{gene}.faa' for gene in list(set(gene_dict.values()))]:
+    logging.info(f'Running MAFFT and IQtree on {file}...')
     #Define the path to the sequence alignment
     outfile = file.replace('.faa', '.mafft.faa').replace('sequences', 'alignments')
     #Run the sequence alignment with MAFFT
@@ -181,4 +191,4 @@ for file in [f'{outseqs}/{gene}.faa' for gene in list(set(gene_dict.values()))]:
     subprocess.run(f'mv {outfile}.* {tree_dir}', shell = True)
     
 end_time = time.time() - start_time #Get total running time of the script
-print(f'This script took {end_time/60:2f} minutes.')
+logging.info(f'This script took {end_time/60:2f} minutes.')

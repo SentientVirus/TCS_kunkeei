@@ -106,7 +106,7 @@ def process_infiles(file):
 # 3. Run the function with multithreading
 # =============================================================================
 
-print('Process input files...')
+logging.info('Process input files...')
 
 #Multithreading
 if __name__ == '__main__': 
@@ -114,11 +114,11 @@ if __name__ == '__main__':
     outputs = pool.map(partial(process_infiles), infiles) #Run the function
     pool.terminate() #Terminate the pool
 
-print('Write locus tags vs protein IDs...')
+logging.info('Write locus tags vs protein IDs...')
 with open(prot_loctag_out, 'w') as handle: #Open the output tab file
     handle.write('Locus_tag\tProtein_id\n') #Write headers
     #Write all the locus tag/protein ID pairs
     [{handle.write(f'{value}\t{key}\n') for (key, value) in output.items()} for output in outputs]
     
 end_time = time.time() - start_time #Calculate total running time
-print(f'This script took {end_time:2f} with {no_cores} processes')
+logging.info(f'This script took {end_time:2f} with {no_cores} processes')
