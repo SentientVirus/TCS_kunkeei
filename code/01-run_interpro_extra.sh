@@ -12,12 +12,12 @@ outbase=$(basename -- ${file%_*})
 outfile=$outpath/$outbase.tsv
 logfile=$logpath/$outbase.log
 
-echo Input: $file
-echo Output: $outfile
-echo Log: $logfile
+echo Input: $file > $logfile
+echo Output: $outfile >> $logfile
+echo Log: $logfile >> $logfile
 
-echo Starting run...
-~/interproscan-5.59-91.0/interproscan.sh -i $file -f tsv -o $outfile -dp -cpu 24 2> $logfile > $logfile;
+echo Starting run... >> $logfile
+~/interproscan-5.59-91.0/interproscan.sh -i $file -f tsv -o $outfile -dp -cpu 24 2>> $logfile >> $logfile;
 
 done
 
