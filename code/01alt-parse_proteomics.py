@@ -136,6 +136,8 @@ with open(annot2) as handle:
             elif cds.type == 'CDS' and cds.qualifiers['locus_tag'][0] not in cds_dict2.keys(): #If the gene name is not in the annotations
                 cds_dict2[cds.qualifiers['locus_tag'][0]] = '-' #Use a minus symbol as gene name
                 
+print(cds_dict2)
+                
 logging.info('Adding manual annotations to the refined annotations...')
 #Manually add the annotations of proteins of interest
 cds_dict2['CAI2650094.1'] = 'GS-BrS'
@@ -185,7 +187,6 @@ for index, row in exp1_df.iterrows(): #Loop through one of the dfs
                    'Fasta headers': row['Fasta headers']}
         exp2_df = exp2_df._append(row_add, ignore_index = True) #Add the row to the other dataframe
         
-    logging.info('Subtract blank values...')
     #Retrieve the names of columns with LFQs
     LFQ_cols = [column for column in exp1_df.columns if 'LFQ' in column]
         
@@ -242,8 +243,7 @@ for index, row in exp2_df.iterrows(): #Same thing, but with the opposite datafra
                    'Majority protein IDs': protein_id, 
                    'Fasta headers': row['Fasta headers']}
         exp1_df = exp1_df._append(row_add, ignore_index = True)
-        
-    logging.info('Subtract blank values...')
+
     #Retrieve the names of columns with LFQs
     LFQ_cols = [column for column in exp2_df.columns if 'LFQ' in column]
         

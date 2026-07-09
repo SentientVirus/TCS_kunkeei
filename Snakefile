@@ -2,17 +2,17 @@
 
 import os
 
-comparisons = ["inhF_log_vs_inhS_log", "inhF_stat_vs_inhS_stat", "inhS_log_vs_inhS_stat", 
-               "mucFD_stat_vs_mucF_log", "mucF_log_vs_mucS_log", "mucS_log_vs_mucSD_stat",
-               "inhF_log_vs_mucF_log", "inhF_stat_vs_mucFD_stat", "inhS_log_vs_mucS_log", 
-               "mucFD_stat_vs_mucF_stat", "mucF_stat_vs_mucF_log", "inhF_stat_vs_inhF_log",
-               "inhF_stat_vs_mucF_stat", "inhS_stat_vs_mucSD_stat", "mucFD_stat_vs_mucSD_stat",
+comparisons = ["aggF_log_vs_aggS_log", "aggF_stat_vs_aggS_stat", "aggS_log_vs_aggS_stat", 
+               "mucFD_stat_vs_mucF_log", "mucF_log_vs_mucS_log", "mucSD_stat_vs_mucS_log",
+               "aggF_log_vs_mucF_log", "aggF_stat_vs_mucFD_stat", "aggS_log_vs_mucS_log", 
+               "mucFD_stat_vs_mucF_stat", "mucF_log_vs_mucF_stat", "aggF_log_vs_aggF_stat",
+               "aggF_stat_vs_mucF_stat", "aggS_stat_vs_mucSD_stat", "mucFD_stat_vs_mucSD_stat",
                "mucF_stat_vs_mucSD_stat"]
 
-comparisons_DE = ["inhF_log_vs_inhS_log", "inhF_stat_vs_inhS_stat", "inhS_log_vs_inhS_stat",
-               "mucFD_stat_vs_mucF_log", "inhF_log_vs_mucF_log", "inhF_stat_vs_mucFD_stat",
-               "mucFD_stat_vs_mucF_stat", "mucF_stat_vs_mucF_log", "inhF_stat_vs_inhF_log",
-               "inhF_stat_vs_mucF_stat", "inhS_stat_vs_mucSD_stat", "mucFD_stat_vs_mucSD_stat",
+comparisons_DE = ["aggF_log_vs_aggS_log", "aggF_stat_vs_aggS_stat", "aggS_log_vs_aggS_stat",
+               "mucFD_stat_vs_mucF_log", "aggF_log_vs_mucF_log", "aggF_stat_vs_mucFD_stat",
+               "mucFD_stat_vs_mucF_stat", "mucF_stat_vs_mucF_log", "aggF_stat_vs_aggF_log",
+               "aggF_stat_vs_mucF_stat", "aggS_stat_vs_mucSD_stat", "mucFD_stat_vs_mucSD_stat",
                "mucF_stat_vs_mucSD_stat"]
 
 
@@ -25,18 +25,20 @@ rule all:
 ##Rule to parse the MS results
 rule parse_MS:
     output:
-        expand("files/parsed/{comparison}.tsv", comparison = comparisons)
+        general = "files/parsed/all_comparisons.tsv",
+        pairwise = expand("files/parsed/{comparison}.tsv", comparison = comparisons)
     input:
         exp1 = "files/MS-24-030_MaxQuant_results.xlsx",
         exp2 = "files/MS-24-038_MaxQuant_results.xlsx",
-        gbk = os.path.expanduser("~") + "/mucoid_project/ugc00027/results/annotations/emapper2gbk/reference_loctag.gbk"
+        gbk1 = os.path.expanduser("~") + "/Akunkeei_files/gbff/H3B1-04J_genomic.gbff",
+        gbk2 = os.path.expanduser("~") + "/mucoid_project/ugc00027/results/annotations/emapper2gbk/reference.gbk"
     params: outdir = "files/parsed"
     conda: "pixi_proteome/default.yml"
     log: "logs/01-parse_MS.log"
     script:
         "code/01-parse_proteomics.py"
 
-##Rule to add locus tag and SignalP information to the files
+##Rule to add locus tag and SignalP information to the files (SignalP is run online)
 rule add_SignalP:
     output:
         loci = expand("files/loci/{comparison}.tsv", comparison = comparisons),

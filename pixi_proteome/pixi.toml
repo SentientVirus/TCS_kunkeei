@@ -18,13 +18,11 @@ openpyxl = { version = ">=3.1.5,<4", channel = "conda-forge" }
 pybiolib = { version = ">=1.2.1293,<2", channel = "bioconda" }
 scipy = ">=1.16.3,<2"
 
-[feature.renv.dependencies]
-r-base = { channel = "conda-forge" }
-r-ape = { channel = "conda-forge" }
-r-biocmanager = { channel = "conda-forge" }
-bioconductor-deseq2 = { channel = "bioconda" }
-bioconductor-apeglm = { channel = "bioconda" }
-r-stringr = { channel = "conda-forge" }
+[feature.DEP.dependencies]
+r-base = "*"
+bioconductor-genomeinfodbdata = "*"
+r-dplyr = "*"
+r-stringr = ">=1.6.0,<2"
 
 [environments]
-renv = ["renv"]
+dep = ["DEP"]
