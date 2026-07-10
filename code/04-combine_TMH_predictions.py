@@ -17,28 +17,25 @@ with the protein ID and protein locus tag.
 import os
 import pandas as pd
 from Bio import GenBank
-import logging, traceback
+import logging, sys
 
 # =============================================================================
 # 0. Logging
 # =============================================================================
 
-logging.basicConfig(filename = snakemake.log[0], level = logging.INFO,
+log = snakemake.log[0]
+
+with open(log, 'w') as logfile: #Overwrite log file
+    logfile.write('')
+            
+#Redirect stdout and stderr to log file
+sys.stdout = open(log, 'a')
+sys.stderr = open(log, 'a')
+
+#Format the logging
+logging.basicConfig(filename = log, level = logging.INFO,
                     format = '%(asctime)s %(message)s',
                     datefmt = '%Y-%m-%d %H:%M:%S')
-
-def handle_exception(exc_type, exc_value, exc_traceback):
-    if issubclass(exc_type, KeyboardInterrupt):
-        sys.__excepthook__(exc_type, exc_value, exc_traceback)
-        return
-
-    logger.error(''.join(["Uncaught exception: ",
-                          *traceback.format_exception(exc_type, exc_value, exc_traceback)
-                          ]))
-
-sys.excepthook = handle_exception
-
-sys.stdout = open(snakemake.log[0], 'a')
 
 # =============================================================================
 # 1. Create a class of objects to store TM prediction information
@@ -76,7 +73,7 @@ if not os.path.exists(os.path.dirname(pred_out)): #If the directory where the co
 # =============================================================================
 
 with open(gbff) as handle: #Open the input GenBank file
-    print('Loading GenBank file...')
+    logging.info('Loading GenBank file...')
     replace_dict = {} #Create an empty dictionary
     for record in GenBank.parse(handle): #Loop through records in the GenBank file
         for feature in record.features: #Loop through features in the GenBank file
@@ -89,10 +86,10 @@ with open(gbff) as handle: #Open the input GenBank file
                     prot_id = qual.value.strip('"') #Retrieve the protein ID, removing " at the end
             if loctag != '' and prot_id != '': #If there's a locus tag and a protein ID
                 replace_dict[prot_id] = loctag #Add the locus tag to the dictionary
-                print(f'Saving protein {prot_id} with locus tag {loctag}...') #Print progress
+                logging.info(f'Saving protein {prot_id} with locus tag {loctag}...') #Print progress
     
 with open(phob) as phobius: #Open Phobius output
-    print('Loading Phobius results...') 
+    logging.info('Loading Phobius results...') 
     phobius_TM = [] #List to store Phobius predictions
     for line in phobius: #Loop through Phobius predictions
         if line.startswith('ID'): #If the line includes an ID
@@ -110,7 +107,7 @@ with open(phob) as phobius: #Open Phobius output
             phobius_TM.append(helix) #Add object to the Phobius list
     
 with open(DTMH) as deepTM: #Open DeepTMHMM output
-    print('Loading DeepTMHMM results...')
+    logging.info('Loading DeepTMHMM results...')
     deep_TM = [] #List to store DeepTMHMM predictions
     for line in deepTM: #Loop through DeepTMHMM predictions
         if line.startswith('CAI') and 'TMhelix' in line: #If the prediction is a transmembrane helix
@@ -119,9 +116,10 @@ with open(DTMH) as deepTM: #Open DeepTMHMM output
             while '' in line: #If there are empty strings in the list
                 line.remove('') #Remove empty strings from the list
             helix = TM(line[0], replace_dict[line[0]], line[2], line[3]) #Create helix object
-            print(helix) #Print object
+            logging.info(helix) #Print object
             deep_TM.append(helix) #Add object to the Phobius list
-            
+          
+logging.info('Save results to dictionary...')
 add_info = {} #Dictionary with the information to be incorporated into the output file
 for TMH1 in phobius_TM: #Loop through helices in Phobius predictions
     for TMH2 in deep_TM: #Loop through helices in DeepTMHMM predictions
@@ -137,8 +135,11 @@ for TMH1 in phobius_TM: #Loop through helices in Phobius predictions
 # 4. Add TMH predictions
 # =============================================================================
 
+logging.info('Add predictions...')
 for i in range(len(infiles)): #Loop through input files
     outfile = outfiles[i] #Set the path and name of the output file
+    
+    logging.info(f'Input file: {infiles[i]}\nOutput file: {outfile}')
     
     with open(outfile, 'w') as out_pred: #Open the output file in write mode
         out_pred.write('locus_tag\tprotein_id\tstart\tend\n') #Write the file headers
@@ -157,8 +158,8 @@ for i in range(len(infiles)): #Loop through input files
             
     cols = list(df) #Get the dataframe columns
     
-    cols.insert(6, cols.pop(cols.index('TMH?'))) #Change the position of the new columns
-    cols.insert(7, cols.pop(cols.index('TMH positions')))
+    cols.insert(8, cols.pop(cols.index('TMH?'))) #Change the position of the new columns
+    cols.insert(9, cols.pop(cols.index('TMH positions')))
     df = df.loc[:, cols] #Apply changes to the dataframe
     
     df.to_csv(outfile, sep = '\t', index = False) #Save the dataframe to a tab-separated file´

@@ -18,7 +18,7 @@ envrionment before running the script.
 
 import biolib
 import os
-import logging, traceback
+import logging, sys
 
 # =============================================================================
 # 0. Logging

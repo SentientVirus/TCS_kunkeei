@@ -41,7 +41,7 @@ rule parse_MS:
 ##Rule to add locus tag and SignalP information to the files (SignalP is run online)
 rule add_SignalP:
     output:
-        loci = expand("files/loci/{comparison}.tsv", comparison = comparisons),
+        loci = expand("files/SP/{comparison}.tsv", comparison = comparisons),
         signalP = "results/SignalP/H3B1-04J_SignalP.tsv"
     input:
         infiles = expand("files/parsed/{comparison}.tsv", comparison = comparisons),
@@ -81,7 +81,7 @@ rule Phobius:
 rule combine_TMHMM:
     output:
         common_pred = "results/TMH_predictions/TMH.tab",
-        sample_pred = expand("files/loci/{comparison}_TMH.tsv", comparison = comparisons) 
+        sample_pred = expand("files/SP/{comparison}_TMH.tsv", comparison = comparisons) 
     input:
         gbk = os.path.expanduser("~") + "/Akunkeei_files/gbff/H3B1-04J_genomic.gbff",
         Phobius = "results/Phobius/H3B1-04J_phobius.txt",
