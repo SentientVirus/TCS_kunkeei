@@ -293,7 +293,7 @@ exp_df.drop([col for col in exp_df.columns if 'blank' in col or 'counts' in col]
             axis = 1, inplace = True)
         
 logging.info('Add locus tags and annotations...')
-exp_df['Locus tags'] = exp_df['Majority protein IDs'].map(prot2loctag)
+exp_df['Majority locus tags'] = exp_df['Majority protein IDs'].map(prot2loctag)
 exp_df['Original annotations'] = exp_df['Majority protein IDs'].map(cds_dict1)
 exp_df['Refined annotations'] = exp_df['Majority protein IDs'].map(cds_dict2)
 
@@ -368,7 +368,7 @@ for j in range(len(df_list)-1): #Loop through all the dataframes with subsets of
         no_sim = sum([val in val2_list for val in val_list]) #Get the number of conditions that are similar between the dataframes
         if cval_bool != cval2 and no_sim >= 2: #The dataframes have to differ, but at least two conditions have to be identical (dextranase disregarded)
             logging.info(f'Comparing {c1}{c2}_{c3} and {c4}{c5}_{c6}, with {no_sim} similar conditions')
-            comparison_df = pd.merge(df1, df2, on = ['Locus tags',
+            comparison_df = pd.merge(df1, df2, on = ['Majority locus tags',
                                                      'Majority protein IDs', 
                                                      'Protein IDs',
                                                      'Fasta headers', 

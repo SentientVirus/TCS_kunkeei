@@ -20,56 +20,52 @@ from Bio import GenBank
 # 0. Logging
 # =============================================================================
 
-logging.basicConfig(filename = snakemake.log[0], level = logging.INFO,
+log = snakemake.log[0]
+
+with open(log, 'w') as logfile: #Overwrite log file
+    logfile.write('')
+            
+#Redirect stdout and stderr to log file
+sys.stdout = open(log, 'a')
+sys.stderr = open(log, 'a')
+
+#Format the logging
+logging.basicConfig(filename = log, level = logging.INFO,
                     format = '%(asctime)s %(message)s',
                     datefmt = '%Y-%m-%d %H:%M:%S')
-
-def handle_exception(exc_type, exc_value, exc_traceback):
-    if issubclass(exc_type, KeyboardInterrupt):
-        sys.__excepthook__(exc_type, exc_value, exc_traceback)
-        return
-
-    logger.error(''.join(["Uncaught exception: ",
-                          *traceback.format_exception(exc_type, exc_value, exc_traceback)
-                          ]))
-
-sys.excepthook = handle_exception
-
-sys.stdout = open(snakemake.log[0], 'a')
 
 # =============================================================================
 # 0. Define functions
 # =============================================================================
 
-def add_loctags(df, rep_dict):
-    """Function to add a column with locus tags to a pre-existing dataframe
-    Inputs: 
-        - df: The input dataframe.
-        - rep_dict: Dictionary with locus tags."""
+# def add_loctags(df, rep_dict):
+#     """Function to add a column with locus tags to a pre-existing dataframe
+#     Inputs: 
+#         - df: The input dataframe.
+#         - rep_dict: Dictionary with locus tags."""
         
-    df['Majority locus tags'] = df.loc[:, 'Majority protein IDs'] #Same as above
+#     df['Majority locus tags'] = df.loc[:, 'Majority protein IDs'] #Same as above
     
-    for index, row in df.iterrows(): #Loop through the indexed rows of the dataframe
+#     for index, row in df.iterrows(): #Loop through the indexed rows of the dataframe
         
-        for prot in replace_dict.keys(): #Loop through proteins in the dictionary
-            rep = df.loc[index, 'Majority locus tags'] #Save the column to be modified
-            if prot in rep: #If the protein ID is in the column
-                df.loc[index, 'Majority locus tags'] = rep.replace(prot, replace_dict[prot]) #Replace it with the locus tag
+#         for prot in replace_dict.keys(): #Loop through proteins in the dictionary
+#             rep = df.loc[index, 'Majority locus tags'] #Save the column to be modified
+#             if prot in rep: #If the protein ID is in the column
+#                 df.loc[index, 'Majority locus tags'] = rep.replace(prot, replace_dict[prot]) #Replace it with the locus tag
         
-    cols = list(df) #Get a list of the dataframe columns
+#     cols = list(df) #Get a list of the dataframe columns
     
-    cols.insert(0, cols.pop(cols.index('Majority locus tags'))) #Insert the locus tag column in the beginning
+#     cols.insert(0, cols.pop(cols.index('Majority locus tags'))) #Insert the locus tag column in the beginning
     
-    df = df.loc[:, cols] #Apply changes to the dataframe
+#     df = df.loc[:, cols] #Apply changes to the dataframe
     
-    return df #Return the modified dataframe
+#     return df #Return the modified dataframe
 
 # =============================================================================
 # 1. Define paths to inputs and outputs
 # =============================================================================
 
 workdir = os.path.expanduser('~') + '/proteomics' #Working directory
-gbff = snakemake.input.gbk #GenBank input with locus tag and protein ID information
 signalP = snakemake.input.signalP #Path to SignalP output
 SP_tab = snakemake.output.signalP #Path to SignalP tab file to be writted and loaded as a dataframe
 outdir = os.path.dirname(snakemake.output.loci[0]) #Directory to save outputs
@@ -81,23 +77,7 @@ if not os.path.exists(outdir): #If the output directory does not exist
 # =============================================================================
 # 2. Retrieve information from the input files
 # =============================================================================
-    
-replace_dict = {} #Create empty dictionary to store locus tags
-with open(gbff) as handle: #Open GenBank file
-    for record in GenBank.parse(handle): #Loop through records in the file
-        for feature in record.features: #Loop through features in the records
-            loctag = '' #Create a variable to store the locus tag
-            prot_id = '' #Create a variable to store the protein ID
-            for qual in feature.qualifiers: #Loop through qualifiers in the features
-                if 'locus_tag' in qual.key: #If the qualifier is the locus tag
-                    loctag = qual.value.strip('"') #Retrieve the locus tag removing any " at the end
-                elif 'protein_id' in qual.key: #If the qualifier is the protein ID
-                    prot_id = qual.value.strip('"') #Do the same as for the locus tag
-            if loctag != '' and prot_id != '': #If there is a locus tag and a protein ID
-                replace_dict[prot_id] = loctag #Store them as a key-value pair in a dictionary
-                print(f'Saving protein {prot_id} with locus tag {loctag}...') #Print progress
-                
-                
+
 with open(signalP) as SP_file, open(SP_tab, 'w') as tabfile: #Open the file with SignalP 
     SP_df = pd.read_csv(signalP, sep = '\t', skiprows = 1) #Read the file as a dataframe
     new_col = SP_df['# ID'].apply(lambda x: x.split(' ')[0]) #Create a new column only with protein IDs
@@ -114,7 +94,6 @@ for infile in infiles: #Loop through the input files
     outfile = f'{outdir}/{os.path.basename(infile)}' #Set the path to the output file
     
     df = pd.read_csv(infile, sep = '\t') #Read the input file as a dataframe
-    df = add_loctags(df, replace_dict) #Add column with the locus tags to the dataframe
     
     df['SP prediction'] = df.loc[:, 'Majority protein IDs'] #Copy a column from the original dataframe to create a signal peptide presence/absence column
     df['SP positions'] = df.loc[:, 'Majority protein IDs'] #Do the same to create a column to store signal peptide positions
@@ -130,8 +109,8 @@ for infile in infiles: #Loop through the input files
                     df.loc[index, 'SP positions'] = float('nan') #Add NaN to the position column
                 
     cols = list(df) #Get a list of the dataframe columns
-    cols.insert(4, cols.pop(cols.index('SP prediction'))) #Change the placement in the dataframe of the presence/absence column
-    cols.insert(5, cols.pop(cols.index('SP positions'))) #Change the placement of the Signal peptide position column
+    cols.insert(7, cols.pop(cols.index('SP prediction'))) #Change the placement in the dataframe of the presence/absence column
+    cols.insert(8, cols.pop(cols.index('SP positions'))) #Change the placement of the Signal peptide position column
     df = df.loc[:, cols] #Apply column changes to the dataframe
     
     df.to_csv(outfile, sep = '\t', index = False) #Save the dataframe to a tab-separated file

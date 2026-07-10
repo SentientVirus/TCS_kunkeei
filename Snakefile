@@ -11,7 +11,7 @@ comparisons = ["aggF_log_vs_aggS_log", "aggF_stat_vs_aggS_stat", "aggS_log_vs_ag
 
 comparisons_DE = ["aggF_log_vs_aggS_log", "aggF_stat_vs_aggS_stat", "aggS_log_vs_aggS_stat",
                "mucFD_stat_vs_mucF_log", "aggF_log_vs_mucF_log", "aggF_stat_vs_mucFD_stat",
-               "mucFD_stat_vs_mucF_stat", "mucF_stat_vs_mucF_log", "aggF_stat_vs_aggF_log",
+               "mucFD_stat_vs_mucF_stat", "mucF_log_vs_mucF_stat", "aggF_log_vs_aggF_stat",
                "aggF_stat_vs_mucF_stat", "aggS_stat_vs_mucSD_stat", "mucFD_stat_vs_mucSD_stat",
                "mucF_stat_vs_mucSD_stat"]
 
@@ -45,13 +45,12 @@ rule add_SignalP:
         signalP = "results/SignalP/H3B1-04J_SignalP.tsv"
     input:
         infiles = expand("files/parsed/{comparison}.tsv", comparison = comparisons),
-        gbk = os.path.expanduser("~") + "/Akunkeei_files/gbff/H3B1-04J_genomic.gbff",
         signalP = "results/SignalP/prediction_results.txt" #Generated from the web server
     params: outdir = "files/loci"
     conda: "pixi_proteome/default.yml"
     log: "logs/02-add_SignalP.log"
     script:
-        "code/02-add_SP_loctags.py"
+        "code/02-add_SP.py"
 
 ##Rule to run DeepTMHMM
 rule DeepTMHMM:
