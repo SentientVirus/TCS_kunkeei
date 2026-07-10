@@ -173,8 +173,7 @@ for index, row in exp1_df.iterrows(): #Loop through one of the dfs
     protein_id = row['Majority protein IDs'] #Get the protein IDs
     included = (exp2_df['Majority protein IDs'] == protein_id).any() #Check if the other df includes the protein IDs
     if not included: #If it is not in the other dataframe
-        row_add = {'Protein IDs': row['Protein IDs'], #Create a row with protein IDs and fasta headers 
-                   'Majority protein IDs': protein_id,
+        row_add = {'Majority protein IDs': protein_id,
                    'Fasta headers': row['Fasta headers']}
         exp2_df = exp2_df._append(row_add, ignore_index = True) #Add the row to the other dataframe
         
@@ -215,12 +214,12 @@ for column in columns: #Loop through old columns
         
     new_columns.append(new_column) #Add the new column name to a list
 exp1_df.columns = new_columns #Replace the old column names with the new ones
+#Remove the Protein IDs column
+exp1_df.drop('Protein IDs', axis = 1, inplace = True)
 
 #Sort the dataframe by protein ID and update the index
 exp2_df.sort_values(['Majority protein IDs'], ignore_index = True, 
                     inplace = True)
-
-exp2_df.sort_values(['Majority protein IDs'], ignore_index = True, inplace = True) #Sort the dataframe by protein ID and update the index
 
 # =============================================================================
 # 4. Process the dataframe for the second experiment
@@ -232,8 +231,7 @@ for index, row in exp2_df.iterrows(): #Same thing, but with the opposite datafra
     protein_id = row['Majority protein IDs']
     included = (exp1_df['Majority protein IDs'] == protein_id).any()
     if not included:
-        row_add = {'Protein IDs': row['Protein IDs'], 
-                   'Majority protein IDs': protein_id, 
+        row_add = {'Majority protein IDs': protein_id, 
                    'Fasta headers': row['Fasta headers']}
         exp1_df = exp1_df._append(row_add, ignore_index = True)
         
@@ -274,6 +272,8 @@ for column in columns: #Loop through old columns
         
     new_columns.append(new_column) #Add the new column name to a list
 exp2_df.columns = new_columns #Replace the old column names with the new ones
+#Remove the Protein IDs column
+exp2_df.drop('Protein IDs', axis = 1, inplace = True)
 
 #Sort the dataframe by protein ID and update the index
 exp1_df.sort_values(['Majority protein IDs'], ignore_index = True, 
@@ -285,7 +285,7 @@ exp1_df.sort_values(['Majority protein IDs'], ignore_index = True,
 
 logging.info('Merge the dataframes from the two experiments...')
 exp_df = pd.merge(exp1_df, exp2_df, on = ['Majority protein IDs', 
-                                          'Protein IDs', 'Fasta headers'], 
+                                          'Fasta headers'], 
                   how = 'inner')
 
 logging.info('Drop columns with blank data...')
@@ -301,7 +301,8 @@ logging.info('Create a new dataframe with sorted columns...')
 #Get the list of columns in the dataframe
 cols = list(exp_df.columns)
 #Reorder the columns
-column_order = [cols[-3]] + cols[:2] + cols[-2:] + sorted(cols[2:-3])
+column_order = [cols[-3]] + cols[:2] + cols[-2:] + sorted(cols[3:-3])
+
 #Create a new dataframe with reordered columns
 df = exp_df[column_order]
 
@@ -318,8 +319,9 @@ logging.info('Done!')
 logging.info('Creating subsets...')
 df_list = [] #Create an empty list to save dataframes
 column_list = list(df.columns)
-info_columns = column_list[:6]
+info_columns = column_list[:5]
 data_columns = [column for column in column_list if 'LFQ' in column]
+print(info_columns, data_columns)
 
 i = 0 #Variable to loop
 while i < len(data_columns): #As long as i < the maximum index of the samples
@@ -369,8 +371,7 @@ for j in range(len(df_list)-1): #Loop through all the dataframes with subsets of
         if cval_bool != cval2 and no_sim >= 2: #The dataframes have to differ, but at least two conditions have to be identical (dextranase disregarded)
             logging.info(f'Comparing {c1}{c2}_{c3} and {c4}{c5}_{c6}, with {no_sim} similar conditions')
             comparison_df = pd.merge(df1, df2, on = ['Majority locus tags',
-                                                     'Majority protein IDs', 
-                                                     'Protein IDs',
+                                                     'Majority protein IDs',
                                                      'Fasta headers', 
                                                      'Original annotations',
                                                      'Refined annotations']) #Merge the dataframes keeping the common columns
@@ -382,8 +383,8 @@ for j in range(len(df_list)-1): #Loop through all the dataframes with subsets of
             if labels not in comparisons_list: #Check that the opposite comparison has not been done already
                 comparisons_list.append(labels) #Add comparison to the dictionary
             
-                dataset1 = list(comparison_df.iloc[:, 6:9].columns) #Get the data from the first condition
-                dataset2 = list(comparison_df.iloc[:, 9:12].columns) #Get the data from the second condition
+                dataset1 = list(comparison_df.iloc[:, 5:8].columns) #Get the data from the first condition
+                dataset2 = list(comparison_df.iloc[:, 8:11].columns) #Get the data from the second condition
                 logging.info(f'Dataset 1: {dataset1}\nDataset 2: {dataset2}')
                 comparison_df.replace(0, np.nan, inplace = True) #Replace the averages of 0 with NaNs
                 comparison_df[f'avg_{label1}'] = comparison_df[dataset1].mean(axis=1) #Get the mean LFQ for one condition

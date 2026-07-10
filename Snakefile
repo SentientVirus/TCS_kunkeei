@@ -86,7 +86,7 @@ rule combine_TMHMM:
         gbk = os.path.expanduser("~") + "/Akunkeei_files/gbff/H3B1-04J_genomic.gbff",
         Phobius = "results/Phobius/H3B1-04J_phobius.txt",
         DeepTMHMM = "results/DeepTMHMM/TMRs.gff3",
-        sample_in = expand("files/loci/{comparison}.tsv", comparison = comparisons)
+        sample_in = expand("files/SP/{comparison}.tsv", comparison = comparisons)
     conda: "pixi_proteome/default.yml"
     log: "logs/04-combine_TMH_predictions.log"
     script:
@@ -98,7 +98,7 @@ rule volcano:
     output:
         plots = expand("plots/{comparison}.png", comparison = comparisons_DE)
     input:
-        infiles = expand("files/loci/{comparison}.tsv", comparison = comparisons_DE)
+        infiles = expand("files/SP/{comparison}.tsv", comparison = comparisons_DE)
     conda: "pixi_proteome/renv.yml"
     log: "logs/05-volcano_plot.log"
     script:
