@@ -22,7 +22,10 @@ scipy = ">=1.16.3,<2"
 r-base = "*"
 bioconductor-genomeinfodbdata = "*"
 r-dplyr = "*"
-r-stringr = ">=1.6.0,<2"
+r-stringr = { version = ">=1.6.0,<2", channel = "conda-forge" }
+r-ggplot2 = { version = ">=4.0.3,<5", channel = "conda-forge" }
+"r-futile.logger" = { version = ">=1.4.9,<2", channel = "conda-forge" }
+r-ggrepel = { version = ">=0.9.8,<0.10", channel = "conda-forge" }
 
 [environments]
 dep = ["DEP"]
