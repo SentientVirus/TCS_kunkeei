@@ -109,8 +109,8 @@ for infile in infiles: #Loop through the input files
                     df.loc[index, 'SP positions'] = float('nan') #Add NaN to the position column
                 
     cols = list(df) #Get a list of the dataframe columns
-    cols.insert(6, cols.pop(cols.index('SP prediction'))) #Change the placement in the dataframe of the presence/absence column
-    cols.insert(7, cols.pop(cols.index('SP positions'))) #Change the placement of the Signal peptide position column
+    cols.insert(5, cols.pop(cols.index('SP prediction'))) #Change the placement in the dataframe of the presence/absence column
+    cols.insert(6, cols.pop(cols.index('SP positions'))) #Change the placement of the Signal peptide position column
     df = df.loc[:, cols] #Apply column changes to the dataframe
     
     df.to_csv(outfile, sep = '\t', index = False) #Save the dataframe to a tab-separated file
