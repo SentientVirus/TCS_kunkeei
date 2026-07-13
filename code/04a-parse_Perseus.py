@@ -47,9 +47,9 @@ if not os.path.exists(outfolder):
     os.makedirs(outfolder)
 
 #List of input files
-infiles = [f'{infolder}/{file}' for file in os.listdir(infolder) if file.endswith('.txt')]
+infiles = [f'{infolder}/{file}' for file in os.listdir(infolder) if file.endswith('.txt') and 'mucS_log' not in file]
 #List of output files
-outfiles = [f'{outfolder}/{file.replace(".txt", ".tsv")}' for file in os.listdir(infolder) if file.endswith('.txt')]
+outfiles = [f'{outfolder}/{file.replace(".txt", ".tsv")}' for file in os.listdir(infolder) if file.endswith('.txt') and 'mucS_log' not in file]
 
 # =============================================================================
 # 2. Loop through files and create outpus

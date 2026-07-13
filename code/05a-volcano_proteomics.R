@@ -1,5 +1,5 @@
 # Redirect all output to log file
-log <- snakemake@log[[1]]
+log <- "~/mucoid_project/proteomics/logs/05a-volcano_proteomics.log" #snakemake@log[[1]]
 con <- file(log, "a+")
 sink(con, append = TRUE, type="message")
 sink(con, append = TRUE)
@@ -27,21 +27,12 @@ flog.info("R script to generate Volcano plots")
 
 # Define inputs
 flog.info("Definining input variables")
-indir <- "~/mucoid_project/proteomics/Perseus/results/parsed/"
-outdir <- "~/mucoid_project/proteomics/plots/"
-comparisons <- list("aggF_stat_vs_mucFD_stat", "aggF_stat_vs_mucF_stat", 
-                    "aggS_stat_vs_mucSD_stat")
+indir <- "~/mucoid_project/proteomics/Perseus/results/parsed"
+outdir <- "~/mucoid_project/proteomics/plots"
 
-
-
-full_name <- paste(indir, "%s.tsv", sep = "")
-full_out <- paste(outdir, "%s.pdf", sep = "")
-
-input_files <- do.call(sprintf, list(fmt = full_name, comparisons))
-output_files <- do.call(sprintf, list(fmt = full_out, comparisons))
-
-#input_files <- snakemake@input[["infiles"]]
-#output_files <- snakemake@output[["plots"]]
+input_files <- list.files(path = indir, pattern = ".tsv", full.names = TRUE)
+output_files <- gsub("Perseus/results/parsed", "plots", input_files)
+output_files <- gsub(".tsv", ".pdf", output_files)
 
 #Function to change the first letter of the labels to uppercase
 firstup <- function(x) {
@@ -52,8 +43,8 @@ firstup <- function(x) {
 # Define vectors with formatting
 titles <- c() # Plot titles
 conditions <- c()
-all_shapes <- c() #rep(data.frame(c(21, 23), c(25, 24)), each = 2) # Desired point shape for the plot
-comparison <- c() #rep(data.frame(c("Inh", "Muc"), c("-", "+")), each = 2) # Comparisons to be plotted
+all_shapes <- c() # Desired point shape for the plot
+comparison <- c() # Comparisons to be plotted
 for (file in input_files){
   basefile <- basename(file)
   basefile <- substr(basefile, 1, nchar(basefile)-4)
@@ -215,7 +206,7 @@ flog.info(paste("Generate the volcano plot for file", input_files[i]))
 # Code to generate the Volcano plot
 volcanoplot <- ggplot(data = res, aes(x = xax, y = yval, col = keyvals.col, label = firstup(vollabels))) +
   geom_vline(xintercept = c(-2, 2), col = "gray", linetype = "dashed") + # Add dashed line to show log2FC < 0.5
-  geom_hline(yintercept = 1, col = "gray", linetype = "dashed") + # Add dashed line for p-value > 1
+  geom_hline(yintercept = -log10(0.05), col = "gray", linetype = "dashed") + # Add dashed line for p-value > 1
   geom_point(aes(size = size_vector, shape = sign_shape, fill = keyvals.col), alpha = 0.6, stroke = 0.5, color = "darkorchid") + # Apply the size, shape, color (fill + border) and stroke of the points
   geom_label_repel(box.padding = 0.4, min.segment.length = 0, max.overlaps = Inf, show.legend = FALSE, color = "black", alpha = 0.7,
                    size = 3, fontface = "bold", seed = 1, nudge_x = -0.4, nudge_y = 0.2) + # Add label boxes
