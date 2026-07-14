@@ -1,5 +1,5 @@
 # Redirect all output to log file
-log <- "~/mucoid_project/proteomics/logs/05a-volcano_proteomics.log" #snakemake@log[[1]]
+log <- "~/mucoid_project/proteomics/logs/05a-volcano_proteomics.log"
 con <- file(log, "w+")
 sink(con, append = TRUE, type="message")
 sink(con, append = TRUE)
@@ -8,6 +8,8 @@ sink(con, append = TRUE)
 # 0. Load required libraries                                                  #
 #=============================================================================#
 
+# Note: This is the only script for proteomic data analysis which requires
+# the R environment
 library("ggplot2")
 library("ggrepel")
 library(futile.logger)
@@ -123,7 +125,8 @@ title <- titles[i]
 cond1_avg <- rowMeans(res[, 12:14])
 cond2_avg <- rowMeans(res[, 15:17])
 
-#Remove the data points where both are 0 to avoid problems plotting
+#Remove the data points where both are 0 to avoid problems plotting 
+#(point shapes are dependent on the condition where a gene is most expressed)
 res <- res[cond1_avg != cond2_avg, ]
 
 #=============================================================================#
@@ -132,11 +135,11 @@ res <- res[cond1_avg != cond2_avg, ]
 
 # Set the x and y variables 
 flog.info("Calculate x and y") 
-yax <- res$Welch.s.T.test.q.value #Get the y values (q-values)
-yax <- -log10(yax) #Calculate the -log10
-cond1_avg <- rowMeans(res[, 12:14])
-cond2_avg <- rowMeans(res[, 15:17])
-xax <- cond1_avg-cond2_avg
+yax <- res$Welch.s.T.test.q.value # Get the y values (q-values)
+yax <- -log10(yax) # Calculate the -log10
+cond1_avg <- rowMeans(res[, 12:14]) # Average log2 LFQ for the first condition
+cond2_avg <- rowMeans(res[, 15:17]) # Average log2 LFQ for the second condition
+xax <- cond1_avg-cond2_avg # Calculate the log2FC by subtracting the two log2 values
 
 # Get maximum and set infinite values (padj = 0) to maximum
 yval <- yax
@@ -150,11 +153,7 @@ lowest <- min(abs(xax))+0.1
 medium <- max(xmax/2-0.1, lowest) # Make sure to round to a higher number than lowest
 highest <- xmax-0.1 # Make sure to round to lower number
 
-x_minus <- length(xax[xax < 0])
-x_plus <- length(xax[xax > 0])
-y_minus <- length(yval[(yval > 0.5) & (yval < 1)])
-y_plus <- length(yval[yval > 1])
-
+# Define the sizes to show in the legend
 size_breaks <- round(c(lowest, medium, highest), digits = 1)
 size_labels <- apply(expand.grid(size_breaks, as.vector(unlist(conditions[i]))), 1, paste, collapse=", ") # Set different values for different comparisons
 

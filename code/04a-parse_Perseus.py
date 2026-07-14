@@ -5,6 +5,9 @@ Created on Mon Jul 13 17:17:10 2026
 
 Script to parse the Perseus outputs and make them easier to process in R.
 
+This script is dependent on steps 01 and 02 of the main proteomics pipeline,
+and step 03a is running Perseus separately.
+
 @author: Marina Mota-Merlo
 """
 
