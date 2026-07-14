@@ -122,8 +122,8 @@ shapes <- as.vector(unlist(all_shapes[i]))
 title <- titles[i]
 
 # Get the mean log-scaled LFQs for each condition
-cond1_avg <- rowMeans(res[, 12:14])
-cond2_avg <- rowMeans(res[, 15:17])
+cond1_avg <- rowMeans(res[, 14:16])
+cond2_avg <- rowMeans(res[, 17:19])
 
 #Remove the data points where both are 0 to avoid problems plotting 
 #(point shapes are dependent on the condition where a gene is most expressed)
@@ -137,8 +137,8 @@ res <- res[cond1_avg != cond2_avg, ]
 flog.info("Calculate x and y") 
 yax <- res$Welch.s.T.test.q.value # Get the y values (q-values)
 yax <- -log10(yax) # Calculate the -log10
-cond1_avg <- rowMeans(res[, 12:14]) # Average log2 LFQ for the first condition
-cond2_avg <- rowMeans(res[, 15:17]) # Average log2 LFQ for the second condition
+cond1_avg <- rowMeans(res[, 14:16]) # Average log2 LFQ for the first condition
+cond2_avg <- rowMeans(res[, 17:19]) # Average log2 LFQ for the second condition
 xax <- cond1_avg-cond2_avg # Calculate the log2FC by subtracting the two log2 values
 
 # Get maximum and set infinite values (padj = 0) to maximum

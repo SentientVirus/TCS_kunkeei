@@ -103,7 +103,7 @@ with open(phob) as phobius: #Open Phobius output
             while '' in pos: #If there are empty strings in the list
                 pos.remove('') #Remove empty strings from the list
             helix = TM(prot_id, loctag, pos[2], pos[3]) #Create TM object
-            print(helix) #Print object
+            logging.info(helix) #Print object
             phobius_TM.append(helix) #Add object to the Phobius list
     
 with open(DTMH) as deepTM: #Open DeepTMHMM output
@@ -158,8 +158,8 @@ for i in range(len(infiles)): #Loop through input files
             
     cols = list(df) #Get the dataframe columns
     
-    cols.insert(8, cols.pop(cols.index('TMH?'))) #Change the position of the new columns
-    cols.insert(9, cols.pop(cols.index('TMH positions')))
+    cols.insert(7, cols.pop(cols.index('TMH?'))) #Change the position of the new columns
+    cols.insert(8, cols.pop(cols.index('TMH positions')))
     df = df.loc[:, cols] #Apply changes to the dataframe
     
     df.to_csv(outfile, sep = '\t', index = False) #Save the dataframe to a tab-separated file´
