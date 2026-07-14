@@ -88,18 +88,6 @@ rule combine_TMHMM:
         DeepTMHMM = "results/DeepTMHMM/TMRs.gff3",
         sample_in = expand("files/SP/{comparison}.tsv", comparison = comparisons)
     conda: "pixi_proteome/default.yml"
-    log: "logs/04b-combine_TMH_predictions.log"
+    log: "logs/04-combine_TMH_predictions.log"
     script:
-        "code/04b-combine_TMH_predictions.py"
-
-
-##Rule to generate Volcano plots in R
-rule volcano:
-    output:
-        plots = expand("plots/{comparison}.png", comparison = comparisons_DE)
-    input:
-        infiles = expand("files/SP/{comparison}.tsv", comparison = comparisons_DE)
-    conda: "pixi_proteome/renv.yml"
-    log: "logs/05-volcano_plot.log"
-    script:
-        "code/05-volcano_proteomics.R"
+        "code/04-combine_TMH_predictions.py"

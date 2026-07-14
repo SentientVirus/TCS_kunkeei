@@ -1,6 +1,6 @@
 # Redirect all output to log file
 log <- "~/mucoid_project/proteomics/logs/05a-volcano_proteomics.log" #snakemake@log[[1]]
-con <- file(log, "a+")
+con <- file(log, "w+")
 sink(con, append = TRUE, type="message")
 sink(con, append = TRUE)
 
@@ -234,7 +234,7 @@ volcanoplot <- ggplot(data = res, aes(x = xax, y = yval, col = keyvals.col, labe
 volcanoplot
 
 # Save the plots to files
-flog.info(paste("Saving plot to ", output_files[i]))
+flog.info(paste("Saving plot to", output_files[i]))
 ggsave(output_files[i], width = 9, height = 6)
 }
 
