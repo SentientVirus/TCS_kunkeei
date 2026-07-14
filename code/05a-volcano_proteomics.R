@@ -101,7 +101,7 @@ for (file in input_files){
   all_shapes[[length(all_shapes)+1]] <- shapes
   conditions[[length(conditions)+1]] <- conds
 }
-#shape_names <- rep(c("Morphology", "Sucrose"), each = 2)
+
 scale_val <- c(0, 2.5) # Variable to scale points
 
 # Loop through i to get res and plot
