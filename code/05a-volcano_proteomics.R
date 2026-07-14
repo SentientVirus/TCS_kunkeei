@@ -218,14 +218,14 @@ volcanoplot <- ggplot(data = res, aes(x = xax, y = yval, col = keyvals.col, labe
   guides(fill = guide_legend(order = 1, override.aes = list(size = 3, shape = 21, color = "darkorchid")), # Increase the size of legend points, change shape to add border color
          size = guide_legend(nrow = 3, ncol = 2, order = 2,
                              override.aes = list(shape = rep(shapes, each = 3), color = "darkorchid"))) + # Make size legend include shape information
-  labs(fill = "Differential expression", #shape = shape_label, # Set legend labels
+  labs(fill = "Differential expression", # Set legend labels
        size = expression("Log"[2]*italic("Fold Change")), # Legend title
        x = expression("Log"[2]*italic("Fold Change")), # Title of main axes
        y = expression("-Log"[10]*italic("p"["adj"]))) +
   coord_cartesian(ylim = c(0, round(ymax+0.5)), xlim = c(-(round(xmax) + 1), round(xmax) + 1)) + # Set axis limits
   scale_x_continuous(breaks = seq(-(round(xmax) + round(xmax) + 1), 8, 1)) + # Customize ticks in the x axis
   scale_y_continuous(breaks = seq(0, round(ymax+0.5), 0.5)) + # Customize ticks in y axis
-  ggtitle(title) +#, subtitle = subtitle) + # Plot title
+  ggtitle(title) + # Plot title
   theme(plot.title = element_text(hjust = 0.5), # Center title
         plot.subtitle = element_text(hjust = 0.5)) # Center subtitle
 
