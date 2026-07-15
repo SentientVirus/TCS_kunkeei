@@ -21,10 +21,42 @@ from Bio import GenBank as gbk
 import os
 import subprocess
 import pandas as pd
+import logging, sys
+import time
+
+# =============================================================================
+# 0. Logging
+# =============================================================================
+
+#Path to the working directory
+workdir = os.path.expanduser('~') + '/mucoid_project/adhesins'
+
+logdir = f'{workdir}/logs' #Path to the log directory
+
+#Create the log directory if it doesn't exist
+if not os.path.exists(logdir):
+    os.makedirs(logdir)
+    
+#Path to the log file
+log = f'{logdir}/04b-plot_all_adhesin_regions.log'
+with open(log, 'w') as logfile: #Overwrite log file
+    logfile.write('')
+            
+#Redirect stdout and stderr to log file
+sys.stdout = open(log, 'a')
+sys.stderr = open(log, 'a')
+
+#Logging configuration
+logging.basicConfig(filename = log, level = logging.INFO,
+                    format = '%(asctime)s %(message)s',
+                    datefmt = '%Y-%m-%d %H:%M:%S')
+
+start_time = time.time() #Get starting time
 
 # =============================================================================
 # Color dictionary for strain names
 # =============================================================================
+
 leaf_color = {'A0901': '#D55E00', 'A1001': '#771853', 'A1003': '#0072B2', 
               'A1202': '#33B18F', 'A1401': '#33B18F', 'A1404': '#FF74D6', 
               'A1805': '#33B18F', 'G0101': '#0072B2', 'G0403': '#33B18F', 
@@ -226,14 +258,12 @@ def get_info(fnas, folder_path2, gene_name, adhesin_region, length = 0):
                     genome_length = len(record.sequence) #Get length of the record
                     lengths_dict[strain] = genome_length #Initialize length dictionary
                     
-                # if strain not in ['IBH001', 'MP2', 'DSMZ12361']: #Retrieve start position in the strains
+                #Retrieve start position in the strains
                 for feature in record.features:  #Loop through features (mostly CDS) in the record
                     # gene_name = [qual for qual in feature.qualifiers if 'gene' in qual.key] #Get the four-letter gene name
                     product = [qual for qual in feature.qualifiers if 'product' in qual.key]
                     if len(product) > 0 and gene_name in product[0].value:
                         start = int(feature.location.split('..')[0].replace('complement(', '')) #Set start location to the beginning of the reference gene
-                    # if len(gene_name) > 0: #If there is at least one qualifier
-                    #     gene = gene_name[0] #Set the gene name to the first qualifier (gene name or locus tag)
                         if adhesin_region == adhesin_regions[3] and strain == 'HNS-8':
                             break
 
@@ -260,6 +290,8 @@ for i in range(len(adhesin_regions)):
     ref = ref_genes[i]
     outfig = f'{projdir}/plots/pyGenomeViz/{adhesin_region}_region.svg'
     
+    logging.info(f'Adhesin region: {adhesin_region}\nReference locus: {ref}\nPath to output plot: {outfig}')
+    
     if i < 2: #For the first two regions
         region_strand = 'forward' #Specify that they are located in the forward strand
     else: region_strand = 'reverse' #The rest are located in the reverse strand
@@ -268,18 +300,19 @@ for i in range(len(adhesin_regions)):
     if not os.path.exists(os.path.dirname(outfig)):
         os.makedirs(os.path.dirname(outfig))
     
-    # =============================================================================
-    # In this section, we establish the start and end positions for every strain
-    # and save them to a dictionary. I also get the chromosome IDs to change them
-    # to strain IDs.
-    # =============================================================================
+# =============================================================================
+# In this section, we establish the start and end positions for every strain
+# and save them to a dictionary. I also get the chromosome IDs to change them
+# to strain IDs.
+# =============================================================================
         
-    acc, pos, lengths = get_info(fna_files, folder_path2, ref, adhesin_region, 70000)
+    logging.info('Retrieve segment positions...')
+    acc, pos, lengths = get_info(fna_files, folder_path2, ref, adhesin_region, 
+                                 70000)
     
-    
-    # =============================================================================
-    # Now, ready for the plotting!
-    # =============================================================================
+# =============================================================================
+# Now, ready for the plotting!
+# =============================================================================
     
     # Set plot style
     gv = GenomeViz(
@@ -295,6 +328,8 @@ for i in range(len(adhesin_regions)):
         genbank_file = fna.replace('fna', 'gbff') #Get GenBank file based on strain name
         genbk = gbk_read(genbank_file) #Read GenBank file with PyGenomeViz
         segments = dict(region1=(pos[strain][0], pos[strain][1])) #Retrieve the segment to be plotted
+        
+        logging.info(f'Add strain {strain}...')
     
         track = gv.add_feature_track(name = genbk.name.replace('_genomic', '').replace('12361', ''), #Create track (use DSMZ as strain name for DSMZ12361)
                                      segments = segments, #Add segments to track
@@ -328,8 +363,6 @@ for i in range(len(adhesin_regions)):
                 if end - protstart > 7000 or cds.qualifiers['locus_tag'][0] in ['AKUH1B104J_01280', 'AKUH1B104J_01290', 'AKUA1805_01370', 'AKUA1805_01380', 'AKUA2101_01370', 'AKUA2101_01380', 'AKUH1B105A_01180']:
                     color = color_dict['large']
                     true_dict['large'] = True
-                # elif 'glycosyl hydrolase' in cds.qualifiers['product'][0] and cds.qualifiers['locus_tag'][0] not in gtf2: #Retrieve the set of genes that were manually annotated in the GenBanks
-                #     color = color_dict['GH']
                 elif 'fructokinase' in cds.qualifiers['product'][0].lower() or '6-phosphate' in cds.qualifiers['product'][0] or 'ROK' in cds.qualifiers['product'][0]:
                     color = color_dict['FK']
                     true_dict['FK'] = True
@@ -398,11 +431,12 @@ for i in range(len(adhesin_regions)):
     
             track.align_label = True #Align track label (strain name) to track
             track.set_segment_sep() #Set separator (//) between segments
-    
             
-    # # =============================================================================
-    # # Here I modify sligthly the tab files that I created.
-    # # =============================================================================
+# =============================================================================
+# Here I modify sligthly the tab files that I created.
+# =============================================================================
+
+    logging.info('Remove matches outside range and add track links...')
     for i in range(1, len(phylo_order.keys())): #Loop through strains in the order in which they will be plotted
         if i < 10:
             tab = f'{outpath}/0{i}.tab'
@@ -482,7 +516,8 @@ for i in range(len(adhesin_regions)):
             #Add the links to the gv plot, especifying the colors of Blast matches (v indicates the variable setting color, and vmin is the minimum value)
             gv.add_link(link1, link2, color = 'grey', inverted_color = 'red', 
                         v = identity, vmin = 60, curve = True, alpha = 0.7) #Curve makes the matches form curves
-                
+    
+    logging.info('Add plot legend...')            
     #Set legend for the Blast matches (two adjacent colorbars that show the colors of forward and reverse matches with a minimum of 50% identity)        
     gv.set_colorbar(['grey', 'red'], vmin = 60, bar_height = 0.05, 
                     tick_labelsize = 16, alpha = 0.7)
@@ -560,8 +595,9 @@ for i in range(len(adhesin_regions)):
     legend = fig.legend(handles=handles, bbox_to_anchor=(1.35, 1), frameon = False,
                         fontsize = 16)
         
+    logging.info(f'Save figure to {outfig} (and PDF & PNG formats')    
     fig.savefig(outfig) #Save figure to SVG
     fig.savefig(outfig.replace('svg', 'png')) #Save figure to PNG
     fig.savefig(outfig.replace('svg', 'pdf')) #Save figure to PDF
-    fig.savefig(outfig.replace('svg', 'tiff')) #Save figure to TIFF
-    gv.savefig_html(outfig.replace('svg', 'html')) #Save figure to HTML
+    
+logging.info('Done!')
