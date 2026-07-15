@@ -247,6 +247,7 @@ for file in [f'{outseqs}/{gene}_{suffix}.fna' for gene in list(set(gene_dict.val
     #Create trees with IQtree
     subprocess.run(f'iqtree -nt AUTO -ntmax 24 -s {outfile} -st DNA -msub nuclear -bb 1000 -bnni >> {log} 2>> {log}',
                    shell = True)
+    subprocess.run(f'mv {os.path.dirname(outfile)}/*.fna.* {tree_outdir}', shell = True)
     
     #Retrieve all the FASTA records
     records = [record for record in SeqIO.parse(file, 'fasta')]

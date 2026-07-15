@@ -100,7 +100,7 @@ if not os.path.exists(outdir):
 genes = ['RR', 'HK'] #List of genes for which trees have been generated
 suffixes = ['all', 'repset'] #List of datasets (all strains/representative strains)
 #Retrieve a list of tree files from gene names and datasets
-treefiles = [f'{indir}/{gene}_{suffix}.mafft.fna.treefile' for gene in genes for suffix in suffixes]
+treefiles = [f'{indir}/{gene}_{suffix}.mafft.faa.treefile' for gene in genes for suffix in suffixes]
    
 # =============================================================================
 # 2. Loop through tree files and generate output plot
@@ -165,7 +165,7 @@ for treefile in treefiles:
         leaf.add_face(name_face, column = 0, position = 'branch-right') #Add the locus tag to the leaf
         
     t.ladderize(1) #Change the arrangement of the nodes in the tree so that the root is at the bottom
-    t.render(outfile, tree_style = ts, dpi = 400) #, w = 2480, h = 3508) #Save the output plot to PNG
+    t.render(outfile, tree_style = ts, dpi = 400) #Save the output plot to PNG
     t.render(outfile.replace('png', 'pdf'), tree_style = ts, dpi = 400) #, w = 2480, h = 3508) #Save the plot to TIFF
     t.render(outfile.replace('png', 'svg'), tree_style = ts, dpi = 400) #, w = 2480, h = 3508) #Save the plot to SVG
 
