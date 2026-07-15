@@ -600,4 +600,5 @@ for i in range(len(adhesin_regions)):
     fig.savefig(outfig.replace('svg', 'png')) #Save figure to PNG
     fig.savefig(outfig.replace('svg', 'pdf')) #Save figure to PDF
     
-logging.info('Done!')
+end_time = time.time() - start_time #Get total running time of the script
+logging.info(f'Done! This script took {end_time/60:2f} minutes.')
