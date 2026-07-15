@@ -20,22 +20,67 @@ from Bio.SeqRecord import SeqRecord
 from Bio.SeqIO.FastaIO import as_fasta
 import subprocess
 from pymsaviz import MsaViz
+import logging, sys
+import time
+
+# =============================================================================
+# 0. Logging
+# =============================================================================
+
+#Path to the working directory
+workdir = os.path.expanduser('~') + '/mucoid_project/adhesins'
+
+logdir = f'{workdir}/logs' #Path to the log directory
+
+#Create the log directory if it doesn't exist
+if not os.path.exists(logdir):
+    os.makedirs(logdir)
+    
+#Path to the log file
+log = f'{logdir}/04c-get_intergenic.log'
+with open(log, 'w') as logfile: #Overwrite log file
+    logfile.write('')
+            
+#Redirect stdout and stderr to log file
+sys.stdout = open(log, 'a')
+sys.stderr = open(log, 'a')
+
+#Logging configuration
+logging.basicConfig(filename = log, level = logging.INFO,
+                    format = '%(asctime)s %(message)s',
+                    datefmt = '%Y-%m-%d %H:%M:%S')
+
+start_time = time.time() #Get starting time
 
 # =============================================================================
 # 1. Define function to retrieve strain names
 # =============================================================================
 
 def get_unique_strains(tag_list):
-    strains = []
-    for tag in tag_list:
-        strain = tag.split('_')[0].replace('AKU', '')
-        if strain.startswith('H'):
-            strain = strain[:4] + '-' + strain[4:]
+    '''
+    Function to get a list of strains from locus tags.
+
+    Parameters
+    ----------
+    tag_list : list
+        List of strings (must be locus tags, formatted as <strain_id>_<number>)
+
+    Returns
+    -------
+    list
+        List of strings (strain names).
+    '''
+    strains = [] #Create an empty list
+    for tag in tag_list: #Loop through locus tags
+        strain = tag.split('_')[0].replace('AKU', '') #Retrieve the strain name from the locus tag
+        if strain.startswith('H'): #If the strain name starts with H
+            strain = strain[:4] + '-' + strain[4:] #Add a - at position 4
+        #For strains with other locus tag names and formats, replace the IDs to strain names
         strain = strain.replace('K2W83', 'DSMZ12361').replace('MUB42', 'HNS-8').replace('FHON', 'Fhon').replace('APS55', 'MP2').replace('VQ058', 'GYUN-333')
-        if strain not in strains:
-            strains.append(strain)
-    strains = sorted(strains)
-    return strains
+        if strain not in strains: #If the strain is not in the list yet
+            strains.append(strain) #Add the strain to the list
+    strains = sorted(strains) #Sort the list
+    return strains #Return the list
 
 # =============================================================================
 # 2. Define global inputs
@@ -60,54 +105,12 @@ with open(consensus_file, 'w') as handle: #Open the consensus file in write mode
 adhesins = ['MucBP+LPXTG', 'MubB2+LPXTG', 'Gtf2', 'ppk'] #Note: The region with ppk does not contain adhesins, and Gtf2 is not an adhesin
 
 for adhesin in adhesins: #Loop through adhesins
+    logging.info(f'Processing adhesin {adhesin}...')
 
 # =============================================================================
 # 2. Define the locus tags for the genes of interest (before/after the gene)
 # =============================================================================
 
-#This is for the regulator just 
-# pos_tetR_tags = ['K2W83_RS00580', 'AKUFHON2_01070', #'AAPFHON13_00970', 
-#               'AKUG0101_01080', 'AKUG0102_01070', 'AKUG0103_01070', 
-#               'AKUG0401_01070', 'AKUG0402_01070', 'AKUG0403_PLPX00270',
-#               'AKUG0404_01070', 'AKUG0405_01070', 'AKUG0406_PLPX00280',
-#               'AKUG0407_01070', 'AKUG0408_01070', 'AKUG0410_01110',
-#               'AKUG0412_01110', 'AKUG0414_01070', 'AKUG0415_01070',
-#               'AKUG0417_01100', 'AKUG0420_PLPX00310', 'AKUG0601_01070',
-#               'AKUG0602_01070', 'AKUG0702_01070', 'AKUG0801_01070',
-#               'AKUG0802_01070', 'AKUG0803_01070', 'AKUG0804_01070',
-#               'AKUH1B104J_01070', 'AKUH1B105A_00980', 'AKUH3B101A_01060',
-#               'AKUH3B101J_01040', 'AKUH3B102A_01060', 'AKUH3B103J_01060',
-#               'AKUH3B103M_PLPX00270', 'AKUH3B104J_01040', 'AKUH3B104X_PLPX00270',
-#               'AKUH3B107A_01060', 'AKUH3B109M_01060', 'AKUH3B110M_01060',
-#               'AKUH3B111A_PLPX00260', 'AKUH3B111M_01060', 'AKUH3B202X_01050',
-#               'AKUH3B203J_01080', 'AKUH3B204J_01060', 'AKUH3B205J_01060',
-#               'AKUH3B207X_01060', 'AKUH3B208X_01070', 'AKUH4B202J_00980',
-#               'AKUH4B204J_01080', 'AKUH4B205J_01060', 'AKUH4B211M_01100',
-#               'AKUH4B412M_01140', 'AKUH4B501J_01140', 'AKUH4B502X_01070',
-#               'AKUH4B507J_01070', 'AKUH4B507X_01060', 'AKUH4B508X_01060',
-#               'MUB42_02675']
-
-# tetR_tags = ['K2W83_RS00575', 'AKUFHON2_01060', #'AAPFHON13_00970', 
-#               'AKUG0101_01070', 'AKUG0102_01060', 'AKUG0103_01060', 
-#               'AKUG0401_01060', 'AKUG0402_01060', 'AKUG0403_PLPX00280',
-#               'AKUG0404_01060', 'AKUG0405_01060', 'AKUG0406_PLPX00290',
-#               'AKUG0407_01060', 'AKUG0408_01060', 'AKUG0410_01100',
-#               'AKUG0412_01100', 'AKUG0414_01060', 'AKUG0415_01060',
-#               'AKUG0417_01090', 'AKUG0420_PLPX00320', 'AKUG0601_01060',
-#               'AKUG0602_01060', 'AKUG0702_01060', 'AKUG0801_01060',
-#               'AKUG0802_01060', 'AKUG0803_01060', 'AKUG0804_01060',
-#               'AKUH1B104J_01060', 'AKUH1B105A_00970', 'AKUH3B101A_01050',
-#               'AKUH3B101J_01030', 'AKUH3B102A_01050', 'AKUH3B103J_01050',
-#               'AKUH3B103M_PLPX00280', 'AKUH3B104J_01030', 'AKUH3B104X_PLPX00280',
-#               'AKUH3B107A_01050', 'AKUH3B109M_01050', 'AKUH3B110M_01050',
-#               'AKUH3B111A_PLPX00270', 'AKUH3B111M_01050', 'AKUH3B202X_01040',
-#               'AKUH3B203J_01070', 'AKUH3B204J_01050', 'AKUH3B205J_01050',
-#               'AKUH3B207X_01050', 'AKUH3B208X_01060', 'AKUH4B202J_00970',
-#               'AKUH4B204J_01070', 'AKUH4B205J_01050', 'AKUH4B211M_01090',
-#               'AKUH4B412M_01130', 'AKUH4B501J_01130', 'AKUH4B502X_01060',
-#               'AKUH4B507J_01060', 'AKUH4B507X_01050', 'AKUH4B508X_01050',
-#               'MUB42_02670']
-    
     if adhesin == adhesins[0]:
         adh_tags = ['K2W83_RS00570', 'AKUFHON2_01050', #'AAPFHON13_00970', 
                       'AKUG0101_01060', 'AKUG0403_PLPX00290', 'AKUH1B104J_01050', 
@@ -122,47 +125,6 @@ for adhesin in adhesins: #Loop through adhesins
                       'AKUH3B104X_PLPX00310', 'AKUH3B202X_01020', 'AKUH3B203J_01050', 
                       'AKUH4B202J_00950', 'AKUH4B204J_01050',  'AKUH4B412M_01110', 
                       'AKUH4B501J_01110', 'MUB42_02655'] #1 loctag less for HNS-8
-        # adh_tags = ['K2W83_RS00570', 'AKUFHON2_01050', #'AAPFHON13_00970', 
-        #               'AKUG0101_01060', 'AKUG0102_01050', 'AKUG0103_01050', 
-        #               'AKUG0401_01050', 'AKUG0402_01050', 'AKUG0403_PLPX00290',
-        #               'AKUG0404_01050', 'AKUG0405_01050', 'AKUG0406_PLPX00300',
-        #               'AKUG0407_01050', 'AKUG0408_01050', 'AKUG0410_01090',
-        #               'AKUG0412_01090', 'AKUG0414_01050', 'AKUG0415_01050',
-        #               'AKUG0417_01080', 'AKUG0420_PLPX00330', 'AKUG0601_01050',
-        #               'AKUG0602_01050', 'AKUG0702_01050', 'AKUG0801_01050',
-        #               'AKUG0802_01050', 'AKUG0803_01050', 'AKUG0804_01050',
-        #               'AKUH1B104J_01050', 'AKUH1B105A_00960', 'AKUH3B101A_01040',
-        #               'AKUH3B101J_01020', 'AKUH3B102A_01040', 'AKUH3B103J_01040',
-        #               'AKUH3B103M_PLPX00290', 'AKUH3B104J_01020', 'AKUH3B104X_PLPX00300',
-        #               'AKUH3B107A_01040', 'AKUH3B109M_01040', 'AKUH3B110M_01040',
-        #               'AKUH3B111A_PLPX00280', 'AKUH3B111M_01040', 'AKUH3B202X_01030',
-        #               'AKUH3B203J_01060', 'AKUH3B204J_01040', 'AKUH3B205J_01040',
-        #               'AKUH3B207X_01040', 'AKUH3B208X_01050', 'AKUH4B202J_00960',
-        #               'AKUH4B204J_01060', 'AKUH4B205J_01040', 'AKUH4B211M_01080',
-        #               'AKUH4B412M_01120', 'AKUH4B501J_01120', 'AKUH4B502X_01050',
-        #               'AKUH4B507J_01050', 'AKUH4B507X_01040', 'AKUH4B508X_01040',
-        #               'MUB42_02660'] #1 loctag less for HNS-8
-        
-        # pre_adh_tags = ['K2W83_RS00565', 'AKUFHON2_01040', #'AAPFHON13_00970', 
-        #               'AKUG0101_01050', 'AKUG0102_01040', 'AKUG0103_01040', 
-        #               'AKUG0401_01040', 'AKUG0402_01040', 'AKUG0403_PLPX00300',
-        #               'AKUG0404_01040', 'AKUG0405_01040', 'AKUG0406_PLPX00310',
-        #               'AKUG0407_01040', 'AKUG0408_01040', 'AKUG0410_01080',
-        #               'AKUG0412_01080', 'AKUG0414_01040', 'AKUG0415_01040',
-        #               'AKUG0417_01070', 'AKUG0420_PLPX00340', 'AKUG0601_01040',
-        #               'AKUG0602_01040', 'AKUG0702_01040', 'AKUG0801_01040',
-        #               'AKUG0802_01040', 'AKUG0803_01040', 'AKUG0804_01040',
-        #               'AKUH1B104J_01040', 'AKUH1B105A_00950', 'AKUH3B101A_01030',
-        #               'AKUH3B101J_01010', 'AKUH3B102A_01030', 'AKUH3B103J_01030',
-        #               'AKUH3B103M_PLPX00300', 'AKUH3B104J_01010', 'AKUH3B104X_PLPX00310',
-        #               'AKUH3B107A_01030', 'AKUH3B109M_01030', 'AKUH3B110M_01030',
-        #               'AKUH3B111A_PLPX00290', 'AKUH3B111M_01030', 'AKUH3B202X_01020',
-        #               'AKUH3B203J_01050', 'AKUH3B204J_01030', 'AKUH3B205J_01030',
-        #               'AKUH3B207X_01030', 'AKUH3B208X_01040', 'AKUH4B202J_00950',
-        #               'AKUH4B204J_01050', 'AKUH4B205J_01030', 'AKUH4B211M_01070',
-        #               'AKUH4B412M_01110', 'AKUH4B501J_01110', 'AKUH4B502X_01040',
-        #               'AKUH4B507J_01040', 'AKUH4B507X_01030', 'AKUH4B508X_01030',
-        #               'MUB42_02655'] #1 loctag less for HNS-8
         
     elif adhesin == adhesins[1]:
         adh_tags = ['AKUA1003_13820', 'AKUA1202_14880', 'AKUA1401_14120',
@@ -249,6 +211,11 @@ for adhesin in adhesins: #Loop through adhesins
     trimmed_outfile = mafft_outfile.replace('.mafft', '.trimmed.mafft') #Trimmed output alignment
     plot_file = f'{plotdir}/{adhesin}_intergenic_aln.png' #Output alignment plot
     
+    logging.info(f'Path to file with the intergenic region sequences: {outfile}')
+    logging.info(f'Path to the alignment: {mafft_outfile}')
+    logging.info(f'Trimmed alignment: {trimmed_outfile}')
+    logging.info(f'Path to the output alignment plot: {plot_file}')
+    
     get_strains = get_unique_strains(adh_tags) #Retrieve strain names
     
     #Retrieve list of input GenBank and genomic FASTA files
@@ -266,7 +233,7 @@ for adhesin in adhesins: #Loop through adhesins
     #Previous locus tag variable needed to properly retrieve the positions of genes in the reverse strand followed by genes in the forward strand
     prev_loctag = ''
     
-    print(f'Retrieving positions for {adhesin}!')
+    logging.info(f'Retrieving positions for {adhesin}!')
     pos_dict = {} #Dictonary to store the positions
     for file in infiles: #Loop through GenBank files
         with open(file) as handle: #Open input file
@@ -293,14 +260,14 @@ for adhesin in adhesins: #Loop through adhesins
                         prev_loctag = loctag #Store previous locus tag
                         if loctag in adh_tags: #If the locus tag corresponds to an adhesin
                             strand_dict[loctag] = strand #Store strand
-        # strain = os.path.basename(file).split('_')[0] #Retrieve the strain name
         pos_dict[strain] = (start, end, strand) #Save the position
-        print(f'{strain}: {start}-{end} ({strand}), {abs(end-start)} nucleotides.')
+        logging.info(f'{strain}: {start}-{end} ({strand}), {abs(end-start)} nucleotides.')
         
 # =============================================================================
 # 5. Save positions of interest to file
 # =============================================================================
-        
+
+    logging.info(f'Save sequences of interest to {outfile}')
     with open(outfile, 'w') as intergenic: #Open output file
         for fna in fna_infiles: #Loop through fna files
             strain = os.path.basename(fna).split('_')[0] #Retrieve strain name
@@ -326,37 +293,47 @@ for adhesin in adhesins: #Loop through adhesins
 # 6. Align the sequences
 # =============================================================================
                 
+    logging.info(f'Create MAFFT alignments and save them to {mafft_outfile}')
     #Align the intergenic regions and trim the alignments to remove gappy positions
-    subprocess.run(f'mafft-linsi {outfile} > {mafft_outfile}', shell = True)
-    subprocess.run(f'trimal -in {mafft_outfile} -out {trimmed_outfile} -gt 0.4 -fasta', shell = True)
+    subprocess.run(f'mafft-linsi {outfile} > {mafft_outfile} 2>> {log}', shell = True)
+    
+    logging.info(f'Trim alignments and save them to {trimmed_outfile}')
+    subprocess.run(f'trimal -in {mafft_outfile} -out {trimmed_outfile} -gt 0.4 -fasta 2>> {log}', 
+                   shell = True)
 
 # =============================================================================
 # 7. Plot the alignments and write the consensus to file
 # =============================================================================
     
+    logging.info('1. Plot the trimmed alignment...')
     #Create the object to be plotted and assign colors to the plot
     mv = MsaViz(trimmed_outfile, wrap_length = 100, color_scheme = 'Identity', 
                 show_consensus = True, consensus_color = '#A4BF19')
     mv.savefig(plot_file, dpi = 300) #Save the plot to a file
     
+    logging.info('2. Calculate consensus...')
     consensus = mv._consensus_seq.upper() #Retrieve the consensus sequence
     #Convert it to a Biopython record
     consensus_record = SeqRecord(Seq(consensus), id = adhesin,
                                  description = 'intergenic consensus')
-
+    
+    logging.info(f'3. Save the trimmed consensus to {consensus_file}')
     with open(consensus_file, 'a') as handle: #Open output file with consensus sequences
         handle.write(as_fasta(consensus_record)) #Write the consensus to the file
         
+    logging.info('1. Plot the untrimmed alignment...')
     #Create the object to be plotted and assign colors to the plot (untrimmed alignments)
     mv = MsaViz(mafft_outfile, wrap_length = 100, color_scheme = 'Identity', 
                 show_consensus = True, consensus_color = '#A4BF19')
     mv.savefig(plot_file.replace('.png', '_untrimmed.png'), dpi = 300) #Save the plot to a file
     
+    logging.info('2. Calculate consensus...')
     consensus = mv._consensus_seq.upper() #Retrieve the consensus sequence
     #Convert it to a Biopython record
     consensus_record = SeqRecord(Seq(consensus), id = adhesin,
                                  description = 'intergenic consensus')
    
+    logging.info(f'3. Save the untrimmed consensus to {consensus_untrimmed}')
     with open(consensus_untrimmed, 'a') as handle: #Open output file with consensus sequences
         handle.write(as_fasta(consensus_record)) #Write the consensus to the file
         
@@ -364,19 +341,24 @@ for adhesin in adhesins: #Loop through adhesins
 # 8. Align the consensus sequences and plot the alignment
 # =============================================================================
 
-#Run MAFFT to align all the consensus to each other
-subprocess.run(f'mafft-linsi {consensus_file} > {mafft_consensus}', shell = True)
+logging.info(f'Run MAFFT to align all the consensus from {consensus_file} to {mafft_consensus}')
+subprocess.run(f'mafft-linsi {consensus_file} > {mafft_consensus} 2>> {log}', 
+               shell = True)
 
-#Plot the consensus
+logging.info('Plot the consensus of trimmed alignments...')
 mv = MsaViz(mafft_consensus, wrap_length = 100, color_scheme = 'Identity', 
             show_consensus = True, consensus_color = '#A4BF19')
 mv.savefig(consensus_plot, dpi = 300)
 
-#Run MAFFT to align all the consensus to each other
-subprocess.run(f'mafft-linsi {consensus_untrimmed} > {consensus_untrimmed.replace(".fna", ".mafft.fna")}', shell = True)
+logging.info(f'Run MAFFT to align all the consensus from {consensus_untrimmed} to {consensus_untrimmed.replace(".fna", ".mafft.fna")}')
+subprocess.run(f'mafft-linsi {consensus_untrimmed} > {consensus_untrimmed.replace(".fna", ".mafft.fna")} 2>> {log}', 
+               shell = True)
 
-#Plot the consensus
+logging.info('Plot the consensus of untrimmed alignments...')
 mv = MsaViz(consensus_untrimmed.replace('.fna', '.mafft.fna'), 
             wrap_length = 100, color_scheme = 'Identity', 
             show_consensus = True, consensus_color = '#A4BF19')
 mv.savefig(consensus_plot.replace('.png', '_untrimmed.png'), dpi = 300)
+
+end_time = time.time() - start_time #Get total running time of the script
+logging.info(f'Done! This script took {end_time/60:2f} minutes.')
