@@ -23,8 +23,7 @@ import time
 # 0. Logging
 # =============================================================================
 
-#Path to the working directory
-workdir = os.path.expanduser('~') + '/mucoid_project/adhesins'
+workdir = os.path.expanduser('~') + '/mucoid_project/adhesins' #Path to the working directory
 
 logdir = f'{workdir}/logs' #Path to the log directory
 
@@ -33,7 +32,7 @@ if not os.path.exists(logdir):
     os.makedirs(logdir)
     
 #Path to the log file
-log = f'{logdir}/05-plot_tree.log'
+log = f'{logdir}/04a-plot_RR-TF_HK_trees.log'
 with open(log, 'w') as logfile: #Overwrite log file
     logfile.write('')
             
@@ -91,87 +90,84 @@ leaf_color = {'A0901': '#D55E00', 'A1001': '#771853', 'A1002': '#D55E00',
               'DSMZ': '#0072B2', 'HNS-8': 'black', 'GYUN-333': 'black', 
               'FHON13': '#79443B'}
 
-workdir = os.path.expanduser('~') + '/mucoid_project/adhesins' #Working directory
-outdir = f'{workdir}/plots/trees/adhesins' #Path where outputs will be saved
+indir = f'{workdir}/trees/RR-TF_HK' #Path to inputs
+outdir = f'{workdir}/plots/trees/RR-TF_HK' #Path where outputs will be saved
 
-if not os.path.exists(outdir): #Create output directory if it does not exist
+#Create output directory if it does not exist
+if not os.path.exists(outdir):
    os.makedirs(outdir)
    
-prot_types = ['MucBP+LPXTG', 'MubB2+LPXTG', 'Gtf2', 'collagen-binding', 'SH3b']
-
-for prot_type in prot_types:
-    
-    logging.info(f'Processing adhesin {prot_type}...')
-    treefile1 = f'{workdir}/trees/adhesins/{prot_type}.mafft.faa.treefile' #Path to the tree file for all adhesins
-    treefile2 = f'{workdir}/trees/adhesins/{prot_type}_repset.mafft.faa.treefile' #Path to the tree file for representative sequences
-       
+genes = ['RR', 'HK'] #List of genes for which trees have been generated
+suffixes = ['all', 'repset'] #List of datasets (all strains/representative strains)
+#Retrieve a list of tree files from gene names and datasets
+treefiles = [f'{indir}/{gene}_{suffix}.mafft.fna.treefile' for gene in genes for suffix in suffixes]
+   
 # =============================================================================
 # 2. Loop through tree files and generate output plot
 # =============================================================================
+
+for treefile in treefiles:
+    logging.info(f'Plotting tree from {treefile}...')
+    outfile = f'{outdir}/{os.path.basename(treefile).split(".")[0]}_support_tree.png' #Set the name of the output
     
-    for treefile in [treefile1, treefile2]:
-        logging.info(f'Plotting tree from {treefile}...')
-        outfile = f'{outdir}/{os.path.basename(treefile).split(".")[0]}_support_tree.png' #Set the name of the output
-        
-        t = Tree(treefile, parser = 'name') #Load the tree file into a tree object
-        
-        midpoint = t.get_midpoint_outgroup() #Retrieve midpoint
-        t.set_outgroup(midpoint) #Use it to root the tree
-        
-        ts = TreeStyle() #Create tree style object
-        ts.show_branch_length = False #Hide branch lengths
-        ts.show_branch_support = False #Hide branch supports to add formatted text
-        ts.show_leaf_name = False #Hide leaf names to add formatted tex
-        if 'LPXTG' not in prot_type and prot_type != 'SH3b':
-            ts.scale = 5000 #Set the scale of the tree
-            ts.scale_length = 0.1 #Set the length of the legend scale bar
-        else:
-            ts.scale = 1000 #Set the scale of the tree (for trees with longer branches)
-            ts.scale_length = 0.5 #Set the length of the legend scale bar
-        
-        ns = NodeStyle() #Create node style
-        ns['size'] = 0 #Hide nodes
-        ns['vt_line_width'] = 5 #Set width of vertical lines
-        ns['hz_line_width'] = 5 #Set width of horizontal lines
-        ns['hz_line_type'] = 0 #Horizontal lines will be solid lines
-        
-        for n in t.traverse(): #Loop through nodes in the tree
-           n.set_style(ns) #Apply the style to each node
-           
-           if n.name is not None and n not in t.leaves():
-               support = float(n.name.split('/')[0]) #Retrieve the support value from the node name
-               if support >= 50: #If the node is not a leaf and support bigger or equal than 50%
-                   n.support = support
-                   if n.support >= 95: #If the node support is bigger or equal than 95%
-                       color = 'black' #Color the support in black
-                   else: color = 'dimgrey' #Otherwise, color the support in grey
-                   support_face = TextFace(int(n.support), fgcolor = color, #Create text for support values and set its color
-                                           ftype = 'Arial', fsize = 30) #Sent font type and size
-                   n.add_face(support_face, column = 0, position = 'branch-top') #Add the text to the node
-                        
-        for leaf in t.leaves(): #Loop through the leaves in the tree
-            nleaf = leaf.name #Retrieve the leaf name
-            if 'LDX55' in nleaf: #If the leaf name contains this string
-                nleaf = nleaf.replace('LDX55', 'IBH001') #Change the string to IBH001
-            elif 'APS55' in nleaf: #Same for MP2
-                nleaf = nleaf.replace('APS55_RS', 'MP2_')
-            elif 'K2W83' in leaf.name: #Same for DSMZ
-                nleaf = nleaf.replace('K2W83_RS', 'DSMZ_')
-            elif 'VQ058' in leaf.name: #And for GYUN-333
-                nleaf = nleaf.replace('VQ058_RS', 'GYUN-333_')
-            elif 'MUB42' in leaf.name:
-                nleaf = nleaf.replace('MUB42', 'HNS-8')
-            else: nleaf = nleaf[3:]
-                
-            color = leaf_color.get(nleaf.split('_')[0], None) #Retrieve the color getting the strain name from the locus tag
-            name_face = TextFace(nleaf, fgcolor = color, ftype = 'Arial', 
-                                 fsize = 40) #Create a text face with the locus tag, colored by phylogroup 
-            leaf.add_face(name_face, column = 0, position = 'branch-right') #Add the locus tag to the leaf
+    t = Tree(treefile, parser = 'name') #Load the tree file into a tree object
+    
+    midpoint = t.get_midpoint_outgroup() #Retrieve midpoint
+    t.set_outgroup(midpoint) #Use it to root the tree
+    
+    ts = TreeStyle() #Create tree style object
+    ts.show_branch_length = False #Hide branch lengths
+    ts.show_branch_support = False #Hide branch supports to add formatted text
+    ts.show_leaf_name = False #Hide leaf names to add formatted tex
+    ts.scale = 25000 #Set the scale of the tree
+    ts.scale_length = 0.01 #Set the length of the legend scale bar
+    ts.branch_vertical_margin = 35 #Spacing between branches
+    ts.optimal_scale_level = 'full' #Avoid dotted lines to increase the length of branches
+    
+    ns = NodeStyle() #Create node style
+    ns['size'] = 0 #Hide nodes
+    ns['vt_line_width'] = 5 #Set width of vertical lines
+    ns['hz_line_width'] = 5 #Set width of horizontal lines
+    ns['hz_line_type'] = 0 #Horizontal lines will be solid lines
+    
+    for n in t.traverse(): #Loop through nodes in the tree
+       n.set_style(ns) #Apply the style to each node
+
+       if n.name is not None and n not in t.leaves(): #If the node is not a leaf or root node
+           support = float(n.name.split('/')[0]) #Retrieve the support value from the node name
+           if support >= 50: #If the support value is above 50
+               n.support = support #Assign it to the node support property
+               if n.support >= 95: #If the node support is above 95
+                   color = 'black' #Color the support value in black
+               else:
+                   color = 'dimgrey' #Otherwise, color it in grey
+               support_face = TextFace(int(n.support), fgcolor = color, fsize = 20,
+                                       ftype = 'Arial') #Create a text with the support value
+               n.add_face(support_face, column = 0, position='branch-top') #Add the text to the corresponding node in the tree
+                    
+    for leaf in t.leaves(): #Loop through the leaves in the tree
+        nleaf = leaf.name #Retrieve the leaf name
+        if 'LDX55' in nleaf: #If the leaf name contains this string
+            nleaf = nleaf.replace('LDX55', 'IBH001') #Change the string to IBH001
+        elif 'APS55' in nleaf: #Same for MP2
+            nleaf = nleaf.replace('APS55_RS', 'MP2_')
+        elif 'K2W83' in leaf.name: #Same for DSMZ
+            nleaf = nleaf.replace('K2W83_RS', 'DSMZ_')
+        elif 'MUB42' in leaf.name:
+            nleaf = nleaf.replace('MUB42', 'HNS-8')
+        elif 'VQ058_RS' in leaf.name:
+            nleaf = nleaf.replace('VQ058_RS', 'GYUN-333_')
+        else: nleaf = nleaf[3:]
             
-        t.ladderize(1) #Change the arrangement of the nodes in the tree so that the root is at the bottom
-        t.render(outfile, tree_style = ts, dpi = 400) #Save the output plot to PNG
-        t.render(outfile.replace('png', 'pdf'), tree_style = ts, dpi = 400) #Save the plot to PDF
-        t.render(outfile.replace('png', 'svg'), tree_style = ts, dpi = 400) #Save the plot to SVG
+        color = leaf_color.get(nleaf.split('_')[0], None) #Retrieve the color getting the strain name from the locus tag
+        name_face = TextFace(nleaf, fgcolor = color, ftype = 'Arial', 
+                             fsize = 40) #Create a text face with the locus tag, colored by phylogroup 
+        leaf.add_face(name_face, column = 0, position = 'branch-right') #Add the locus tag to the leaf
+        
+    t.ladderize(1) #Change the arrangement of the nodes in the tree so that the root is at the bottom
+    t.render(outfile, tree_style = ts, dpi = 400) #, w = 2480, h = 3508) #Save the output plot to PNG
+    t.render(outfile.replace('png', 'pdf'), tree_style = ts, dpi = 400) #, w = 2480, h = 3508) #Save the plot to TIFF
+    t.render(outfile.replace('png', 'svg'), tree_style = ts, dpi = 400) #, w = 2480, h = 3508) #Save the plot to SVG
 
 end_time = time.time() - start_time #Get total running time of the script
 logging.info(f'This script took {end_time/60:2f} minutes.')

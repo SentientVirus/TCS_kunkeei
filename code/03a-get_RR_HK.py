@@ -91,6 +91,7 @@ interpro_dir = f'{workdir}/interproscan/locus_tags' #Path to InterProScan annota
 outseqs = f'{workdir}/sequences/RR-TF_HK' #Path to the FASTA files with the sequences
 outdir = outseqs.replace('sequences', 'alignments') #Path to the alignments
 needle_outdir = f'{outdir}/needle' #Path to Needle results
+tree_outdir = f'{workdir}/trees/RR-TF_HK'
 
 #Parameters/intermediate variables
 threads = 8 #No. of threads to run software
@@ -118,7 +119,7 @@ infiles = sorted(infiles) #Sort the input files
 all_infiles =  [f'{inpath}/{file}' for file in sorted(os.listdir(inpath)) if file.endswith('.fna') and 'M-0' not in file] + extra_files
 
 #Create output directories if they don't exist
-new_dirs = [outseqs, outdir, needle_outdir] #List of output directories
+new_dirs = [outseqs, outdir, needle_outdir, tree_outdir] #List of output directories
 #List comprehension to create them if needed
 [os.makedirs(new_dir) for new_dir in new_dirs if not os.path.exists(new_dir)]
 
@@ -242,6 +243,10 @@ for file in [f'{outseqs}/{gene}_{suffix}.fna' for gene in list(set(gene_dict.val
     #Run the sequence alignment with MAFFT
     subprocess.run(f'mafft-linsi --thread {threads} {file} > {outfile} 2>> {log};',
                     shell = True)
+    
+    #Create trees with IQtree
+    subprocess.run(f'iqtree -nt AUTO -ntmax 24 -s {outfile} -st DNA -msub nuclear -bb 1000 -bnni >> {log} 2>> {log}',
+                   shell = True)
     
     #Retrieve all the FASTA records
     records = [record for record in SeqIO.parse(file, 'fasta')]
