@@ -77,7 +77,13 @@ class adhesin:
         self.domain_names = domain_names #List of domain names
         
     def get_type(self): #Function to assign a type to the adhesin based on Pfam annotations
-        if self.pfams == ['PF05737']:
+        if self.pfams == ['PF02503']:
+            self.type = 'ppk'
+            self.ref_locus = 'AKUH3B104J_02640'
+        elif self.pfams == ['PF10009']:
+           self.type = 'pre_ppk'
+           self.ref_locus = 'AKUH3B104J_02630'
+        elif self.pfams == ['PF05737']:
             self.type = 'collagen-binding'
             self.ref_locus = 'AKUH3B104J_00510'
         elif self.pfams == ['PF13632']:
@@ -95,7 +101,7 @@ class adhesin:
                 self.ref_locus = 'AKUH3B104J_01250'
             else: self.ref_locus = 'None'
         #Complex selection for adhesin 14310. Note that this adhesin is LPXTG 3-5 and can be further subdivided into types
-        elif is_sublist(sorted(['PF00746', 'PF19258']), sorted(self.pfams)) or (is_sublist(sorted(['PF00746', 'PF17966']), sorted(self.pfams)) and 'PF17965' not in self.pfams and 'PF12799' not in self.pfams) or self.locus_tag == 'AKUH3B104J_14300':
+        elif is_sublist(sorted(['PF00746', 'PF19258']), sorted(self.pfams)) or (is_sublist(sorted(['PF00746', 'PF17966']), sorted(self.pfams)) and 'PF17965' not in self.pfams and 'PF12799' not in self.pfams and 'PF13855' not in self.pfams) or self.locus_tag == 'AKUH3B104J_14300':
             self.type = 'MubB2+LPXTG'
             self.ref_locus = 'AKUH3B104J_14310'
         #Selection for the adhesin LPXTG-8, which can be located in the plasmid (truncated in H3B1-04X)
@@ -156,17 +162,19 @@ exclude = ['G0403', 'G0406', 'G0420', 'H3B1-02X', 'H3B2-03M', 'H4B1-02A',
            'H4B4-05J', 'H4B4-10M']
 
 #Adhesin types
-adhesins = ['MucBP+LPXTG', 'MubB2+LPXTG', 'Gtf2', 'collagen-binding', 'SH3b']
+adhesins = ['MucBP+LPXTG', 'MubB2+LPXTG', 'Gtf2', 'collagen-binding', 'SH3b', 
+            'ppk', 'pre_ppk']
 
 #Pfam IDs of the domains of interest
 pfam_domains = ['PF06458', 'PF19087', 'PF05737', 'PF19258', #MucBP, DUF5776, collagen-binding, signal peptide
-                'PF13632', 'PF17966', 'PF17965',  #gtf2, MucB2, MucBP_2
-                'PF00746', 'PF07564', 'PF03382',  #LPXTG, EBH (DUF1542), DUF285
-                'PF12799'] #Leucine-rich repeats (to exclude certain sequences)
+                'PF13632', 'PF17966', 'PF17965', 'PF00746',  #gtf2, MucB2, MucBP_2, LPXTG
+                'PF02503', 'PF10009', #ppk middle domain, DUF2252
+                'PF07564', 'PF03382',  #EBH (DUF1542), DUF285
+                'PF12799', 'PF13855'] #Leucine-rich repeats (to exclude certain sequences)
 
 #Pfam names of the domains of interest (abbreviated)
 pfam_names = ['MucBP', 'DUF5776', 'collagen-binding', 'Gtf2', 'MucB2', 
-              'MucBP_2', 'LPXTG']
+              'MucBP_2', 'LPXTG', 'ppk', 'DUF2252']
 
 #Representative strains
 repr_strains = ['DSMZ12361', 'IBH001', 'GYUN-333', 'HNS-8', 'A0901', 
@@ -240,7 +248,7 @@ for adhesin in adhesins: #Loop through the adhesin types
     faa_repset = f'{seqdir}/{adhesin}_repset.faa' #Set the path to the output FASTA file (representative strains only)
     
     logging.info(f'Processing adhesin {adhesin}...')
-    logging.info('Output TSV: {outfile}\nOutput FASTA: {faa_outfile}, {faa_repset}')
+    logging.info(f'Output TSV: {outfile}\nOutput FASTA: {faa_outfile}, {faa_repset}')
     
     with open(outfile, 'w') as handle: #Open the out file
         if adhesin == 'MucBP+LPXTG': #Depending on the type, write different headers
