@@ -125,7 +125,7 @@ for prot_type in prot_types:
         ts.show_leaf_name = False #Hide leaf names to add formatted tex
         if 'LPXTG' not in prot_type and prot_type not in 'SH3b':
             ts.scale = 5000 #Set the scale of the tree
-            ts.scale_length = 0.1 #Set the length of the legend scale bar
+            ts.scale_length = 0.05 #Set the length of the legend scale bar
         else:
             ts.scale = 1000 #Set the scale of the tree (for trees with longer branches)
             ts.scale_length = 0.2 #Set the length of the legend scale bar

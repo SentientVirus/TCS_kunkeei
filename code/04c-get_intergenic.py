@@ -98,8 +98,9 @@ consensus_plot = f'{plotdir}/consensus.png' #Output consensus alignment plot
 #Create output directories if they don't exist
 [os.makedirs(dirn) for dirn in [outdir, plotdir] if not os.path.exists(dirn)]
 
-with open(consensus_file, 'w') as handle: #Open the consensus file in write mode
+with open(consensus_file, 'w') as handle, open(consensus_untrimmed, 'w') as handle2: #Open the consensus file in write mode
     handle.write('') #Create it/Overwrite it
+    handle2.write('') #Create/Overwrite untrimmed alignment
 
 #Note: For the MubB2+LPXTG and the Gtf2&collagen-binding, that are placed next to each other in the genome, only the region upstream of the first locus is retrieved
 adhesins = ['MucBP+LPXTG', 'MubB2+LPXTG', 'Gtf2', 'ppk'] #Note: The region with ppk does not contain adhesins, and Gtf2 is not an adhesin
@@ -111,22 +112,22 @@ for adhesin in adhesins: #Loop through adhesins
 # 2. Define the locus tags for the genes of interest (before/after the gene)
 # =============================================================================
 
-    if adhesin == adhesins[0]:
+    if adhesin == adhesins[0]: #LPXTG-8
         adh_tags = ['K2W83_RS00570', 'AKUFHON2_01050', #'AAPFHON13_00970', 
                       'AKUG0101_01060', 'AKUG0403_PLPX00290', 'AKUH1B104J_01050', 
                       'AKUH1B105A_00960', 'AKUH3B101A_01040', 'AKUH3B104J_01020', 
                       'AKUH3B104X_PLPX00300', 'AKUH3B202X_01030', 'AKUH3B203J_01060', 
                       'AKUH4B202J_00960', 'AKUH4B204J_01060', 'AKUH4B412M_01120', 
-                      'AKUH4B501J_01120', 'MUB42_02660'] #1 loctag less for HNS-8
+                      'AKUH4B501J_01120', 'MUB42_02660']
         
         pre_adh_tags = ['K2W83_RS00565', 'AKUFHON2_01040', #'AAPFHON13_00970', 
                       'AKUG0101_01050', 'AKUG0403_PLPX00300', 'AKUH1B104J_01040', 
                       'AKUH1B105A_00950', 'AKUH3B101A_01030', 'AKUH3B104J_01010', 
                       'AKUH3B104X_PLPX00310', 'AKUH3B202X_01020', 'AKUH3B203J_01050', 
                       'AKUH4B202J_00950', 'AKUH4B204J_01050',  'AKUH4B412M_01110', 
-                      'AKUH4B501J_01110', 'MUB42_02655'] #1 loctag less for HNS-8
+                      'AKUH4B501J_01110', 'MUB42_02655']
         
-    elif adhesin == adhesins[1]:
+    elif adhesin == adhesins[1]: #LPXTG3-4
         adh_tags = ['AKUA1003_13820', 'AKUA1202_14880', 'AKUA1401_14120',
                     'AKUA1805_14110', 'K2W83_RS06805', 'AKUFHON2_14900',
                     'AKUG0101_14170', 'AKUG0403_14370', 'VQ058_RS06965',
@@ -136,7 +137,7 @@ for adhesin in adhesins: #Loop through adhesins
                     'AKUH3B209X_14730', 'AKUH4B202J_14100', 'AKUH4B204J_14700', 
                     'AKUH4B402J_13930', 'AKUH4B412M_14600', 'AKUH4B501J_14220', 
                     'AKUH4B503X_14010', 'AKUH4B504J_14660', 'AKUH4B505J_14210', 
-                    'APS55_RS03170'] #Note: only one predicted for G0403 and H3B2-03M? Why?
+                    'APS55_RS03170']
         
         pre_adh_tags = ['AKUA1003_13830', 'AKUA1202_14890', 'AKUA1401_14130',
                     'AKUA1805_14120', 'K2W83_RS06810', 'AKUFHON2_14910',
@@ -149,7 +150,7 @@ for adhesin in adhesins: #Loop through adhesins
                     'AKUH4B503X_14020', 'AKUH4B504J_14670', 'AKUH4B505J_14220', 
                     'APS55_RS03165']
         
-    elif adhesin == adhesins[2]:
+    elif adhesin == adhesins[2]: #Gtf2 (not an adhesin, but placed next to one in the genome)
         adh_tags = ['AKUA0901_00560', 'AKUA1003_00540', 'AKUA1202_00570',
                     'AKUA1401_00560', 'AKUA1805_00590', 'K2W83_RS00320',
                     'AKUFHON2_00530', 'AKUG0101_00550', 'AKUG0403_00530',
@@ -174,7 +175,7 @@ for adhesin in adhesins: #Loop through adhesins
                         'AKUH4B504J_00570', 'AKUH4B505J_00570', 'MUB42_02475', 
                         'LDX55_00295', 'APS55_RS02510']
     
-    elif adhesin == adhesins[3]:
+    elif adhesin == adhesins[3]: #ppk (not an adhesin, but regulated by the TCS)
         adh_tags = ['AKUA0901_02780', 'AKUA1003_02730','AKUA1202_02860',
                     'AKUA1401_02790', 'AKUA1805_02860', 'K2W83_RS01415',
                     'AKUFHON2_02820', 'AKUG0101_02740', 'AKUG0403_02900', 
