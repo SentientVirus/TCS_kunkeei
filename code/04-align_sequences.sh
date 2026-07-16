@@ -15,9 +15,8 @@ do
 outfile=$(basename -- $file)
 outfile=$outdir/$(echo $outfile | cut -d'.' -f 1).mafft.$(echo $file | cut -d'.' -f 2)
 
-echo 'Input: '$file
-echo 'Output: '$outfile
-echo 'Log: '$logfile
+echo 'Input: '$file 2>> $logfile
+echo 'Output: '$outfile 2>> $logfile
 
 mafft-linsi --thread $threads $file > $outfile 2>> $logfile;
 iqtree -nt AUTO -ntmax $threads -s $outfile -st AA -msub nuclear -bb 1000 -bnni >> $logfile

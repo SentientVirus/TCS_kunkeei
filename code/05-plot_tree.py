@@ -97,7 +97,8 @@ outdir = f'{workdir}/plots/trees/adhesins' #Path where outputs will be saved
 if not os.path.exists(outdir): #Create output directory if it does not exist
    os.makedirs(outdir)
    
-prot_types = ['MucBP+LPXTG', 'MubB2+LPXTG', 'Gtf2', 'collagen-binding', 'SH3b']
+prot_types = ['MucBP+LPXTG', 'MubB2+LPXTG', 'Gtf2', 'collagen-binding', 'SH3b',
+              'ppk', 'pre_ppk']
 
 for prot_type in prot_types:
     
@@ -122,12 +123,12 @@ for prot_type in prot_types:
         ts.show_branch_length = False #Hide branch lengths
         ts.show_branch_support = False #Hide branch supports to add formatted text
         ts.show_leaf_name = False #Hide leaf names to add formatted tex
-        if 'LPXTG' not in prot_type and prot_type != 'SH3b':
+        if 'LPXTG' not in prot_type and prot_type not in 'SH3b':
             ts.scale = 5000 #Set the scale of the tree
             ts.scale_length = 0.1 #Set the length of the legend scale bar
         else:
             ts.scale = 1000 #Set the scale of the tree (for trees with longer branches)
-            ts.scale_length = 0.5 #Set the length of the legend scale bar
+            ts.scale_length = 0.2 #Set the length of the legend scale bar
         
         ns = NodeStyle() #Create node style
         ns['size'] = 0 #Hide nodes
