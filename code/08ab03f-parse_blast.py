@@ -100,8 +100,11 @@ samples = list(set(dif['sample_no'])) #List of samples (isolates)
 #Create a dictionary to assign protein IDs to each sample
 prot_dict = {sample: list(dif[dif['sample_no'] == sample]['reference_locus']) for sample in samples}
 
-#Get protein IDs that are found only in the two first samples (mucoid)
+#Get protein IDs that are found only in the two first samples (mucoid) or in the two last samples (aggregating)
 possible_dif = [gene for gene in prot_dict[samples[0]] if gene in prot_dict[samples[1]] and gene not in prot_dict[samples[2]] + prot_dict[samples[3]]]
+possible_dif2 = [gene for gene in prot_dict[samples[2]] if gene in prot_dict[samples[3]] and gene not in prot_dict[samples[0]] + prot_dict[samples[1]]]
 
-print('List of mutated genes that could explain the deletion:')
+print('List of mutated genes that could explain the deletion (mucoid):')
 [print(gene) for gene in possible_dif]
+print('List of mutated genes that could explain the deletion (aggregating):')
+[print(gene) for gene in possible_dif2]

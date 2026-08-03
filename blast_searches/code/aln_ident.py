@@ -5,7 +5,7 @@ Created on Thu Mar 19 17:52:07 2026
 
 Script to calculate the percentage of identity and similar metrics between the 
 RR-TF and reference sequences. This script is independent from the rest of the
-pipeline, and hence isn't included in the Snakefile.'
+pipeline, and hence isn't included in the Snakefile.
 
 @author: Marina Mota-Merlo
 """
