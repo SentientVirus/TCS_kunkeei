@@ -7,3 +7,5 @@
 !LICENSE
 !code/*
 !*/
+!pixi_adhesins/pixi.*
+!pixi_adhesins/*.yml
