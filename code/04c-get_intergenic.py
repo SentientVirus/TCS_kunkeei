@@ -1,0 +1,365 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Oct 16 17:11:34 2025
+
+Script to retrieve the intergenetic regions between the MucBP adhesins, the
+TF and other genes to search for a promoter.
+
+@author: Marina Mota-Merlo
+"""
+
+# =============================================================================
+# 0. Import required modules
+# =============================================================================
+
+import os
+from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+from Bio.SeqIO.FastaIO import as_fasta
+import subprocess
+from pymsaviz import MsaViz
+import logging, sys
+import time
+
+# =============================================================================
+# 0. Logging
+# =============================================================================
+
+#Path to the working directory
+workdir = os.path.expanduser('~') + '/mucoid_project/adhesins'
+
+logdir = f'{workdir}/logs' #Path to the log directory
+
+#Create the log directory if it doesn't exist
+if not os.path.exists(logdir):
+    os.makedirs(logdir)
+    
+#Path to the log file
+log = f'{logdir}/04c-get_intergenic.log'
+with open(log, 'w') as logfile: #Overwrite log file
+    logfile.write('')
+            
+#Redirect stdout and stderr to log file
+sys.stdout = open(log, 'a')
+sys.stderr = open(log, 'a')
+
+#Logging configuration
+logging.basicConfig(filename = log, level = logging.INFO,
+                    format = '%(asctime)s %(message)s',
+                    datefmt = '%Y-%m-%d %H:%M:%S')
+
+start_time = time.time() #Get starting time
+
+# =============================================================================
+# 1. Define function to retrieve strain names
+# =============================================================================
+
+def get_unique_strains(tag_list):
+    '''
+    Function to get a list of strains from locus tags.
+
+    Parameters
+    ----------
+    tag_list : list
+        List of strings (must be locus tags, formatted as <strain_id>_<number>)
+
+    Returns
+    -------
+    list
+        List of strings (strain names).
+    '''
+    strains = [] #Create an empty list
+    for tag in tag_list: #Loop through locus tags
+        strain = tag.split('_')[0].replace('AKU', '') #Retrieve the strain name from the locus tag
+        if strain.startswith('H'): #If the strain name starts with H
+            strain = strain[:4] + '-' + strain[4:] #Add a - at position 4
+        #For strains with other locus tag names and formats, replace the IDs to strain names
+        strain = strain.replace('K2W83', 'DSMZ12361').replace('MUB42', 'HNS-8').replace('FHON', 'Fhon').replace('APS55', 'MP2').replace('VQ058', 'GYUN-333')
+        if strain not in strains: #If the strain is not in the list yet
+            strains.append(strain) #Add the strain to the list
+    strains = sorted(strains) #Sort the list
+    return strains #Return the list
+
+# =============================================================================
+# 2. Define global inputs
+# =============================================================================
+
+indir = os.path.expanduser('~') + '/Akunkeei_files/gbff' #Path to GenBanks
+indir2 = indir.replace('/gbff', '/new_genomes/gbff') #Path to GenBanks of newest genomes
+outdir = os.path.expanduser('~') + '/mucoid_project/adhesins/sequences/intergenic' #Output directory for FASTA files
+plotdir = os.path.expanduser('~') + '/mucoid_project/adhesins/plots/intergenic' #Output directory for plots
+consensus_file = f'{outdir}/consensus.fna' #Output consensus sequences
+consensus_untrimmed = consensus_file.replace('.fna', '_untrimmed.fna')
+mafft_consensus = consensus_file.replace('.fna', '.mafft.fna') #Output consensus alignment
+consensus_plot = f'{plotdir}/consensus.png' #Output consensus alignment plot
+
+#Create output directories if they don't exist
+[os.makedirs(dirn) for dirn in [outdir, plotdir] if not os.path.exists(dirn)]
+
+with open(consensus_file, 'w') as handle, open(consensus_untrimmed, 'w') as handle2: #Open the consensus file in write mode
+    handle.write('') #Create it/Overwrite it
+    handle2.write('') #Create/Overwrite untrimmed alignment
+
+#Note: For the MubB2+LPXTG and the Gtf2&collagen-binding, that are placed next to each other in the genome, only the region upstream of the first locus is retrieved
+adhesins = ['MucBP+LPXTG', 'MubB2+LPXTG', 'Gtf2', 'ppk'] #Note: The region with ppk does not contain adhesins, and Gtf2 is not an adhesin
+
+for adhesin in adhesins: #Loop through adhesins
+    logging.info(f'Processing adhesin {adhesin}...')
+
+# =============================================================================
+# 2. Define the locus tags for the genes of interest (before/after the gene)
+# =============================================================================
+
+    if adhesin == adhesins[0]: #LPXTG-8
+        adh_tags = ['K2W83_RS00570', 'AKUFHON2_01050', #'AAPFHON13_00970', 
+                      'AKUG0101_01060', 'AKUG0403_PLPX00290', 'AKUH1B104J_01050', 
+                      'AKUH1B105A_00960', 'AKUH3B101A_01040', 'AKUH3B104J_01020', 
+                      'AKUH3B104X_PLPX00300', 'AKUH3B202X_01030', 'AKUH3B203J_01060', 
+                      'AKUH4B202J_00960', 'AKUH4B204J_01060', 'AKUH4B412M_01120', 
+                      'AKUH4B501J_01120', 'MUB42_02660']
+        
+        pre_adh_tags = ['K2W83_RS00565', 'AKUFHON2_01040', #'AAPFHON13_00970', 
+                      'AKUG0101_01050', 'AKUG0403_PLPX00300', 'AKUH1B104J_01040', 
+                      'AKUH1B105A_00950', 'AKUH3B101A_01030', 'AKUH3B104J_01010', 
+                      'AKUH3B104X_PLPX00310', 'AKUH3B202X_01020', 'AKUH3B203J_01050', 
+                      'AKUH4B202J_00950', 'AKUH4B204J_01050',  'AKUH4B412M_01110', 
+                      'AKUH4B501J_01110', 'MUB42_02655']
+        
+    elif adhesin == adhesins[1]: #LPXTG3-4
+        adh_tags = ['AKUA1003_13820', 'AKUA1202_14880', 'AKUA1401_14120',
+                    'AKUA1805_14110', 'K2W83_RS06805', 'AKUFHON2_14900',
+                    'AKUG0101_14170', 'AKUG0403_14370', 'VQ058_RS06965',
+                    'AKUH1B104J_14360', 'AKUH1B105A_13510', 'AKUH1B302M_14240',
+                    'AKUH3B104J_14310', 'AKUH3B104X_14630', 'AKUH3B101A_14580', 
+                    'AKUH3B202X_14170', 'AKUH3B203J_14720', 'AKUH3B203M_13780', 
+                    'AKUH3B209X_14730', 'AKUH4B202J_14100', 'AKUH4B204J_14700', 
+                    'AKUH4B402J_13930', 'AKUH4B412M_14600', 'AKUH4B501J_14220', 
+                    'AKUH4B503X_14010', 'AKUH4B504J_14660', 'AKUH4B505J_14210', 
+                    'APS55_RS03170']
+        
+        pre_adh_tags = ['AKUA1003_13830', 'AKUA1202_14890', 'AKUA1401_14130',
+                    'AKUA1805_14120', 'K2W83_RS06810', 'AKUFHON2_14910',
+                    'AKUG0101_14180', 'AKUG0403_14380', 'VQ058_RS06970',
+                    'AKUH1B104J_14370', 'AKUH1B105A_13520', 'AKUH1B302M_14250',
+                    'AKUH3B104J_14320', 'AKUH3B104X_14640', 'AKUH3B101A_14590', 
+                    'AKUH3B202X_14180', 'AKUH3B203J_14730', 'AKUH3B203M_13790', 
+                    'AKUH3B209X_14740', 'AKUH4B202J_14110', 'AKUH4B204J_14710', 
+                    'AKUH4B402J_13940', 'AKUH4B412M_14610', 'AKUH4B501J_14230', 
+                    'AKUH4B503X_14020', 'AKUH4B504J_14670', 'AKUH4B505J_14220', 
+                    'APS55_RS03165']
+        
+    elif adhesin == adhesins[2]: #Gtf2 (not an adhesin, but placed next to one in the genome)
+        adh_tags = ['AKUA0901_00560', 'AKUA1003_00540', 'AKUA1202_00570',
+                    'AKUA1401_00560', 'AKUA1805_00590', 'K2W83_RS00320',
+                    'AKUFHON2_00530', 'AKUG0101_00550', 'AKUG0403_00530',
+                    'VQ058_RS00290', 'AKUH1B104J_00520', 'AKUH1B105A_00480',
+                    'AKUH1B302M_00560', 'AKUH3B101A_00510', 'AKUH3B104J_00520',
+                    'AKUH3B104X_00540', 'AKUH3B202X_00520', 'AKUH3B203J_00530', 
+                    'AKUH3B209X_00540', 'AKUH4B111J_00580', 'AKUH4B202J_00480', 
+                    'AKUH4B204J_00540', 'AKUH4B206J_00580', 'AKUH4B402J_00530', 
+                    'AKUH4B412M_00590', 'AKUH4B501J_00570', 'AKUH4B503X_00500', 
+                    'AKUH4B504J_00560', 'AKUH4B505J_00560', 'MUB42_02470', 
+                    'LDX55_00290', 'APS55_RS02515']
+        
+        pre_adh_tags = ['AKUA0901_00570', 'AKUA1003_00550', 'AKUA1202_00580',
+                        'AKUA1401_00570', 'AKUA1805_00600', 'K2W83_RS00325',
+                        'AKUFHON2_00540', 'AKUG0101_00560', 'AKUG0403_00540',
+                        'VQ058_RS00295', 'AKUH1B104J_00530', 'AKUH1B105A_00490',
+                        'AKUH1B302M_00570', 'AKUH3B101A_00520', 'AKUH3B104J_00530', 
+                        'AKUH3B104X_00550', 'AKUH3B202X_00530', 'AKUH3B203J_00540', 
+                        'AKUH3B209X_00550', 'AKUH4B111J_00590', 'AKUH4B202J_00490', 
+                        'AKUH4B204J_00550', 'AKUH4B206J_00590', 'AKUH4B402J_00540', 
+                        'AKUH4B412M_00600', 'AKUH4B501J_00580', 'AKUH4B503X_00510', 
+                        'AKUH4B504J_00570', 'AKUH4B505J_00570', 'MUB42_02475', 
+                        'LDX55_00295', 'APS55_RS02510']
+    
+    elif adhesin == adhesins[3]: #ppk (not an adhesin, but regulated by the TCS)
+        adh_tags = ['AKUA0901_02780', 'AKUA1003_02730','AKUA1202_02860',
+                    'AKUA1401_02790', 'AKUA1805_02860', 'K2W83_RS01415',
+                    'AKUFHON2_02820', 'AKUG0101_02740', 'AKUG0403_02900', 
+                    'VQ058_RS01425', 'AKUH1B104J_02770', 'AKUH1B105A_02610', 
+                    'AKUH1B302M_02770', 'AKUH3B101A_02640', 'AKUH3B104J_02630', 
+                    'AKUH3B104X_02720', 'AKUH3B202X_02720', 'AKUH3B203J_02660', 
+                    'AKUH3B203M_02750', 'AKUH3B206M_03130', 'AKUH3B209X_02730', 
+                    'AKUH4B111J_03020', 'AKUH4B202J_02660', 'AKUH4B204J_02690', 
+                    'AKUH4B206J_02830', 'AKUH4B402J_02790', 'AKUH4B405J_03030', 
+                    'AKUH4B406M_03220', 'AKUH4B412M_02730', 'AKUH4B501J_02720', 
+                    'AKUH4B503X_02690', 'AKUH4B504J_02900', 'AKUH4B505J_02830', 
+                    'LDX55_01410', 'APS55_RS01420'] #Locus tags of the CDS before ppk (forward)
+        
+        pre_adh_tags = ['AKUA0901_02770', 'AKUA1003_02720', 'AKUA1202_02850',
+                        'AKUA1401_02780', 'AKUA1805_02850', 'K2W83_RS01410',
+                        'AKUFHON2_02810', 'AKUG0101_02730', 'AKUG0403_02890', 
+                        'VQ058_RS01420', 'AKUH1B104J_02760', 'AKUH1B105A_02600', 
+                        'AKUH1B302M_02760', 'AKUH3B101A_02630', 'AKUH3B104J_02620', 
+                        'AKUH3B104X_02710', 'AKUH3B202X_02710', 'AKUH3B203J_02650', 
+                        'AKUH3B203M_02740', 'AKUH3B206M_03120', 'AKUH3B209X_02720', 
+                        'AKUH4B111J_03010', 'AKUH4B202J_02650', 'AKUH4B204J_02680', 
+                        'AKUH4B206J_02820', 'AKUH4B402J_02780', 'AKUH4B405J_03020', 
+                        'AKUH4B406M_03210', 'AKUH4B412M_02720', 'AKUH4B501J_02710', 
+                        'AKUH4B503X_02680', 'AKUH4B504J_02890', 'AKUH4B505J_02820', 
+                        'LDX55_01405', 'APS55_RS01425'] #Locus tags of the CDS before the one before ppk
+
+# =============================================================================
+# 3. Define paths to inputs and outputs
+# =============================================================================
+    
+    strand_dict = {} #Dictionary to store the strand of the previous CDS
+    outfile = f'{outdir}/{adhesin}_intergenic.fna' #Output fna file with the intergenic region
+    mafft_outfile = outfile.replace('.fna', '.mafft.fna') #Output alignment
+    trimmed_outfile = mafft_outfile.replace('.mafft', '.trimmed.mafft') #Trimmed output alignment
+    plot_file = f'{plotdir}/{adhesin}_intergenic_aln.png' #Output alignment plot
+    
+    logging.info(f'Path to file with the intergenic region sequences: {outfile}')
+    logging.info(f'Path to the alignment: {mafft_outfile}')
+    logging.info(f'Trimmed alignment: {trimmed_outfile}')
+    logging.info(f'Path to the output alignment plot: {plot_file}')
+    
+    get_strains = get_unique_strains(adh_tags) #Retrieve strain names
+    
+    #Retrieve list of input GenBank and genomic FASTA files
+    #1. First, retrieve the paths to the GenBank files (in two different directories)
+    infiles = [f'{indir}/{file}' for file in os.listdir(indir) if file.endswith('.gbff') and file.split('_')[0] in get_strains]
+    infiles += [f'{indir2}/{file}' for file in os.listdir(indir2) if file.endswith('.gbff') and file.split('_')[0] in get_strains]
+    infiles = sorted(infiles) #Sort alphabetically
+    #2. Then, retrieve the paths to the FASTA files
+    fna_infiles = [file.replace('gbff', 'fna') for file in infiles]
+    
+# =============================================================================
+# 4. Retrieve the positions to save to file
+# =============================================================================
+    
+    #Previous locus tag variable needed to properly retrieve the positions of genes in the reverse strand followed by genes in the forward strand
+    prev_loctag = ''
+    
+    logging.info(f'Retrieving positions for {adhesin}!')
+    pos_dict = {} #Dictonary to store the positions
+    for file in infiles: #Loop through GenBank files
+        with open(file) as handle: #Open input file
+            strain = os.path.basename(file).split('_')[0] #Retrieve the strain name
+            for record in SeqIO.parse(handle, 'genbank'): #Loop through records (contigs) in file
+                for cds in record.features: #Loop through features in each record (genes)
+                    if cds.type == 'gene' and 'locus_tag' in list(cds.qualifiers.keys()): #If the gene has an assigned locus tag
+                        loctag = cds.qualifiers['locus_tag'][0] #Retrieve the locus tag
+                        #If the locus tag corresponds to the gene before the adhesin and the adhesin is in the forward strand
+                        if loctag in pre_adh_tags and (cds.location.strand == 1 and 'PLPX' not in loctag):
+                            start = int(cds.location.end) #Set the end position of the gene as the start
+                            #The strand is considered forward only if the gene is not preceeded by an adhesin in the reverse strand, to set the right positions
+                            strand = '+' if not (prev_loctag in adh_tags and strand_dict[prev_loctag] == '-') else '-'
+                            start = int(cds.location.end) if strand == '+' else int(cds.location.start) #Set the end position of the gene as the start
+                        elif loctag in pre_adh_tags and (cds.location.strand == -1 or 'PLPX' in loctag): #If the gene is in the reverse strand
+                            start = int(cds.location.start) #Set the start of the intergenic region to the start of the gene
+                            strand = '-'
+                        elif loctag in adh_tags and (cds.location.strand == 1 and 'PLPX' not in loctag): #If the locus tag is the adhesin and it is in the forward strand
+                            end = int(cds.location.start) + 12 #Set the end of the segment to the gene start location + 12 nucleotides
+                            strand = '+'
+                        elif loctag in adh_tags and (cds.location.strand == -1 or 'PLPX' in loctag): #If the locus tag corresponds to the adhesin and it is in the reverse strand
+                            end = int(cds.location.end) - 12 #Set the end of the segment to the end of the gene - 12 nucleotides
+                            strand = '-'
+                        prev_loctag = loctag #Store previous locus tag
+                        if loctag in adh_tags: #If the locus tag corresponds to an adhesin
+                            strand_dict[loctag] = strand #Store strand
+        pos_dict[strain] = (start, end, strand) #Save the position
+        logging.info(f'{strain}: {start}-{end} ({strand}), {abs(end-start)} nucleotides.')
+        
+# =============================================================================
+# 5. Save positions of interest to file
+# =============================================================================
+
+    logging.info(f'Save sequences of interest to {outfile}')
+    with open(outfile, 'w') as intergenic: #Open output file
+        for fna in fna_infiles: #Loop through fna files
+            strain = os.path.basename(fna).split('_')[0] #Retrieve strain name
+            if adhesin == adhesins[0] and pos_dict[strain][1] < pos_dict[strain][0]: #If the start position is bigger than the end position (reverse strand)
+                plasmid = True #Set boolean to false
+            else: plasmid = False #Else, set boolean to false
+            with open(fna) as handle: #Open FASTA file
+                for record in SeqIO.parse(handle, 'fasta'): #Loop through records in the file
+                    if not plasmid: #If the gene is not in the plasmid
+                        if strain == 'MP2':
+                            record.seq = record.seq.reverse_complement()
+                        start = min(pos_dict[strain][0], pos_dict[strain][1]) #Get lowest value
+                        end = max(pos_dict[strain][0], pos_dict[strain][1]) #Get highest value
+                        fna_seq = record.seq[start:end] #Retrieve segment
+                        if pos_dict[strain][2] == '-': # or (strain == 'MP2' and pos_dict[strain] == '+'): #If the gene is in the reverse strand
+                            fna_seq = fna_seq.reverse_complement() #Get reverse complement of segments in the reverse strand
+                        new_record = SeqRecord(fna_seq, id = f'{strain}', description = '') #Create new record with the sequence
+                        intergenic.write(as_fasta(new_record)) #Write as fasta
+                        break
+
+                
+# =============================================================================
+# 6. Align the sequences
+# =============================================================================
+                
+    logging.info(f'Create MAFFT alignments and save them to {mafft_outfile}')
+    #Align the intergenic regions and trim the alignments to remove gappy positions
+    subprocess.run(f'mafft-linsi {outfile} > {mafft_outfile} 2>> {log}', shell = True)
+    
+    logging.info(f'Trim alignments and save them to {trimmed_outfile}')
+    subprocess.run(f'trimal -in {mafft_outfile} -out {trimmed_outfile} -gt 0.4 -fasta 2>> {log}', 
+                   shell = True)
+
+# =============================================================================
+# 7. Plot the alignments and write the consensus to file
+# =============================================================================
+    
+    logging.info('1. Plot the trimmed alignment...')
+    #Create the object to be plotted and assign colors to the plot
+    mv = MsaViz(trimmed_outfile, wrap_length = 100, color_scheme = 'Identity', 
+                show_consensus = True, consensus_color = '#A4BF19')
+    mv.savefig(plot_file, dpi = 300) #Save the plot to a file
+    
+    logging.info('2. Calculate consensus...')
+    consensus = mv._consensus_seq.upper() #Retrieve the consensus sequence
+    #Convert it to a Biopython record
+    consensus_record = SeqRecord(Seq(consensus), id = adhesin,
+                                 description = 'intergenic consensus')
+    
+    logging.info(f'3. Save the trimmed consensus to {consensus_file}')
+    with open(consensus_file, 'a') as handle: #Open output file with consensus sequences
+        handle.write(as_fasta(consensus_record)) #Write the consensus to the file
+        
+    logging.info('1. Plot the untrimmed alignment...')
+    #Create the object to be plotted and assign colors to the plot (untrimmed alignments)
+    mv = MsaViz(mafft_outfile, wrap_length = 100, color_scheme = 'Identity', 
+                show_consensus = True, consensus_color = '#A4BF19')
+    mv.savefig(plot_file.replace('.png', '_untrimmed.png'), dpi = 300) #Save the plot to a file
+    
+    logging.info('2. Calculate consensus...')
+    consensus = mv._consensus_seq.upper() #Retrieve the consensus sequence
+    #Convert it to a Biopython record
+    consensus_record = SeqRecord(Seq(consensus), id = adhesin,
+                                 description = 'intergenic consensus')
+   
+    logging.info(f'3. Save the untrimmed consensus to {consensus_untrimmed}')
+    with open(consensus_untrimmed, 'a') as handle: #Open output file with consensus sequences
+        handle.write(as_fasta(consensus_record)) #Write the consensus to the file
+        
+# =============================================================================
+# 8. Align the consensus sequences and plot the alignment
+# =============================================================================
+
+logging.info(f'Run MAFFT to align all the consensus from {consensus_file} to {mafft_consensus}')
+subprocess.run(f'mafft-linsi {consensus_file} > {mafft_consensus} 2>> {log}', 
+               shell = True)
+
+logging.info('Plot the consensus of trimmed alignments...')
+mv = MsaViz(mafft_consensus, wrap_length = 100, color_scheme = 'Identity', 
+            show_consensus = True, consensus_color = '#A4BF19')
+mv.savefig(consensus_plot, dpi = 300)
+
+logging.info(f'Run MAFFT to align all the consensus from {consensus_untrimmed} to {consensus_untrimmed.replace(".fna", ".mafft.fna")}')
+subprocess.run(f'mafft-linsi {consensus_untrimmed} > {consensus_untrimmed.replace(".fna", ".mafft.fna")} 2>> {log}', 
+               shell = True)
+
+logging.info('Plot the consensus of untrimmed alignments...')
+mv = MsaViz(consensus_untrimmed.replace('.fna', '.mafft.fna'), 
+            wrap_length = 100, color_scheme = 'Identity', 
+            show_consensus = True, consensus_color = '#A4BF19')
+mv.savefig(consensus_plot.replace('.png', '_untrimmed.png'), dpi = 300)
+
+end_time = time.time() - start_time #Get total running time of the script
+logging.info(f'Done! This script took {end_time/60:2f} minutes.')

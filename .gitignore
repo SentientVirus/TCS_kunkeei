@@ -1,0 +1,11 @@
+# Ignore everything, except for...
+*
+
+# These files
+!.gitignore
+!README
+!LICENSE
+!code/*
+!*/
+!pixi_adhesins/pixi.*
+!pixi_adhesins/*.yml
