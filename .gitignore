@@ -1,9 +1,0 @@
-*
-!code/*
-!pixi_proteome/*
-!*/
-code/.*
-!README.md
-!Snakefile
-!config.yml
-.*
