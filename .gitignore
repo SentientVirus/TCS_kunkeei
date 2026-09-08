@@ -1,0 +1,10 @@
+*
+!pixi_transcript/*
+!code/*
+!code/interpro/*
+!.gitignore
+!Snakefile
+!*/
+*/.Rhistory
+.snakemake/*
+pixi_transcript/.*
