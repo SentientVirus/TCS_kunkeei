@@ -1,0 +1,2 @@
+import os
+workdir = os.path.expanduser("~") + "/proteomics" 
