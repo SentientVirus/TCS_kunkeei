@@ -1,0 +1,58 @@
+rule all:
+    input:
+        "blastp/20260302_RR-TF_results.csv", 
+        expand("plots/blastp_RR-TF_tree.{ext}", ext = ["png", "svg", "pdf"])
+
+rule parse_blastp:
+    output:
+        ["blastp/RR-TF/20260521_RR-TF_results.csv", "blastp/HK/20260520_HK_results.csv"]
+    input:
+        hits = ["blastp/RR-TF/20260521_RR-TF_HitTable.csv", "blastp/HK/20260520_HK_HitTable.csv"],
+        descriptions = ["blastp/RR-TF/20260521_RR-TF_Descriptions.csv", "blastp/HK/20260520_HK_Descriptions.csv"] 
+    threads: 1
+    log: "logs/01-parse_BLASTp.log"
+#    conda: "pixi_phylo/default.yml"
+    script: "code/01-merge_blastp_info.py"
+
+rule get_faa:
+    output:
+        faa = expand("fasta/blastp_{gene}_hits.faa", gene = ["RR-TF", "HK"]),
+        formatted = expand("fasta/blastp_{gene}_formatted.faa", gene = ["RR-TF", "HK"])
+    input:
+        expand("blastp/{date_gene}_Descriptions.csv", date_gene = ["RR-TF/20260521_RR-TF", "HK/20260520_HK"])
+    threads: 1
+    log: "logs/02-get_faa.log"
+#    conda: "pixi_phylo/default.yml"
+    script: "code/02-get_faa.py"
+
+rule align_seqs:
+    output:
+        expand("fasta/blastp_{gene}_formatted.mafft.faa", gene = ["RR-TF", "HK"])
+    input:
+        expand("fasta/blastp_{gene}_formatted.faa", gene = ["RR-TF", "HK"])
+    threads: 4
+    log: "logs/03-align_seqs.log"
+#    conda: "pixi_phylo/default.yml"
+    script: "code/03-align_seqs.py"
+
+rule run_IQtree:
+    output:
+        expand("fasta/trees/blastp_{gene}_formatted.mafft.faa.{ext}", gene = ["RR-TF", "HK"], ext = ["treefile", "ufboot", "splits.nex", "log", "mldist", "model.gz", "ckp.gz", "contree", "iqtree", "bionj"])
+    input:
+        expand("fasta/blastp_{gene}_formatted.mafft.faa", gene = ["RR-TF", "HK"])
+    threads: 24
+    log: "logs/04-run_IQtree.log"
+#    conda: "pixi_phylo/default.yml"
+    script: "code/04-run_iqtree.py"
+
+rule plot_tree:
+    output:
+        expand("plots/blastp_{gene}_tree.{ext}", gene = ["RR-TF", "HK"], ext = ["png", "svg", "pdf"])
+    input:
+        tree = expand("fasta/trees/blastp_{gene}_formatted.mafft.faa.treefile", gene = ["RR-TF", "HK"]),
+        hits = ["blastp/RR-TF/20260521_RR-TF_results.csv", "blastp/HK/20260520_HK_results.csv"]
+    threads: 1
+    log: "logs/05-plot_tree.log"
+#    conda: "pixi_phylo/default.yml"
+    script: "code/05-ete4_plot.py"
+

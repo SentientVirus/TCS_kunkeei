@@ -1,0 +1,26 @@
+name: genome-analysis
+channels:
+- conda-forge
+- https://conda.anaconda.org/bioconda
+- nodefaults
+dependencies:
+- bioconda::samtools
+- bioconda::prokka
+- blast >=2.16.0,<3
+- circlator >=1.5.5,<2
+- conda-forge::setuptools >=80.9.0,<81
+- bioconda::progressivemauve >=snapshot_2015_2_13,<1a
+- conda-forge::pygenomeviz >=1.6.1,<2
+- multiqc >=1.33,<2
+- fastplong >=0.2.1,<0.3
+- bioconda::seqkit >=2.12.0,<3
+- fastqc >=0.12.1,<0.13
+- bioconda::pbccs >=6.4.0,<7
+- bioconda::lima >=2.13.0,<3
+- minimap2 >=2.28,<3
+- biopython >=1.86,<2
+- spyder >=6.1.0,<7
+- pandas >=2.3.3,<3
+- python >=3.11.9,<3.14
+- bioconda::snakemake >=9.13.6,<10
+
